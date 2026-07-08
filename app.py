@@ -39,6 +39,7 @@ DEMO_HTML = """
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI","Noto Sans KR",sans-serif;
     background:var(--bg);
@@ -246,9 +247,14 @@ DEMO_HTML = """
     opacity:0;transition:opacity .5s ease;padding:24px;
   }
   .intro.visible{opacity:1;}
-  .intro-card{width:100%;max-width:440px;color:#f6f5f2;}
-  .intro-card h1{font-size:clamp(26px,4vw,34px);line-height:1.28;margin-top:14px;font-weight:700;letter-spacing:-.02em;}
+  .intro-card{width:100%;max-width:620px;color:#f6f5f2;}
+  .intro-card h1{font-size:20px;line-height:1.4;margin-top:14px;font-weight:700;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;}
   .intro-card h1 em{font-style:normal;color:var(--gold);}
+  .intro-card .sub{white-space:nowrap;font-size:11px;line-height:1.75;max-width:none;overflow:hidden;}
+  @media (min-width:700px){
+    .intro-card h1{font-size:25px;}
+    .intro-card .sub{font-size:13.5px;}
+  }
   .field-row{margin-top:22px;}
   .field-row label{display:block;font-size:13px;font-weight:700;color:#c9c8c1;margin-bottom:8px;}
   .field-row input{
@@ -267,27 +273,87 @@ DEMO_HTML = """
   .camera.visible{opacity:1;}
   .camera-card{width:100%;max-width:420px;color:#f6f5f2;text-align:center;}
   .cam-title{font-size:clamp(22px,3.6vw,28px);margin-top:14px;font-weight:700;letter-spacing:-.02em;}
+  .cam-frame-outer{position:relative;margin:30px auto 0;width:min(260px,64vw);aspect-ratio:1/1;}
   .cam-frame{
-    position:relative;margin:26px auto 0;width:min(300px,70vw);aspect-ratio:3/4;
-    border-radius:24px;overflow:hidden;background:#000;border:1px solid #3a3934;
+    position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#000;
   }
-  .cam-frame video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
-  .cam-guide{
-    position:absolute;inset:14%;border:2px dashed rgba(201,168,106,0.55);border-radius:50%;
+  .cam-frame video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);border-radius:50%;}
+  .cam-scanline{
+    position:absolute;left:8%;right:8%;height:3px;top:15%;
+    background:linear-gradient(90deg, transparent, rgba(201,168,106,.95), transparent);
+    box-shadow:0 0 14px 3px rgba(201,168,106,.75);
+    animation:cam-scan 2.4s ease-in-out infinite;pointer-events:none;
+  }
+  @keyframes cam-scan{
+    0%,100%{ top:15%; opacity:.25; }
+    50%{ top:82%; opacity:1; }
+  }
+  .cam-ring{
+    position:absolute;inset:-9px;width:calc(100% + 18px);height:calc(100% + 18px);
+    animation:cam-ring-spin 7s linear infinite;pointer-events:none;
+  }
+  .cam-ring circle{fill:none;stroke:var(--gold);stroke-width:2.5;stroke-dasharray:3 7;opacity:.8;}
+  @keyframes cam-ring-spin{ to{ transform:rotate(360deg); } }
+  .cam-arrow{
+    position:absolute;font-size:24px;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.6);
+    transition:top .4s ease,left .4s ease,right .4s ease,bottom .4s ease,transform .4s ease,opacity .3s ease;
     pointer-events:none;
   }
-  .cam-arrow{
-    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    font-size:40px;color:var(--gold);text-shadow:0 2px 10px rgba(0,0,0,.5);pointer-events:none;
-  }
-  .cam-progress{margin-top:24px;height:6px;border-radius:999px;background:#3a3934;overflow:hidden;}
+  .cam-arrow.dir-center{top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);font-size:20px;opacity:.9;}
+  .cam-arrow.dir-right{top:50%;left:auto;right:-16px;bottom:auto;transform:translateY(-50%);}
+  .cam-arrow.dir-left{top:50%;right:auto;left:-16px;bottom:auto;transform:translateY(-50%);}
+  .cam-arrow.dir-up{left:50%;top:-16px;right:auto;bottom:auto;transform:translateX(-50%);}
+  .cam-arrow.dir-down{left:50%;bottom:-16px;top:auto;right:auto;transform:translateX(-50%);}
+  .cam-progress{margin-top:26px;height:6px;border-radius:999px;background:#3a3934;overflow:hidden;}
   .cam-progress-fill{height:100%;width:0%;background:var(--gold);border-radius:999px;}
   .cam-steps{margin-top:14px;font-size:14px;color:#c9c8c1;font-weight:600;min-height:20px;}
   .cam-fallback{margin-top:18px;font-size:13px;color:#9c9b92;}
   .cam-fallback .btn{margin-top:10px;}
 
   @media (max-width:520px){
-    .cam-frame{width:min(240px,62vw);}
+    .cam-frame-outer{width:min(220px,60vw);}
+  }
+
+  /* ---------- DIAGNOSIS RESULT ---------- */
+  .diagnosis{background:var(--bg);opacity:0;transition:opacity .5s ease;padding:24px;}
+  .diagnosis.visible{opacity:1;}
+  .diag-card{width:100%;max-width:640px;}
+  .diag-title{font-size:clamp(20px,3.4vw,26px);margin-top:10px;font-weight:700;letter-spacing:-.02em;color:var(--ink);}
+  .diag-top{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-top:22px;}
+  .diag-summary,.diag-face{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .diag-summary-title,.diag-face-title{font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:14px;}
+  .diag-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .diag-summary-grid span{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px;}
+  .diag-summary-grid b{font-size:19px;font-weight:700;color:var(--ink);}
+  .diag-summary-grid b i{font-style:normal;font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:2px;}
+  .face-map{position:relative;width:120px;height:148px;margin:0 auto;}
+  .face-shape{position:absolute;inset:0;background:#f1ede4;border:1.5px solid #ddd6c6;border-radius:48% 48% 44% 44% / 56% 56% 44% 44%;}
+  .face-zone{position:absolute;width:34%;height:20%;border-radius:50%;transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(193,102,107,.55), rgba(193,102,107,0) 70%);opacity:0;transition:opacity .6s ease;}
+  .face-zone[data-zone="forehead"]{top:26%;left:50%;width:40%;height:16%;}
+  .face-zone[data-zone="cheek-l"]{top:56%;left:26%;}
+  .face-zone[data-zone="cheek-r"]{top:56%;left:74%;}
+  .face-zone[data-zone="chin"]{top:80%;left:50%;width:22%;height:14%;}
+  .face-zone.on{opacity:1;}
+  .diag-sentence{margin-top:18px;padding:16px 20px;background:var(--accent-soft);border-radius:var(--radius);font-size:14px;color:#3c4636;line-height:1.6;}
+  .diag-concerns{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .diag-concerns-head{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:700;color:var(--ink);}
+  .diag-tag{font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);padding:4px 10px;border-radius:999px;}
+  .diag-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-top:14px;padding:0 2px;}
+  .diag-row{display:grid;grid-template-columns:64px 1fr 38px 18px;align-items:center;gap:12px;margin-top:14px;}
+  .diag-row-label{font-size:13.5px;font-weight:600;color:var(--ink);}
+  .diag-row-track{height:8px;border-radius:999px;background:linear-gradient(90deg,#c1666b,#c98a3c,#54634a);position:relative;}
+  .diag-row-marker{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid var(--ink);transform:translate(-50%,-50%);}
+  .diag-row-value{font-size:13px;font-weight:700;text-align:right;color:var(--ink);}
+  .diag-row-dot{width:10px;height:10px;border-radius:50%;margin:0 auto;}
+  .diag-row-dot.good{background:var(--good);}
+  .diag-row-dot.mid{background:var(--mid);}
+  .diag-row-dot.bad{background:var(--bad);}
+  #diagCta{margin-top:26px;width:100%;padding:14px;font-size:15px;}
+
+  @media (max-width:640px){
+    .diag-top{grid-template-columns:1fr;}
+    .face-map{margin-top:10px;}
   }
 </style>
 </head>
@@ -303,7 +369,7 @@ DEMO_HTML = """
   <div class="intro-card">
     <div class="eyebrow on-dark">MEN'S BEAUTY, SIMPLIFIED</div>
     <h1>피부 관리, <em>어렵게</em> 생각하지 마세요</h1>
-    <p class="sub on-dark">복잡한 성분 이름도, 매장에서의 어색한 상담도 필요 없어요. 카메라로 얼굴을 몇 초만 비춰주시면 AI가 피부 상태를 확인해드려요.</p>
+    <p class="sub on-dark">복잡한 성분 이름도, 매장에서의 어색한 상담도 필요 없어요.<br/>카메라로 얼굴을 몇 초만 비춰주시면 AI가 피부 상태를 확인해드려요.</p>
     <div class="field-row">
       <label>닉네임</label>
       <input type="text" id="nickInput" placeholder="닉네임을 입력해주세요" maxlength="12" />
@@ -322,9 +388,12 @@ DEMO_HTML = """
     <div class="eyebrow on-dark">SKIN ANALYSIS AI</div>
     <h2 class="cam-title">지금부터 얼굴을 촬영할게요</h2>
     <p class="sub on-dark" id="camSub">잠시 후 안내에 따라 고개를 움직여주세요</p>
-    <div class="cam-frame">
-      <video id="camVideo" autoplay playsinline muted></video>
-      <div class="cam-guide"></div>
+    <div class="cam-frame-outer">
+      <div class="cam-frame">
+        <video id="camVideo" autoplay playsinline muted></video>
+        <div class="cam-scanline"></div>
+      </div>
+      <svg class="cam-ring" viewBox="0 0 200 200"><circle cx="100" cy="100" r="97"/></svg>
       <div class="cam-arrow" id="camArrow"></div>
     </div>
     <div class="cam-progress"><div class="cam-progress-fill" id="camProgressFill"></div></div>
@@ -333,6 +402,45 @@ DEMO_HTML = """
       카메라를 사용할 수 없어요.<br/>
       <button class="btn btn-outline btn-sm" id="camSkip">카메라 없이 계속하기</button>
     </div>
+  </div>
+</div>
+
+<div class="screen diagnosis hidden" id="screenDiagnosis">
+  <div class="diag-card">
+    <div class="eyebrow">DIAGNOSIS</div>
+    <h2 class="diag-title">피부 진단 결과예요</h2>
+
+    <div class="diag-top">
+      <div class="diag-summary">
+        <div class="diag-summary-title">요약</div>
+        <div class="diag-summary-grid">
+          <div><span>피부 나이</span><b id="diagAge">-</b></div>
+          <div><span>피부 점수</span><b id="diagScore">-</b></div>
+          <div><span>우선 관리 항목</span><b id="diagPriority">-</b></div>
+          <div><span>피부 타입</span><b id="diagType">-</b></div>
+        </div>
+      </div>
+      <div class="diag-face">
+        <div class="diag-face-title">관리가 필요한 부위</div>
+        <div class="face-map">
+          <div class="face-shape"></div>
+          <div class="face-zone" data-zone="forehead"></div>
+          <div class="face-zone" data-zone="cheek-l"></div>
+          <div class="face-zone" data-zone="cheek-r"></div>
+          <div class="face-zone" data-zone="chin"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="diag-sentence" id="diagSentence"></div>
+
+    <div class="diag-concerns">
+      <div class="diag-concerns-head"><span>피부 고민</span><span class="diag-tag">맞춤 기준: 기본</span></div>
+      <div class="diag-scale"><span>나쁨</span><span>보통</span><span>좋음</span></div>
+      <div id="diagRows"></div>
+    </div>
+
+    <button class="btn btn-gold" id="diagCta">맞춤 제품 추천</button>
   </div>
 </div>
 
@@ -461,12 +569,17 @@ DEMO_HTML = """
 
 <script>
 (function(){
+  window.appState = { concerns:new Set(), analyzed:false, allInOne:false };
+  const state = window.appState;
+
   const splash = document.getElementById('screenSplash');
   const splashLogo = document.getElementById('splashLogo');
   const intro = document.getElementById('screenIntro');
   const camera = document.getElementById('screenCamera');
+  const diagnosis = document.getElementById('screenDiagnosis');
   const appScreen = document.getElementById('screenApp');
   let nickname = '';
+  let enteredAge = 29;
 
   /* ---------------- 1) splash ---------------- */
   setTimeout(()=> splashLogo.classList.add('sharp'), 150);
@@ -495,6 +608,7 @@ DEMO_HTML = """
       return;
     }
     nickname = nick;
+    enteredAge = Number(age);
     intro.classList.remove('visible');
     setTimeout(()=>{
       intro.classList.add('hidden');
@@ -513,11 +627,11 @@ DEMO_HTML = """
   const camFallback = document.getElementById('camFallback');
 
   const DIRECTIONS = [
-    { label:'정면을 바라봐주세요', arrow:'●' },
-    { label:'고개를 오른쪽으로 천천히 돌려주세요', arrow:'→' },
-    { label:'고개를 왼쪽으로 천천히 돌려주세요', arrow:'←' },
-    { label:'고개를 위로 들어주세요', arrow:'↑' },
-    { label:'고개를 아래로 내려주세요', arrow:'↓' }
+    { label:'정면을 바라봐주세요', arrow:'●', dir:'center' },
+    { label:'고개를 오른쪽으로 천천히 돌려주세요', arrow:'→', dir:'right' },
+    { label:'고개를 왼쪽으로 천천히 돌려주세요', arrow:'←', dir:'left' },
+    { label:'고개를 위로 들어주세요', arrow:'↑', dir:'up' },
+    { label:'고개를 아래로 내려주세요', arrow:'↓', dir:'down' }
   ];
   let stream = null;
 
@@ -545,6 +659,7 @@ DEMO_HTML = """
       const d = DIRECTIONS[i];
       camSub.textContent = d.label;
       camArrow.textContent = d.arrow;
+      camArrow.className = 'cam-arrow dir-' + d.dir;
       camSteps.textContent = (i+1) + ' / ' + DIRECTIONS.length;
       camProgressFill.style.transition = 'none';
       camProgressFill.style.width = '0%';
@@ -561,19 +676,93 @@ DEMO_HTML = """
   function finishCamera(){
     if(stream){ stream.getTracks().forEach(t=>t.stop()); }
     camSub.textContent = '촬영이 완료됐어요. 분석을 준비할게요...';
+    camArrow.className = 'cam-arrow dir-center';
     camArrow.textContent = '✓';
     camSteps.textContent = '';
-    setTimeout(enterApp, 1300);
+    if(state.concerns.size === 0){
+      ['scar','pore','oil','acne'].forEach(k=> state.concerns.add(k));
+    }
+    setTimeout(showDiagnosis, 1300);
   }
 
-  function enterApp(){
+  function showDiagnosis(){
     camera.classList.remove('visible');
     setTimeout(()=>{
       camera.classList.add('hidden');
+      renderDiagnosis();
+      diagnosis.classList.remove('hidden');
+      requestAnimationFrame(()=> diagnosis.classList.add('visible'));
+    }, 550);
+  }
+
+  /* ---------------- 4) diagnosis result ---------------- */
+  function clamp10(v){ return Math.max(0.5, Math.min(10, Math.round(v*10)/10)); }
+
+  function computeDiagnosis(){
+    const c = state.concerns;
+    return [
+      { key:'wrinkle', label:'주름', score: clamp10(8.2 - Math.max(0, enteredAge-25)*0.12) },
+      { key:'pigment', label:'색소침착', score: clamp10(7.6 - (c.has('scar')?3.4:0)) },
+      { key:'redness', label:'붉은기', score: clamp10(8.6 - (c.has('acne')?2.2:0) - (c.has('oil')?0.8:0)) },
+      { key:'pore', label:'모공', score: clamp10(8.0 - (c.has('pore')?5.2:0)) },
+      { key:'oil', label:'피지', score: clamp10(7.6 - (c.has('oil')?4.0:0) - (c.has('acne')?1.4:0)) },
+      { key:'trouble', label:'트러블', score: clamp10(8.6 - (c.has('acne')?5.0:0) - (c.has('oil')?0.8:0)) }
+    ];
+  }
+
+  function renderDiagnosis(){
+    const metrics = computeDiagnosis();
+    const overall = metrics.reduce((a,m)=>a+m.score,0) / metrics.length;
+    const skinAge = Math.max(18, Math.round(enteredAge + (8-overall)*1.4));
+    const worst = metrics.reduce((a,b)=> a.score<b.score?a:b);
+    const best = metrics.reduce((a,b)=> a.score>b.score?a:b);
+    const skinType = state.concerns.has('oil') ? '지성'
+      : (state.concerns.has('pore') || state.concerns.has('scar')) ? '복합성' : '중성';
+
+    document.getElementById('diagAge').innerHTML = skinAge + '<i> 세</i>';
+    document.getElementById('diagScore').innerHTML = overall.toFixed(1) + '<i> 10점 만점</i>';
+    document.getElementById('diagPriority').textContent = worst.label;
+    document.getElementById('diagType').textContent = skinType;
+
+    document.getElementById('diagSentence').textContent =
+      '좋습니다! 당신의 피부 점수는 ' + overall.toFixed(1) + '입니다. 우선 ' + best.label +
+      ' 은(는) 관리가 잘 되어 있어요. ' + worst.label + ' 은(는) 좀 더 관리가 필요해요.';
+
+    document.getElementById('diagRows').innerHTML = metrics.map(m=>{
+      const band = m.score>=7 ? 'good' : m.score>=4 ? 'mid' : 'bad';
+      return '<div class="diag-row">' +
+        '<div class="diag-row-label">' + m.label + '</div>' +
+        '<div class="diag-row-track"><div class="diag-row-marker" style="left:' + (m.score*10) + '%"></div></div>' +
+        '<div class="diag-row-value">' + m.score.toFixed(1) + '</div>' +
+        '<div class="diag-row-dot ' + band + '"></div>' +
+      '</div>';
+    }).join('');
+
+    document.querySelectorAll('.face-zone').forEach(z=>{
+      const zone = z.dataset.zone;
+      let on = false;
+      if(zone === 'forehead'){ on = state.concerns.has('oil'); }
+      if(zone === 'cheek-l' || zone === 'cheek-r'){ on = state.concerns.has('pore') || state.concerns.has('scar'); }
+      if(zone === 'chin'){ on = state.concerns.has('acne'); }
+      z.classList.toggle('on', on);
+    });
+
+    document.getElementById('diagCta').textContent = (nickname || '고객') + '님 맞춤 제품 추천';
+  }
+
+  document.getElementById('diagCta').addEventListener('click', enterApp);
+
+  function enterApp(){
+    diagnosis.classList.remove('visible');
+    setTimeout(()=>{
+      diagnosis.classList.add('hidden');
       const greet = document.getElementById('heroGreet');
       if(greet && nickname){ greet.textContent = nickname + '님, '; }
+      state.analyzed = true;
+      if(window.renderRoutine){ window.renderRoutine(); }
       appScreen.style.display = 'block';
-      window.scrollTo(0,0);
+      const target = document.getElementById('recommend');
+      if(target){ target.scrollIntoView(); } else { window.scrollTo(0,0); }
     }, 550);
   }
 })();
@@ -591,7 +780,7 @@ DEMO_HTML = """
     oil:{label:'피지·유분'},
     acne:{label:'화농성 여드름'}
   };
-  const state = { concerns:new Set(), analyzed:false, allInOne:false };
+  const state = window.appState;
 
   /* ---------------- concern chips ---------------- */
   const chipRow = document.getElementById('chipRow');
@@ -721,6 +910,7 @@ DEMO_HTML = """
 
     recNote.style.display = state.analyzed ? 'none' : 'block';
   }
+  window.renderRoutine = renderRoutine;
   renderRoutine();
 
   /* ---------------- community ---------------- */
