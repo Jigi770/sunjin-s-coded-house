@@ -265,6 +265,12 @@ DEMO_HTML = """
   .field-row input:focus{outline:none;border-color:var(--gold);}
   .intro-card .hint{margin-top:12px;}
   .intro-card .btn{margin-top:26px;width:100%;padding:14px;font-size:15px;}
+  .intro-recall{
+    display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:14px;
+    background:none;border:none;color:#c9c8c1;font-size:12.5px;font-weight:600;font-family:inherit;
+    cursor:pointer;padding:6px;
+  }
+  .intro-recall:hover{color:#f6f5f2;}
 
   .camera{
     background:radial-gradient(120% 140% at 85% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);
@@ -318,23 +324,64 @@ DEMO_HTML = """
   .diagnosis{background:var(--bg);opacity:0;transition:opacity .5s ease;padding:24px;}
   .diagnosis.visible{opacity:1;}
   .diag-card{width:100%;max-width:640px;}
+  .diag-back{
+    display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:700;
+    font-family:inherit;cursor:pointer;margin-bottom:16px;transition:border-color .15s ease,color .15s ease;
+  }
+  .diag-back:hover{border-color:#c8c6bd;color:var(--ink);}
+  .diag-back svg{width:16px;height:16px;}
   .diag-title{font-size:clamp(20px,3.4vw,26px);margin-top:10px;font-weight:700;letter-spacing:-.02em;color:var(--ink);}
-  .diag-top{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-top:22px;}
+  .diag-top{display:grid;grid-template-columns:1fr 1.15fr;gap:16px;margin-top:22px;}
   .diag-summary,.diag-face{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
   .diag-summary-title,.diag-face-title{font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:14px;}
   .diag-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
   .diag-summary-grid span{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px;}
   .diag-summary-grid b{font-size:19px;font-weight:700;color:var(--ink);}
   .diag-summary-grid b i{font-style:normal;font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:2px;}
-  .face-map{position:relative;width:120px;height:148px;margin:0 auto;}
-  .face-shape{position:absolute;inset:0;background:#f1ede4;border:1.5px solid #ddd6c6;border-radius:48% 48% 44% 44% / 56% 56% 44% 44%;}
-  .face-zone{position:absolute;width:34%;height:20%;border-radius:50%;transform:translate(-50%,-50%);
-    background:radial-gradient(circle, rgba(193,102,107,.55), rgba(193,102,107,0) 70%);opacity:0;transition:opacity .6s ease;}
-  .face-zone[data-zone="forehead"]{top:26%;left:50%;width:40%;height:16%;}
-  .face-zone[data-zone="cheek-l"]{top:56%;left:26%;}
-  .face-zone[data-zone="cheek-r"]{top:56%;left:74%;}
-  .face-zone[data-zone="chin"]{top:80%;left:50%;width:22%;height:14%;}
+
+  .face-map{position:relative;width:132px;height:160px;margin:0 auto;}
+  .face-ear{position:absolute;top:44%;width:11%;height:16%;border-radius:50%;background:#f1ede4;border:1.5px solid #ddd6c6;}
+  .face-ear.left{left:-4%;}
+  .face-ear.right{right:-4%;}
+  .face-shape{position:absolute;inset:0;background:#f4f0e8;border:1.5px solid #ddd6c6;border-radius:48% 48% 44% 44% / 58% 58% 42% 42%;overflow:hidden;}
+  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;}
+  .face-zone[data-zone="tzone"]{
+    top:20%;left:50%;width:26%;height:46%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
+    background:repeating-linear-gradient(115deg, rgba(201,138,60,.5) 0 3px, rgba(201,138,60,0) 3px 7px);
+  }
+  .face-zone[data-zone="cheek-l"],.face-zone[data-zone="cheek-r"]{
+    top:54%;width:30%;height:22%;
+    background-image:radial-gradient(circle, rgba(200,110,70,.85) 0 6%, transparent 7%);
+    background-size:11px 11px;background-position:center;background-color:rgba(200,110,70,.12);
+  }
+  .face-zone[data-zone="cheek-l"]{left:24%;}
+  .face-zone[data-zone="cheek-r"]{left:76%;}
+  .face-zone[data-zone="scar-mark"]{
+    top:58%;left:76%;width:22%;height:16%;
+    background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.85) 0 2px, transparent 2px 9px);
+  }
+  .face-zone[data-zone="chin"]{
+    top:82%;left:50%;width:24%;height:16%;
+    background-image:
+      radial-gradient(circle at 30% 35%, rgba(193,60,60,.9) 0 9%, transparent 10%),
+      radial-gradient(circle at 65% 55%, rgba(193,60,60,.9) 0 8%, transparent 9%),
+      radial-gradient(circle at 45% 75%, rgba(193,60,60,.9) 0 7%, transparent 8%);
+    background-color:rgba(193,60,60,.1);
+  }
   .face-zone.on{opacity:1;}
+  .face-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;}
+  .legend-item{
+    display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#b9b6ab;
+    padding:4px 9px;border-radius:999px;background:var(--bg);border:1px solid var(--line);transition:all .2s ease;
+  }
+  .legend-item.active{color:var(--ink);background:var(--accent-soft);border-color:transparent;}
+  .legend-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .legend-dot.oil{background:#c98a3c;}
+  .legend-dot.pore{background:#c86e46;}
+  .legend-dot.scar{background:#965a96;}
+  .legend-dot.acne{background:#c13c3c;}
+
   .diag-sentence{margin-top:18px;padding:16px 20px;background:var(--accent-soft);border-radius:var(--radius);font-size:14px;color:#3c4636;line-height:1.6;}
   .diag-concerns{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
   .diag-concerns-head{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:700;color:var(--ink);}
@@ -351,9 +398,40 @@ DEMO_HTML = """
   .diag-row-dot.bad{background:var(--bad);}
   #diagCta{margin-top:26px;width:100%;padding:14px;font-size:15px;}
 
+  /* ---------- CONCERN TABS ---------- */
+  .diag-tabsblock{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .diag-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .diag-tab{
+    display:flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);
+    background:var(--bg);color:var(--ink-soft);font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .diag-tab .tab-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .diag-tab.active{background:var(--dark);border-color:var(--dark);color:#fff;}
+  .diag-panel{display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);}
+  .diag-panel.active{display:block;animation:fade .4s ease;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;}
+  .panel-title{font-size:15.5px;font-weight:700;color:var(--ink);}
+  .panel-badge{font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:999px;}
+  .panel-badge.good{background:var(--accent-soft);color:var(--accent);}
+  .panel-badge.mid{background:#fbe9d2;color:var(--mid);}
+  .panel-badge.bad{background:#f7dede;color:var(--bad);}
+  .panel-score-track{height:7px;border-radius:999px;background:var(--bg);margin-top:12px;overflow:hidden;}
+  .panel-score-fill{height:100%;border-radius:999px;}
+  .panel-desc{margin-top:14px;font-size:13.5px;color:#4a4944;line-height:1.65;}
+  .panel-tips{margin-top:14px;}
+  .panel-tips-title{font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
+  .panel-tips ul{margin:8px 0 0;padding:0;list-style:none;}
+  .panel-tips li{position:relative;padding-left:16px;font-size:13px;color:#4a4944;line-height:1.6;margin-top:6px;}
+  .panel-tips li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+  .panel-routine{margin-top:14px;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);}
+  .panel-routine-label{font-size:11px;font-weight:700;color:var(--ink-soft);}
+  .panel-routine-name{font-size:13px;font-weight:700;color:var(--ink);}
+
   @media (max-width:640px){
     .diag-top{grid-template-columns:1fr;}
     .face-map{margin-top:10px;}
+    .diag-row{grid-template-columns:56px 1fr 34px 16px;gap:8px;}
   }
 
   /* ---------- RESULT CHOICE ---------- */
@@ -444,6 +522,10 @@ DEMO_HTML = """
     </div>
     <div class="hint" id="introHint"></div>
     <button class="btn btn-gold" id="introConfirm">확인</button>
+    <button type="button" class="intro-recall" id="introRecall" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 2.6-6.36M3 4v5h5"/></svg>
+      최근 분석 결과 다시 보기
+    </button>
   </div>
 </div>
 
@@ -532,6 +614,10 @@ DEMO_HTML = """
 
 <div class="screen diagnosis hidden" id="screenDiagnosis">
   <div class="diag-card">
+    <button type="button" class="diag-back" id="diagBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+      결과 선택으로
+    </button>
     <div class="eyebrow">DIAGNOSIS</div>
     <h2 class="diag-title">피부 진단 결과예요</h2>
 
@@ -548,11 +634,20 @@ DEMO_HTML = """
       <div class="diag-face">
         <div class="diag-face-title">관리가 필요한 부위</div>
         <div class="face-map">
+          <div class="face-ear left"></div>
+          <div class="face-ear right"></div>
           <div class="face-shape"></div>
-          <div class="face-zone" data-zone="forehead"></div>
+          <div class="face-zone" data-zone="tzone"></div>
           <div class="face-zone" data-zone="cheek-l"></div>
           <div class="face-zone" data-zone="cheek-r"></div>
+          <div class="face-zone" data-zone="scar-mark"></div>
           <div class="face-zone" data-zone="chin"></div>
+        </div>
+        <div class="face-legend" id="faceLegend">
+          <span class="legend-item" data-concern="oil"><span class="legend-dot oil"></span>유분 · T존</span>
+          <span class="legend-item" data-concern="pore"><span class="legend-dot pore"></span>모공 · 볼</span>
+          <span class="legend-item" data-concern="scar"><span class="legend-dot scar"></span>흉터 · 볼</span>
+          <span class="legend-item" data-concern="acne"><span class="legend-dot acne"></span>여드름 · 턱</span>
         </div>
       </div>
     </div>
@@ -563,6 +658,14 @@ DEMO_HTML = """
       <div class="diag-concerns-head"><span>피부 고민</span><span class="diag-tag">맞춤 기준: 기본</span></div>
       <div class="diag-scale"><span>나쁨</span><span>보통</span><span>좋음</span></div>
       <div id="diagRows"></div>
+    </div>
+
+    <div class="diag-tabsblock">
+      <div class="diag-concerns-head" style="margin-bottom:14px;">
+        <span>고민별 자세히 보기</span>
+      </div>
+      <div class="diag-tabs" id="diagTabs"></div>
+      <div id="diagPanels"></div>
     </div>
 
     <button class="btn btn-gold" id="diagCta">맞춤 제품 추천</button>
@@ -578,6 +681,7 @@ DEMO_HTML = """
       <a href="#recommend">제품추천</a>
       <a href="#community">커뮤니티</a>
     </div>
+    <button type="button" class="btn btn-outline btn-sm" id="navRecall" style="display:none;">최근 결과 다시 보기</button>
     <a href="#analysis" class="btn btn-dark btn-sm">분석 시작</a>
   </div>
 </div>
@@ -708,6 +812,50 @@ DEMO_HTML = """
   let nickname = '';
   let enteredAge = 29;
 
+  /* ---------------- 0) last-result recall ---------------- */
+  const RECALL_KEY = 'forhim_last_result';
+
+  function saveLastResult(){
+    try {
+      localStorage.setItem(RECALL_KEY, JSON.stringify({
+        nickname: nickname, age: enteredAge, concerns: Array.from(state.concerns), savedAt: Date.now()
+      }));
+    } catch(e){}
+  }
+
+  function loadLastResult(){
+    try {
+      const raw = localStorage.getItem(RECALL_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch(e){ return null; }
+  }
+
+  function viewLastResult(){
+    const saved = loadLastResult();
+    if(!saved) return;
+    nickname = saved.nickname || '고객';
+    enteredAge = saved.age || 29;
+    state.concerns = new Set(saved.concerns && saved.concerns.length ? saved.concerns : ['scar','pore','oil','acne']);
+
+    appScreen.style.display = 'none';
+    [splash, intro, camera, simpleResult, diagnosis].forEach(s=> s.classList.add('hidden'));
+    choice.classList.remove('hidden');
+    requestAnimationFrame(()=> choice.classList.add('visible'));
+    window.scrollTo(0,0);
+  }
+
+  function initRecallEntryPoints(){
+    const saved = loadLastResult();
+    if(!saved) return;
+    const introLink = document.getElementById('introRecall');
+    const navLink = document.getElementById('navRecall');
+    if(introLink) introLink.style.display = 'flex';
+    if(navLink) navLink.style.display = 'inline-flex';
+  }
+  document.getElementById('introRecall').addEventListener('click', viewLastResult);
+  document.getElementById('navRecall').addEventListener('click', viewLastResult);
+  initRecallEntryPoints();
+
   /* ---------------- 1) splash ---------------- */
   setTimeout(()=> splashLogo.classList.add('sharp'), 150);
   setTimeout(()=> splashLogo.classList.remove('sharp'), 2400);
@@ -809,6 +957,7 @@ DEMO_HTML = """
     if(state.concerns.size === 0){
       ['scar','pore','oil','acne'].forEach(k=> state.concerns.add(k));
     }
+    saveLastResult();
     setTimeout(showChoice, 1300);
   }
 
@@ -889,16 +1038,127 @@ DEMO_HTML = """
     document.querySelectorAll('.face-zone').forEach(z=>{
       const zone = z.dataset.zone;
       let on = false;
-      if(zone === 'forehead'){ on = state.concerns.has('oil'); }
-      if(zone === 'cheek-l' || zone === 'cheek-r'){ on = state.concerns.has('pore') || state.concerns.has('scar'); }
+      if(zone === 'tzone'){ on = state.concerns.has('oil'); }
+      if(zone === 'cheek-l' || zone === 'cheek-r'){ on = state.concerns.has('pore'); }
+      if(zone === 'scar-mark'){ on = state.concerns.has('scar'); }
       if(zone === 'chin'){ on = state.concerns.has('acne'); }
       z.classList.toggle('on', on);
     });
+    document.querySelectorAll('.legend-item').forEach(el=>{
+      el.classList.toggle('active', state.concerns.has(el.dataset.concern));
+    });
 
     document.getElementById('diagCta').textContent = (nickname || '고객') + '님 맞춤 제품 추천';
+
+    renderConcernTabs(metrics);
+  }
+
+  /* ---------------- concern detail tabs ---------------- */
+  const CONCERN_DETAIL = {
+    pore: {
+      label:'모공', metricKey:'pore',
+      desc:{
+        bad:'모공이 눈에 띄게 넓어져 있어요. 피지와 노폐물이 쌓이기 쉬운 상태라 꾸준한 관리가 필요해요.',
+        mid:'모공이 약간 넓어진 편이에요. 지금부터 관리하면 눈에 띄게 좋아질 수 있어요.',
+        good:'모공 상태가 양호해요. 지금 루틴을 유지해주세요.'
+      },
+      tips:['이중세안으로 모공 속 노폐물을 자주 제거해주세요.','뜨거운 물 세안은 피하고 미온수를 사용하세요.','주 1~2회 각질 케어로 모공을 정돈해주세요.'],
+      routine:'포어 타이트닝 토너'
+    },
+    oil: {
+      label:'유분', metricKey:'oil',
+      desc:{
+        bad:'T존을 중심으로 유분이 많이 분비되고 있어요. 번들거림과 트러블로 이어지기 쉬운 상태예요.',
+        mid:'유분이 약간 많은 편이에요. 가벼운 제형으로 관리하면 균형을 잡을 수 있어요.',
+        good:'유분·수분 밸런스가 좋은 편이에요. 지금 루틴을 유지해주세요.'
+      },
+      tips:['하루 2회, 약산성 클렌저로 과도한 유분만 부드럽게 제거해주세요.','무거운 크림 대신 가벼운 젤 타입 제형을 사용해보세요.','오후에 유분이 심하면 블로팅 페이퍼로 가볍게 눌러주세요.'],
+      routine:'라이트 젤 로션'
+    },
+    acne: {
+      label:'여드름', metricKey:'trouble',
+      desc:{
+        bad:'염증성 트러블이 반복되고 있어요. 자극을 줄이고 원인균 관리가 필요한 상태예요.',
+        mid:'가끔 트러블이 올라오는 편이에요. 초기에 진정시켜주면 흉터로 남는 걸 줄일 수 있어요.',
+        good:'트러블이 잘 관리되고 있어요. 지금 상태를 유지해주세요.'
+      },
+      tips:['손으로 만지거나 짜지 말고 진정 성분으로 케어해주세요.','베개 커버, 마스크 등 피부에 닿는 물건을 자주 세척해주세요.','트러블 부위엔 저자극 스팟 제품을 사용해보세요.'],
+      routine:'포어 클린 폼'
+    },
+    scar: {
+      label:'흉터', metricKey:'pigment',
+      desc:{
+        bad:'흉터·색소 자국이 두드러져 피부결이 고르지 않은 상태예요. 꾸준한 진정·재생 관리가 필요해요.',
+        mid:'옅은 자국이 남아있어요. 꾸준히 관리하면 결이 점점 매끈해질 수 있어요.',
+        good:'흉터·색소 부담이 적은 편이에요. 지금 루틴을 유지해주세요.'
+      },
+      tips:['자외선 차단제를 매일 발라 색소 자국이 짙어지는 걸 막아주세요.','브라이트닝 성분(나이아신아마이드 등)을 꾸준히 사용해보세요.','새로 생긴 트러블은 짜지 않아야 흉터로 남지 않아요.'],
+      routine:'브라이트닝 세럼'
+    }
+  };
+  const CONCERN_ORDER = ['pore','oil','acne','scar'];
+
+  function renderConcernTabs(metrics){
+    const byKey = {};
+    metrics.forEach(m=> byKey[m.key] = m);
+
+    const active = CONCERN_ORDER.filter(k=> state.concerns.has(k));
+    const pool = active.length ? active : CONCERN_ORDER;
+    let defaultKey = pool[0];
+    let lowest = 11;
+    pool.forEach(k=>{
+      const score = byKey[CONCERN_DETAIL[k].metricKey].score;
+      if(score < lowest){ lowest = score; defaultKey = k; }
+    });
+
+    const tabsEl = document.getElementById('diagTabs');
+    const panelsEl = document.getElementById('diagPanels');
+
+    tabsEl.innerHTML = CONCERN_ORDER.map(k=>{
+      const m = byKey[CONCERN_DETAIL[k].metricKey];
+      const band = m.score>=7?'good':m.score>=4?'mid':'bad';
+      return '<button type="button" class="diag-tab' + (k===defaultKey?' active':'') + '" data-tab="' + k + '">' +
+        '<span class="tab-dot" style="background:var(--' + band + ')"></span>' +
+        CONCERN_DETAIL[k].label +
+      '</button>';
+    }).join('');
+
+    panelsEl.innerHTML = CONCERN_ORDER.map(k=>{
+      const detail = CONCERN_DETAIL[k];
+      const m = byKey[detail.metricKey];
+      const band = m.score>=7?'good':m.score>=4?'mid':'bad';
+      const bandText = band==='good'?'좋음':band==='mid'?'보통':'나쁨';
+      const descText = detail.desc[band];
+      return '<div class="diag-panel' + (k===defaultKey?' active':'') + '" data-panel="' + k + '">' +
+        '<div class="panel-head">' +
+          '<span class="panel-title">' + detail.label + ' · ' + m.score.toFixed(1) + '점</span>' +
+          '<span class="panel-badge ' + band + '">' + bandText + '</span>' +
+        '</div>' +
+        '<div class="panel-score-track"><div class="panel-score-fill fill-' + band + '" style="width:' + (m.score*10) + '%"></div></div>' +
+        '<p class="panel-desc">' + descText + '</p>' +
+        '<div class="panel-tips">' +
+          '<div class="panel-tips-title">관리 팁</div>' +
+          '<ul>' + detail.tips.map(t=>'<li>'+t+'</li>').join('') + '</ul>' +
+        '</div>' +
+        '<div class="panel-routine">' +
+          '<span class="panel-routine-label">추천 루틴</span>' +
+          '<span class="panel-routine-name">' + detail.routine + '</span>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    tabsEl.querySelectorAll('.diag-tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        tabsEl.querySelectorAll('.diag-tab').forEach(b=>b.classList.remove('active'));
+        panelsEl.querySelectorAll('.diag-panel').forEach(p=>p.classList.remove('active'));
+        btn.classList.add('active');
+        panelsEl.querySelector('[data-panel="' + btn.dataset.tab + '"]').classList.add('active');
+      });
+    });
   }
 
   document.getElementById('diagCta').addEventListener('click', enterApp);
+  document.getElementById('diagBack').addEventListener('click', ()=> switchScreen(diagnosis, choice));
 
   function enterApp(){
     const active = diagnosis.classList.contains('visible') ? diagnosis : simpleResult;
