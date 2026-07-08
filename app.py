@@ -1,12 +1,5 @@
-from flask import Flask, render_template
+import streamlit as st
 
-app = Flask(__name__)
+st.set_page_config(page_title="내 프로젝트")
 
-
-@app.route("/")
-def index():
-    return render_template("index.html", title="내 프로젝트")
-
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+st.title("내 프로젝트")
