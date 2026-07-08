@@ -228,7 +228,7 @@ DEMO_HTML = """
   }
 
   /* ---------- ONBOARDING SCREENS ---------- */
-  .screen{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;}
+  .screen{width:100%;min-height:700px;display:flex;align-items:center;justify-content:center;}
   .screen.hidden{display:none;}
 
   .splash{background:#121210;opacity:1;transition:opacity .8s ease;}
