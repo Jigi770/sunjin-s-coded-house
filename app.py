@@ -355,6 +355,70 @@ DEMO_HTML = """
     .diag-top{grid-template-columns:1fr;}
     .face-map{margin-top:10px;}
   }
+
+  /* ---------- RESULT CHOICE ---------- */
+  .choice{background:var(--bg);opacity:0;transition:opacity .4s ease;padding:24px;}
+  .choice.visible{opacity:1;}
+  .choice-card{width:100%;max-width:400px;text-align:center;}
+  .choice-badge{
+    width:54px;height:54px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+  }
+  .choice-title{font-size:21px;font-weight:700;letter-spacing:-.02em;color:var(--ink);}
+  .choice-sub{margin-top:7px;color:var(--ink-soft);font-size:13.5px;}
+  .choice-btn{
+    display:block;width:100%;text-align:left;margin-top:14px;padding:16px 18px;border-radius:16px;
+    border:1.5px solid var(--line);background:var(--surface);cursor:pointer;
+    transition:transform .15s ease,border-color .15s ease;font-family:inherit;
+  }
+  .choice-btn:active{transform:scale(.98);}
+  .choice-btn:hover{border-color:#c8c6bd;}
+  .choice-btn-title{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;color:var(--ink);}
+  .choice-btn-desc{display:block;margin-top:5px;font-size:12px;color:var(--ink-soft);margin-left:29px;}
+  .choice-btn-primary{background:var(--dark);border-color:var(--dark);}
+  .choice-btn-primary .choice-btn-title{color:#fff;}
+  .choice-btn-primary .choice-btn-desc{color:#c9c8c1;}
+  .choice-icon{width:19px;height:19px;flex:none;}
+
+  /* ---------- SIMPLE RESULT ---------- */
+  .simple{background:var(--bg);opacity:0;transition:opacity .4s ease;padding:14px;}
+  .simple.visible{opacity:1;}
+  .simple-card{
+    width:100%;max-width:340px;background:var(--surface);border-radius:22px;overflow:hidden;
+    box-shadow:var(--shadow);border:1px solid var(--line);
+  }
+  .simple-header{position:relative;background:linear-gradient(135deg,#e57b73,#d9564f);color:#fff;padding:16px 18px 18px;}
+  .simple-date{font-size:11px;opacity:.85;font-weight:600;}
+  .simple-title{font-size:15px;font-weight:700;margin-top:5px;line-height:1.4;max-width:68%;}
+  .simple-header-icon{position:absolute;right:12px;top:12px;width:42px;height:42px;}
+  .simple-body{padding:14px 18px 2px;}
+  .simple-score-row{display:flex;justify-content:space-between;align-items:flex-start;}
+  .simple-score-label{font-size:12.5px;font-weight:700;color:var(--ink);}
+  .simple-cmp{display:flex;gap:12px;}
+  .simple-cmp div{text-align:center;}
+  .simple-cmp span{display:block;font-size:9px;color:var(--ink-soft);}
+  .simple-cmp b{font-size:12.5px;color:var(--ink);}
+  .simple-score-main{margin-top:4px;display:flex;align-items:baseline;gap:4px;}
+  .simple-score-main b{font-size:30px;font-weight:800;color:var(--ink);letter-spacing:-.02em;}
+  .simple-score-main span{font-size:11.5px;color:var(--ink-soft);}
+  .simple-tier{font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .radar-holder{margin-top:2px;}
+  .radar-wrap{position:relative;width:100%;max-width:250px;margin:0 auto;}
+  .radar-svg{width:100%;height:auto;display:block;}
+  .radar-ring{fill:none;stroke:var(--line);stroke-width:1;}
+  .radar-axis{stroke:var(--line);stroke-width:1;}
+  .radar-shape{fill:rgba(217,86,79,.25);stroke:#d9564f;stroke-width:1.6;}
+  .radar-dot{fill:#d9564f;}
+  .radar-label{position:absolute;transform:translate(-50%,-50%);text-align:center;width:60px;line-height:1.2;}
+  .radar-label b{display:block;font-size:9px;font-weight:700;color:var(--ink);}
+  .radar-label .radar-pct{display:block;font-size:8.5px;color:var(--ink-soft);}
+  .radar-badge{display:inline-block;font-size:7.5px;font-weight:700;padding:1px 5px;border-radius:999px;margin-bottom:1px;}
+  .radar-badge.good{background:var(--accent-soft);color:var(--accent);}
+  .radar-badge.mid{background:#fbe9d2;color:var(--mid);}
+  .radar-badge.bad{background:#f7dede;color:var(--bad);}
+  .simple-actions{display:flex;gap:8px;padding:12px 18px 16px;}
+  .simple-actions .btn{flex:1;padding:10px;font-size:12.5px;}
+  #screenSimple{min-height:600px;}
 </style>
 </head>
 <body>
@@ -401,6 +465,67 @@ DEMO_HTML = """
     <div class="cam-fallback" id="camFallback" style="display:none;">
       카메라를 사용할 수 없어요.<br/>
       <button class="btn btn-outline btn-sm" id="camSkip">카메라 없이 계속하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen choice hidden" id="screenChoice">
+  <div class="choice-card">
+    <div class="choice-badge">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12l5 5L20 7"/></svg>
+    </div>
+    <div class="choice-title">피부 진단이 완료되었어요</div>
+    <p class="choice-sub">원하는 방식으로 결과를 확인해보세요</p>
+
+    <button type="button" class="choice-btn choice-btn-primary" id="goSimple">
+      <div class="choice-btn-title">
+        <svg class="choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+        간단한 피부 결과 확인하기
+      </div>
+      <span class="choice-btn-desc">핵심 결과만 빠르게 확인</span>
+    </button>
+
+    <button type="button" class="choice-btn" id="goDetailed">
+      <div class="choice-btn-title">
+        <svg class="choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        상세한 피부 결과 확인하기
+      </div>
+      <span class="choice-btn-desc">항목별 분석과 자세한 설명 확인</span>
+    </button>
+  </div>
+</div>
+
+<div class="screen simple hidden" id="screenSimple">
+  <div class="simple-card">
+    <div class="simple-header">
+      <div class="simple-date" id="simpleDate">-</div>
+      <div class="simple-title" id="simpleNameTitle">고객님의 피부 분석 리포트</div>
+      <svg class="simple-header-icon" viewBox="0 0 48 48" fill="none">
+        <rect x="10" y="6" width="28" height="36" rx="3" fill="#fff" opacity=".92"/>
+        <path d="M16 16h16M16 24h16M16 32h10" stroke="#d9564f" stroke-width="2.4" stroke-linecap="round"/>
+        <circle cx="14" cy="16" r="2" fill="#d9564f"/>
+        <circle cx="14" cy="24" r="2" fill="#d9564f"/>
+        <circle cx="14" cy="32" r="2" fill="#d9564f"/>
+      </svg>
+    </div>
+
+    <div class="simple-body">
+      <div class="simple-score-row">
+        <div class="simple-score-label">피부 점수</div>
+        <div class="simple-cmp">
+          <div><span>전체</span><b id="cmpAll">-</b></div>
+          <div><span>20대 남성</span><b id="cmpAge">-</b></div>
+        </div>
+      </div>
+      <div class="simple-score-main"><b id="simpleScore">-</b><span>점 / 100</span></div>
+      <div class="simple-tier" id="simpleTier">-</div>
+
+      <div class="radar-holder" id="radarHolder"></div>
+    </div>
+
+    <div class="simple-actions">
+      <button type="button" class="btn btn-outline btn-sm" id="simpleBack">뒤로가기</button>
+      <button type="button" class="btn btn-dark" id="simpleToRecommend">제품 추천</button>
     </div>
   </div>
 </div>
@@ -576,6 +701,8 @@ DEMO_HTML = """
   const splashLogo = document.getElementById('splashLogo');
   const intro = document.getElementById('screenIntro');
   const camera = document.getElementById('screenCamera');
+  const choice = document.getElementById('screenChoice');
+  const simpleResult = document.getElementById('screenSimple');
   const diagnosis = document.getElementById('screenDiagnosis');
   const appScreen = document.getElementById('screenApp');
   let nickname = '';
@@ -682,18 +809,39 @@ DEMO_HTML = """
     if(state.concerns.size === 0){
       ['scar','pore','oil','acne'].forEach(k=> state.concerns.add(k));
     }
-    setTimeout(showDiagnosis, 1300);
+    setTimeout(showChoice, 1300);
   }
 
-  function showDiagnosis(){
+  function showChoice(){
     camera.classList.remove('visible');
     setTimeout(()=>{
       camera.classList.add('hidden');
-      renderDiagnosis();
-      diagnosis.classList.remove('hidden');
-      requestAnimationFrame(()=> diagnosis.classList.add('visible'));
+      choice.classList.remove('hidden');
+      requestAnimationFrame(()=> choice.classList.add('visible'));
     }, 550);
   }
+
+  function switchScreen(from, to, delay){
+    from.classList.remove('visible');
+    setTimeout(()=>{
+      from.classList.add('hidden');
+      to.classList.remove('hidden');
+      requestAnimationFrame(()=> to.classList.add('visible'));
+    }, delay || 400);
+  }
+
+  document.getElementById('goSimple').addEventListener('click', ()=>{
+    renderSimpleResult();
+    switchScreen(choice, simpleResult);
+  });
+  document.getElementById('goDetailed').addEventListener('click', ()=>{
+    renderDiagnosis();
+    switchScreen(choice, diagnosis);
+  });
+  document.getElementById('simpleBack').addEventListener('click', ()=>{
+    switchScreen(simpleResult, choice);
+  });
+  document.getElementById('simpleToRecommend').addEventListener('click', enterApp);
 
   /* ---------------- 4) diagnosis result ---------------- */
   function clamp10(v){ return Math.max(0.5, Math.min(10, Math.round(v*10)/10)); }
@@ -753,9 +901,11 @@ DEMO_HTML = """
   document.getElementById('diagCta').addEventListener('click', enterApp);
 
   function enterApp(){
-    diagnosis.classList.remove('visible');
+    const active = diagnosis.classList.contains('visible') ? diagnosis : simpleResult;
+    active.classList.remove('visible');
     setTimeout(()=>{
       diagnosis.classList.add('hidden');
+      simpleResult.classList.add('hidden');
       const greet = document.getElementById('heroGreet');
       if(greet && nickname){ greet.textContent = nickname + '님, '; }
       state.analyzed = true;
@@ -764,6 +914,77 @@ DEMO_HTML = """
       const target = document.getElementById('recommend');
       if(target){ target.scrollIntoView(); } else { window.scrollTo(0,0); }
     }, 550);
+  }
+
+  /* ---------------- 5) simple result (radar) ---------------- */
+  function formatToday(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return d.getFullYear() + '.' + pad(d.getMonth()+1) + '.' + pad(d.getDate());
+  }
+
+  function polarPoint(cx, cy, r, angleDeg){
+    const rad = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+  }
+
+  function renderRadar(metrics){
+    const size = 250, cx = 125, cy = 125, maxR = 88;
+    const step = 360 / metrics.length;
+
+    const rings = [0.33, 0.66, 1].map(f=>{
+      const pts = metrics.map((_, i)=>{
+        const p = polarPoint(cx, cy, maxR*f, i*step);
+        return p.x.toFixed(1) + ',' + p.y.toFixed(1);
+      }).join(' ');
+      return '<polygon points="' + pts + '" class="radar-ring" />';
+    }).join('');
+
+    const axisLines = metrics.map((_, i)=>{
+      const p = polarPoint(cx, cy, maxR, i*step);
+      return '<line x1="' + cx + '" y1="' + cy + '" x2="' + p.x.toFixed(1) + '" y2="' + p.y.toFixed(1) + '" class="radar-axis" />';
+    }).join('');
+
+    const dataPts = metrics.map((m, i)=> polarPoint(cx, cy, maxR * (m.score/10), i*step));
+    const dataPolygon = dataPts.map(p=> p.x.toFixed(1) + ',' + p.y.toFixed(1)).join(' ');
+    const dataDots = dataPts.map(p=> '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3.2" class="radar-dot" />').join('');
+
+    const svg = '<svg viewBox="0 0 ' + size + ' ' + size + '" class="radar-svg">' +
+      rings + axisLines +
+      '<polygon points="' + dataPolygon + '" class="radar-shape" />' +
+      dataDots +
+    '</svg>';
+
+    const labels = metrics.map((m, i)=>{
+      const p = polarPoint(cx, cy, maxR * 1.36, i*step);
+      const leftPct = (p.x / size * 100).toFixed(1);
+      const topPct = (p.y / size * 100).toFixed(1);
+      const band = m.score >= 7 ? 'good' : m.score >= 4 ? 'mid' : 'bad';
+      const bandText = m.score >= 7 ? '충분' : m.score >= 4 ? '보통' : '부족';
+      return '<div class="radar-label" style="left:' + leftPct + '%;top:' + topPct + '%;">' +
+        '<span class="radar-badge ' + band + '">' + bandText + '</span>' +
+        '<b>' + m.label + '</b><span class="radar-pct">' + Math.round(m.score*10) + '%</span>' +
+      '</div>';
+    }).join('');
+
+    return '<div class="radar-wrap">' + svg + labels + '</div>';
+  }
+
+  function renderSimpleResult(){
+    const metrics = computeDiagnosis();
+    const overall10 = metrics.reduce((a,m)=>a+m.score,0) / metrics.length;
+    const scorePct = Math.round(overall10 * 10);
+    const tier = scorePct >= 80 ? '상위 10%' : scorePct >= 60 ? '중상위 20%' : scorePct >= 40 ? '중위 40%' : '하위 30%';
+    const cmpAll = Math.max(3, Math.min(90, 100 - scorePct + 5));
+    const cmpAge = Math.max(3, Math.min(90, 100 - scorePct - 3));
+
+    document.getElementById('simpleDate').textContent = formatToday();
+    document.getElementById('simpleNameTitle').textContent = (nickname || '고객') + '님의 피부 분석 리포트';
+    document.getElementById('simpleScore').textContent = scorePct;
+    document.getElementById('simpleTier').textContent = tier + '의 점수예요';
+    document.getElementById('cmpAll').textContent = cmpAll + '%';
+    document.getElementById('cmpAge').textContent = cmpAge + '%';
+    document.getElementById('radarHolder').innerHTML = renderRadar(metrics);
   }
 })();
 </script>
