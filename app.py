@@ -231,14 +231,15 @@ DEMO_HTML = """
   .screen{width:100%;min-height:700px;display:flex;align-items:center;justify-content:center;}
   .screen.hidden{display:none;}
 
-  .splash{background:#121210;opacity:1;transition:opacity .8s ease;}
+  .splash{background:#2c2d2d;opacity:1;transition:opacity .8s ease;}
   .splash.fade-out{opacity:0;pointer-events:none;}
   .splash-logo{
-    width:min(380px,70vw);overflow:hidden;border-radius:14px;
-    clip-path:inset(0 0 56% 0);transition:clip-path 1.15s cubic-bezier(.22,.8,.2,1);
+    width:min(380px,70vw);border-radius:14px;overflow:hidden;
+    filter:blur(26px);opacity:0;
+    transition:filter 1.3s ease, opacity 1.3s ease;
   }
   .splash-logo img{display:block;width:100%;height:auto;}
-  .splash-logo.reveal{clip-path:inset(0 0 0% 0);}
+  .splash-logo.sharp{filter:blur(0);opacity:1;}
 
   .intro{
     background:radial-gradient(120% 140% at 15% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);
@@ -468,7 +469,8 @@ DEMO_HTML = """
   let nickname = '';
 
   /* ---------------- 1) splash ---------------- */
-  setTimeout(()=> splashLogo.classList.add('reveal'), 1000);
+  setTimeout(()=> splashLogo.classList.add('sharp'), 150);
+  setTimeout(()=> splashLogo.classList.remove('sharp'), 2400);
   setTimeout(()=> splash.classList.add('fade-out'), 2900);
   setTimeout(()=>{
     splash.classList.add('hidden');
