@@ -1,6 +1,12 @@
+import base64
+from pathlib import Path
+
 import streamlit as st
 
 st.set_page_config(page_title="FOR HIM - Men's Beauty AI Demo", layout="wide")
+
+logo_path = Path(__file__).parent / "로고.png"
+logo_data_uri = "data:image/png;base64," + base64.b64encode(logo_path.read_bytes()).decode("ascii")
 
 DEMO_HTML = """
 <!doctype html>
@@ -220,10 +226,116 @@ DEMO_HTML = """
     .routine-grid{grid-template-columns:1fr;}
     .wrap{padding:0 18px;}
   }
+
+  /* ---------- ONBOARDING SCREENS ---------- */
+  .screen{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;}
+  .screen.hidden{display:none;}
+
+  .splash{background:#121210;opacity:1;transition:opacity .8s ease;}
+  .splash.fade-out{opacity:0;pointer-events:none;}
+  .splash-logo{
+    width:min(380px,70vw);overflow:hidden;border-radius:14px;
+    clip-path:inset(0 0 56% 0);transition:clip-path 1.15s cubic-bezier(.22,.8,.2,1);
+  }
+  .splash-logo img{display:block;width:100%;height:auto;}
+  .splash-logo.reveal{clip-path:inset(0 0 0% 0);}
+
+  .intro{
+    background:radial-gradient(120% 140% at 15% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);
+    opacity:0;transition:opacity .5s ease;padding:24px;
+  }
+  .intro.visible{opacity:1;}
+  .intro-card{width:100%;max-width:440px;color:#f6f5f2;}
+  .intro-card h1{font-size:clamp(26px,4vw,34px);line-height:1.28;margin-top:14px;font-weight:700;letter-spacing:-.02em;}
+  .intro-card h1 em{font-style:normal;color:var(--gold);}
+  .field-row{margin-top:22px;}
+  .field-row label{display:block;font-size:13px;font-weight:700;color:#c9c8c1;margin-bottom:8px;}
+  .field-row input{
+    width:100%;padding:13px 16px;border-radius:12px;border:1.5px solid #3a3934;
+    background:#201f1c;color:#f6f5f2;font-size:15px;font-family:inherit;
+  }
+  .field-row input::placeholder{color:#6f6e67;}
+  .field-row input:focus{outline:none;border-color:var(--gold);}
+  .intro-card .hint{margin-top:12px;}
+  .intro-card .btn{margin-top:26px;width:100%;padding:14px;font-size:15px;}
+
+  .camera{
+    background:radial-gradient(120% 140% at 85% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);
+    opacity:0;transition:opacity .5s ease;padding:24px;
+  }
+  .camera.visible{opacity:1;}
+  .camera-card{width:100%;max-width:420px;color:#f6f5f2;text-align:center;}
+  .cam-title{font-size:clamp(22px,3.6vw,28px);margin-top:14px;font-weight:700;letter-spacing:-.02em;}
+  .cam-frame{
+    position:relative;margin:26px auto 0;width:min(300px,70vw);aspect-ratio:3/4;
+    border-radius:24px;overflow:hidden;background:#000;border:1px solid #3a3934;
+  }
+  .cam-frame video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+  .cam-guide{
+    position:absolute;inset:14%;border:2px dashed rgba(201,168,106,0.55);border-radius:50%;
+    pointer-events:none;
+  }
+  .cam-arrow{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    font-size:40px;color:var(--gold);text-shadow:0 2px 10px rgba(0,0,0,.5);pointer-events:none;
+  }
+  .cam-progress{margin-top:24px;height:6px;border-radius:999px;background:#3a3934;overflow:hidden;}
+  .cam-progress-fill{height:100%;width:0%;background:var(--gold);border-radius:999px;}
+  .cam-steps{margin-top:14px;font-size:14px;color:#c9c8c1;font-weight:600;min-height:20px;}
+  .cam-fallback{margin-top:18px;font-size:13px;color:#9c9b92;}
+  .cam-fallback .btn{margin-top:10px;}
+
+  @media (max-width:520px){
+    .cam-frame{width:min(240px,62vw);}
+  }
 </style>
 </head>
 <body>
 
+<div class="screen splash" id="screenSplash">
+  <div class="splash-logo" id="splashLogo">
+    <img src="__LOGO_SRC__" alt="MEN ARE COOL" />
+  </div>
+</div>
+
+<div class="screen intro hidden" id="screenIntro">
+  <div class="intro-card">
+    <div class="eyebrow on-dark">MEN'S BEAUTY, SIMPLIFIED</div>
+    <h1>피부 관리, <em>어렵게</em> 생각하지 마세요</h1>
+    <p class="sub on-dark">복잡한 성분 이름도, 매장에서의 어색한 상담도 필요 없어요. 카메라로 얼굴을 몇 초만 비춰주시면 AI가 피부 상태를 확인해드려요.</p>
+    <div class="field-row">
+      <label>닉네임</label>
+      <input type="text" id="nickInput" placeholder="닉네임을 입력해주세요" maxlength="12" />
+    </div>
+    <div class="field-row">
+      <label>나이</label>
+      <input type="number" id="ageInput" placeholder="나이를 입력해주세요" min="1" max="120" />
+    </div>
+    <div class="hint" id="introHint"></div>
+    <button class="btn btn-gold" id="introConfirm">확인</button>
+  </div>
+</div>
+
+<div class="screen camera hidden" id="screenCamera">
+  <div class="camera-card">
+    <div class="eyebrow on-dark">SKIN ANALYSIS AI</div>
+    <h2 class="cam-title">지금부터 얼굴을 촬영할게요</h2>
+    <p class="sub on-dark" id="camSub">잠시 후 안내에 따라 고개를 움직여주세요</p>
+    <div class="cam-frame">
+      <video id="camVideo" autoplay playsinline muted></video>
+      <div class="cam-guide"></div>
+      <div class="cam-arrow" id="camArrow"></div>
+    </div>
+    <div class="cam-progress"><div class="cam-progress-fill" id="camProgressFill"></div></div>
+    <div class="cam-steps" id="camSteps"></div>
+    <div class="cam-fallback" id="camFallback" style="display:none;">
+      카메라를 사용할 수 없어요.<br/>
+      <button class="btn btn-outline btn-sm" id="camSkip">카메라 없이 계속하기</button>
+    </div>
+  </div>
+</div>
+
+<div id="screenApp" class="app-screen" style="display:none;">
 <div class="nav">
   <div class="wrap">
     <div class="brand"><b>FOR HIM</b><span>Men's Skincare Lab</span></div>
@@ -240,7 +352,7 @@ DEMO_HTML = """
   <div class="wrap">
     <div>
       <div class="eyebrow on-dark">MEN'S BEAUTY, SIMPLIFIED</div>
-      <h1>피부 관리, <em>어렵게</em><br/>생각하지 마세요</h1>
+      <h1><span id="heroGreet"></span>피부 관리, <em>어렵게</em><br/>생각하지 마세요</h1>
       <p class="sub on-dark">복잡한 성분 이름도, 매장에서의 어색한 상담도 필요 없어요. 지금 신경 쓰이는 부분만 골라도 AI가 상태를 확인해드려요.</p>
       <div class="hero-cta">
         <a href="#analysis" class="btn btn-gold">30초 만에 피부 확인하기</a>
@@ -344,6 +456,126 @@ DEMO_HTML = """
 </footer>
 
 <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function(){
+  const splash = document.getElementById('screenSplash');
+  const splashLogo = document.getElementById('splashLogo');
+  const intro = document.getElementById('screenIntro');
+  const camera = document.getElementById('screenCamera');
+  const appScreen = document.getElementById('screenApp');
+  let nickname = '';
+
+  /* ---------------- 1) splash ---------------- */
+  setTimeout(()=> splashLogo.classList.add('reveal'), 1000);
+  setTimeout(()=> splash.classList.add('fade-out'), 2900);
+  setTimeout(()=>{
+    splash.classList.add('hidden');
+    intro.classList.remove('hidden');
+    requestAnimationFrame(()=> intro.classList.add('visible'));
+  }, 3700);
+
+  /* ---------------- 2) intro form ---------------- */
+  const nickInput = document.getElementById('nickInput');
+  const ageInput = document.getElementById('ageInput');
+  const introHint = document.getElementById('introHint');
+
+  document.getElementById('introConfirm').addEventListener('click', ()=>{
+    const nick = nickInput.value.trim();
+    const age = ageInput.value.trim();
+    if(!nick || !age){
+      introHint.textContent = '닉네임과 나이를 모두 입력해주세요.';
+      return;
+    }
+    if(Number(age) <= 0 || Number(age) > 120){
+      introHint.textContent = '나이를 올바르게 입력해주세요.';
+      return;
+    }
+    nickname = nick;
+    intro.classList.remove('visible');
+    setTimeout(()=>{
+      intro.classList.add('hidden');
+      camera.classList.remove('hidden');
+      requestAnimationFrame(()=> camera.classList.add('visible'));
+      startCamera();
+    }, 550);
+  });
+
+  /* ---------------- 3) camera capture ---------------- */
+  const camVideo = document.getElementById('camVideo');
+  const camArrow = document.getElementById('camArrow');
+  const camSub = document.getElementById('camSub');
+  const camProgressFill = document.getElementById('camProgressFill');
+  const camSteps = document.getElementById('camSteps');
+  const camFallback = document.getElementById('camFallback');
+
+  const DIRECTIONS = [
+    { label:'정면을 바라봐주세요', arrow:'●' },
+    { label:'고개를 오른쪽으로 천천히 돌려주세요', arrow:'→' },
+    { label:'고개를 왼쪽으로 천천히 돌려주세요', arrow:'←' },
+    { label:'고개를 위로 들어주세요', arrow:'↑' },
+    { label:'고개를 아래로 내려주세요', arrow:'↓' }
+  ];
+  let stream = null;
+
+  function startCamera(){
+    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+      navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user' }, audio:false })
+        .then(s=>{ stream = s; camVideo.srcObject = s; runSteps(); })
+        .catch(showFallback);
+    } else {
+      showFallback();
+    }
+  }
+
+  function showFallback(){
+    camFallback.style.display = 'block';
+    camSub.textContent = '카메라 권한을 확인해주세요';
+  }
+
+  document.getElementById('camSkip').addEventListener('click', finishCamera);
+
+  function runSteps(){
+    let i = 0;
+    function step(){
+      if(i >= DIRECTIONS.length){ finishCamera(); return; }
+      const d = DIRECTIONS[i];
+      camSub.textContent = d.label;
+      camArrow.textContent = d.arrow;
+      camSteps.textContent = (i+1) + ' / ' + DIRECTIONS.length;
+      camProgressFill.style.transition = 'none';
+      camProgressFill.style.width = '0%';
+      requestAnimationFrame(()=>{
+        camProgressFill.style.transition = 'width 1.9s linear';
+        camProgressFill.style.width = '100%';
+      });
+      i++;
+      setTimeout(step, 2000);
+    }
+    step();
+  }
+
+  function finishCamera(){
+    if(stream){ stream.getTracks().forEach(t=>t.stop()); }
+    camSub.textContent = '촬영이 완료됐어요. 분석을 준비할게요...';
+    camArrow.textContent = '✓';
+    camSteps.textContent = '';
+    setTimeout(enterApp, 1300);
+  }
+
+  function enterApp(){
+    camera.classList.remove('visible');
+    setTimeout(()=>{
+      camera.classList.add('hidden');
+      const greet = document.getElementById('heroGreet');
+      if(greet && nickname){ greet.textContent = nickname + '님, '; }
+      appScreen.style.display = 'block';
+      window.scrollTo(0,0);
+    }, 550);
+  }
+})();
+</script>
 
 <script>
 (function(){
@@ -538,5 +770,7 @@ DEMO_HTML = """
 </body>
 </html>
 """
+
+DEMO_HTML = DEMO_HTML.replace("__LOGO_SRC__", logo_data_uri)
 
 st.iframe(DEMO_HTML, height="content", width="stretch")
