@@ -295,6 +295,102 @@ DEMO_HTML = """
   }
   .extra-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
+  /* ---------- STYLE GUIDE (TPO) ---------- */
+  .tpo-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;}
+  .tpo-tab{
+    display:flex;align-items:center;gap:7px;padding:10px 16px;border-radius:999px;border:1.5px solid var(--line);
+    background:var(--bg);color:var(--ink-soft);font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .tpo-tab .tpo-emoji{font-size:15px;}
+  .tpo-tab.active{background:var(--dark);border-color:var(--dark);color:#fff;}
+
+  .tpo-combo{
+    margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .tpo-combo-head{
+    background:linear-gradient(135deg,#232320,var(--dark));color:#f6f5f2;padding:20px 22px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  }
+  .tpo-combo-head .tc-badge{font-size:11.5px;font-weight:800;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;}
+  .tpo-combo-head .tc-title{font-size:19px;font-weight:800;letter-spacing:-.02em;margin-top:4px;}
+  .tpo-impression{display:flex;gap:6px;flex-wrap:wrap;}
+  .tpo-impression span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--gold-soft);color:var(--gold);}
+  .tpo-combo-body{display:grid;grid-template-columns:repeat(2,1fr);gap:0;}
+  .tpo-slot{padding:18px 22px;border-top:1px solid var(--line);border-right:1px solid var(--line);}
+  .tpo-slot:nth-child(2n){border-right:none;}
+  .tpo-slot-label{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;}
+  .tpo-slot-label svg{width:15px;height:15px;color:var(--accent);}
+  .tpo-slot-main{font-size:15px;font-weight:700;color:var(--ink);line-height:1.4;}
+  .tpo-slot-sub{font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin-top:5px;}
+  .tpo-slot-list{margin:6px 0 0;padding:0;list-style:none;}
+  .tpo-slot-list li{position:relative;padding-left:15px;font-size:13px;color:#4a4944;line-height:1.6;margin-top:4px;}
+  .tpo-slot-list li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--accent);}
+  .tpo-slot.full{grid-column:1/-1;border-right:none;}
+  @media (max-width:560px){ .tpo-combo-body{grid-template-columns:1fr;} .tpo-slot{border-right:none;} }
+
+  /* ---------- STYLE FEED ---------- */
+  .style-feed-head{margin-top:34px;}
+  .style-feed-title{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--ink);}
+  .style-feed-sub{font-size:13px;color:var(--ink-soft);margin-top:3px;}
+  .style-feed{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;}
+  .feed-card{
+    position:relative;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);background:var(--bg);
+    cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .feed-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(20,20,18,.10);}
+  .feed-photo{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#e7e4dd;}
+  .feed-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .feed-situation{
+    position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;padding:5px 11px;border-radius:999px;
+    background:rgba(26,26,24,.78);color:#fff;backdrop-filter:blur(4px);z-index:2;
+  }
+  .feed-tag{
+    position:absolute;transform:translate(-50%,-50%);z-index:2;width:20px;height:20px;border-radius:50%;
+    background:#fff;border:2px solid var(--dark);color:var(--dark);font-size:11px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.35);
+  }
+  .feed-tag::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);animation:tagpulse 2s ease-in-out infinite;}
+  @keyframes tagpulse{0%,100%{transform:scale(1);opacity:.7;}50%{transform:scale(1.25);opacity:0;}}
+  .feed-foot{padding:11px 12px;}
+  .feed-look-title{font-size:13px;font-weight:700;color:var(--ink);line-height:1.35;}
+  .feed-keys{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+  .feed-keys span{font-size:10px;font-weight:700;color:var(--ink-soft);background:var(--surface);border:1px solid var(--line);padding:2px 7px;border-radius:999px;}
+  @media (max-width:760px){ .style-feed{grid-template-columns:1fr 1fr;} }
+  @media (max-width:440px){ .style-feed{grid-template-columns:1fr 1fr;gap:10px;} }
+
+  /* ---------- STYLE BOTTOM SHEET ---------- */
+  .sheet{position:fixed;inset:0;z-index:220;display:flex;align-items:flex-end;justify-content:center;}
+  .sheet[hidden]{display:none;}
+  .sheet-backdrop{position:absolute;inset:0;background:rgba(20,20,18,.55);animation:fade .25s ease;}
+  .sheet-card{
+    position:relative;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:var(--surface);
+    border-radius:22px 22px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.3);animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  .sheet-grip{width:40px;height:4px;border-radius:999px;background:var(--line);margin:10px auto 0;}
+  .sheet-photo{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;}
+  .sheet-photo img{width:100%;height:100%;object-fit:cover;object-position:center 28%;}
+  .sheet-close{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;background:rgba(26,26,24,.7);color:#fff;font-size:20px;line-height:1;z-index:3;}
+  .sheet-body{padding:20px 22px 26px;}
+  .sheet-situation{font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
+  .sheet-title{font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin-top:4px;}
+  .sheet-keys{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+  .sheet-keys span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent);}
+  .sheet-sec{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);}
+  .sheet-sec-label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--ink);margin-bottom:9px;}
+  .sheet-sec-label svg{width:16px;height:16px;color:var(--accent);}
+  .sheet-skin{font-size:13.5px;color:#4a4944;line-height:1.65;}
+  .sheet-prod{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line);}
+  .sheet-prod:last-child{border-bottom:none;}
+  .sheet-prod-no{width:22px;height:22px;border-radius:50%;background:var(--dark);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+  .sheet-prod-txt b{font-size:13.5px;color:var(--ink);}
+  .sheet-prod-txt span{font-size:11.5px;color:var(--ink-soft);margin-left:6px;}
+  .sheet-two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .sheet-mini-main{font-size:14px;font-weight:700;color:var(--ink);}
+  .sheet-mini-sub{font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+  @media (max-width:440px){ .sheet-two{grid-template-columns:1fr;} }
+
   /* ---------- COMMUNITY ---------- */
   .avatar{width:30px;height:30px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;}
   .icon{width:13px;height:13px;}
@@ -1395,6 +1491,7 @@ DEMO_HTML = """
     <div class="nav-links">
       <a href="javascript:void(0)" data-step="analysis">피부분석</a>
       <a href="javascript:void(0)" data-step="recommend">제품추천</a>
+      <a href="javascript:void(0)" data-step="style">스타일</a>
       <a href="javascript:void(0)" data-step="community">커뮤니티</a>
     </div>
     <button type="button" class="btn btn-outline btn-sm" id="navRecall" style="display:none;">최근 결과 다시 보기</button>
@@ -1497,10 +1594,40 @@ DEMO_HTML = """
     <div class="step-nav">
       <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
       <div class="step-progress" data-step-dots></div>
-      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>상세 고민별 추천 보기 →</button>
+      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>상황별 스타일 추천 →</button>
     </div>
   </div>
 </section>
+
+<section id="style" class="app-step">
+  <div class="wrap">
+    <div class="eyebrow">STYLE GUIDE AI</div>
+    <h2>상황별 스타일, 딱 정해드려요</h2>
+    <p class="sub">피부 상태에 맞춰 화장품부터 옷·헤어까지. 오늘 어디 가는지만 고르면 조합을 정해드려요.</p>
+
+    <div class="tpo-tabs" id="tpoTabs"></div>
+    <div class="tpo-combo" id="tpoCombo"></div>
+
+    <div class="style-feed-head">
+      <div>
+        <div class="style-feed-title">스타일 피드</div>
+        <div class="style-feed-sub">사진 속 스타일에 쓰인 아이템을 확인해보세요</div>
+      </div>
+    </div>
+    <div class="style-feed" id="styleFeed"></div>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
+      <div class="step-progress" data-step-dots></div>
+      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>다음</button>
+    </div>
+  </div>
+</section>
+
+<div class="sheet" id="styleSheet" hidden>
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="sheet-card" id="sheetCard"></div>
+</div>
 
 <section id="extra" class="app-step">
   <div class="wrap">
@@ -2865,11 +2992,12 @@ DEMO_HTML = """
   }
 
   /* ---------------- step navigation (hero/analysis/recommend/extra/community) ---------------- */
-  const APP_STEPS = ['hero','analysis','recommend','extra','community'];
+  const APP_STEPS = ['hero','analysis','recommend','style','extra','community'];
   const STEP_EL = {
     hero: document.getElementById('stepHero'),
     analysis: document.getElementById('analysis'),
     recommend: document.getElementById('recommend'),
+    style: document.getElementById('style'),
     extra: document.getElementById('extra'),
     community: document.getElementById('community')
   };
@@ -2884,6 +3012,7 @@ DEMO_HTML = """
     });
     window.scrollTo(0,0);
     if(name === 'recommend' && !tierInitialized){ initTierTabs(); }
+    if(name === 'style' && !styleInitialized){ initStyle(); }
     if(name === 'extra' && !extraInitialized){ initExtraTabs(); }
   }
   window.showAppStep = showAppStep;
@@ -2962,6 +3091,167 @@ DEMO_HTML = """
   }
   window.awardPoints = awardPoints;
   renderRewards();
+
+  /* ---------------- style guide (TPO 상황별 추천 + 스타일 피드) ---------------- */
+  let styleInitialized = false;
+  const TPO = {
+    date:      { label:'소개팅',    emoji:'💗' },
+    interview: { label:'면접',      emoji:'💼' },
+    work:      { label:'출근',      emoji:'🏢' },
+    weekend:   { label:'주말 약속', emoji:'🌤️' }
+  };
+  const TPO_ORDER = ['date','interview','work','weekend'];
+  const TPO_LOOKS = {
+    date: {
+      male:{ impression:['부드러운 첫인상','청결','신뢰'],
+        skin:'유분·번들거림을 잡아 매트하고 깨끗한 인상. 만나기 30분 전 가벼운 수분만 더하세요.',
+        cosmetics:['메디힐 마데카소사이드 선세럼','정샘물 에센셜 스킨 누더 쿠션','아누아 어성초 토너'],
+        outfit:{main:'화이트 셔츠 + 베이지 슬랙스', sub:'깔끔한 컬러로 부담 없는 호감형'},
+        hair:{main:'내추럴 덮머리', sub:'다운펌으로 자연스럽게'} },
+      female:{ impression:['화사','생기','다정'],
+        skin:'수분+비타C로 화사하게. 은은한 톤업으로 생기 있는 인상을 만드세요.',
+        cosmetics:['토리든 다이브인 세럼','구달 청귤 비타C 세럼','클리오 킬커버 쿠션'],
+        outfit:{main:'아이보리 니트 + 연핑크 스커트', sub:'부드러운 파스텔로 다정한 무드'},
+        hair:{main:'웨이브 반묶음', sub:'얼굴 라인을 부드럽게'} }
+    },
+    interview: {
+      male:{ impression:['단정','신뢰','프로페셔널'],
+        skin:'톤 정리 + 자연스러운 커버로 또렷하고 신뢰감 있는 인상.',
+        cosmetics:['에스트라 아토베리어365 크림','헤라 블랙 쿠션','코스알엑스 6 펩타이드 세럼'],
+        outfit:{main:'네이비 자켓 + 화이트 셔츠', sub:'기본에 충실한 신뢰형 조합'},
+        hair:{main:'깐머리 (이마 오픈)', sub:'단정하게 넘겨 프로페셔널하게'} },
+      female:{ impression:['단정','또렷','프로페셔널'],
+        skin:'매트한 베이스 + 또렷한 눈썹으로 신뢰감 있는 인상.',
+        cosmetics:['에스트라 아토베리어365 크림','클리오 킬커버 쿠션','클리오 킬브로우 펜슬'],
+        outfit:{main:'네이비 자켓 + 화이트 블라우스', sub:'클래식한 오피스 무드'},
+        hair:{main:'로우 포니테일', sub:'깔끔하게 넘겨 단정하게'} }
+    },
+    work: {
+      male:{ impression:['깔끔','부지런','호감'],
+        skin:'빠른 아침 루틴 — 수분·선케어로 하루 컨디션을 유지하세요.',
+        cosmetics:['AHC 마스터즈 선스틱','토리든 다이브인 세럼','라운드랩 1025 독도 로션'],
+        outfit:{main:'그레이 니트 + 화이트 이너', sub:'단정하지만 편한 데일리'},
+        hair:{main:'가벼운 덮머리', sub:'힘 뺀 자연스러운 스타일'} },
+      female:{ impression:['깔끔','생기','프로'],
+        skin:'가벼운 수분 + 톤업 선크림으로 산뜻하게.',
+        cosmetics:['구달 어성초 진정 선크림','토리든 다이브인 세럼','정샘물 쿠션'],
+        outfit:{main:'베이지 가디건 + 슬랙스', sub:'편안한 오피스 캐주얼'},
+        hair:{main:'로우 번', sub:'단정한 하루용 스타일'} }
+    },
+    weekend: {
+      male:{ impression:['편안','트렌디','자연스러움'],
+        skin:'가볍게 수분+톤업, 힘 뺀 무드로 자연스럽게.',
+        cosmetics:['구달 어성초 진정 선크림','메디큐브 PDRN 핑크 미스트','정샘물 쿠션(가볍게)'],
+        outfit:{main:'블랙 후드 + 데님', sub:'꾸안꾸 캐주얼'},
+        hair:{main:'내추럴 애즈펌', sub:'자연스러운 볼륨'} },
+      female:{ impression:['편안','러블리','자연스러움'],
+        skin:'수분 위주 가벼운 베이스로 촉촉한 무드.',
+        cosmetics:['토리든 다이브인 세럼','메디큐브 PDRN 핑크 미스트','페리페라 틴트'],
+        outfit:{main:'니트 + 데님', sub:'편안한 데이트 룩'},
+        hair:{main:'로우 웨이브', sub:'자연스럽게 풀어서'} }
+    }
+  };
+  const STYLE_FEED = [
+    { id:'f1', sit:'date',      gender:'male',   title:'소개팅 클린 룩' },
+    { id:'f2', sit:'interview', gender:'male',   title:'면접 신뢰 룩' },
+    { id:'f3', sit:'work',      gender:'male',   title:'데일리 출근 룩' },
+    { id:'f4', sit:'date',      gender:'female', title:'소개팅 화사 룩' },
+    { id:'f5', sit:'weekend',   gender:'male',   title:'주말 캐주얼 룩' },
+    { id:'f6', sit:'weekend',   gender:'female', title:'주말 데이트 룩' }
+  ];
+  const TAG_POS = [{top:'32%',left:'40%'},{top:'50%',left:'62%'},{top:'66%',left:'42%'}];
+  const IC_SKIN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M8.5 15a4 4 0 0 0 7 0"/></svg>';
+  const IC_COS   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6v4l1 3v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V9l1-3z"/><path d="M9 9h6"/></svg>';
+  const IC_SHIRT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3l4 3-3 3-1-1v11H8V8L7 8 4 6l4-3 2 2h4z"/></svg>';
+  const IC_HAIR  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15a8 8 0 0 1 16 0M6 15c0 3 1 5 3 5M18 15c0 3-1 5-3 5"/></svg>';
+
+  function currentStyleGender(){ return (window.appState && window.appState.gender) === 'female' ? 'female' : 'male'; }
+  function faceImg(gender){ return gender === 'female' ? (window.FACE_FEMALE || '') : (window.FACE_MALE || ''); }
+
+  function renderTpo(sit){
+    const g = currentStyleGender();
+    const look = TPO_LOOKS[sit][g];
+    const t = TPO[sit];
+    const slot = (icon,label,content)=>
+      '<div class="tpo-slot"><div class="tpo-slot-label">'+icon+label+'</div>'+content+'</div>';
+    document.getElementById('tpoCombo').innerHTML =
+      '<div class="tpo-combo-head">' +
+        '<div><div class="tc-badge">오늘은 이 조합으로 가세요</div>' +
+        '<div class="tc-title">'+t.emoji+' '+t.label+' 추천 룩</div></div>' +
+        '<div class="tpo-impression">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
+      '</div>' +
+      '<div class="tpo-combo-body">' +
+        slot(IC_SKIN,'피부 포인트','<div class="tpo-slot-sub">'+look.skin+'</div>') +
+        slot(IC_COS,'화장품','<ul class="tpo-slot-list">'+look.cosmetics.map(c=>'<li>'+c+'</li>').join('')+'</ul>') +
+        slot(IC_SHIRT,'옷','<div class="tpo-slot-main">'+look.outfit.main+'</div><div class="tpo-slot-sub">'+look.outfit.sub+'</div>') +
+        slot(IC_HAIR,'헤어','<div class="tpo-slot-main">'+look.hair.main+'</div><div class="tpo-slot-sub">'+look.hair.sub+'</div>') +
+      '</div>';
+  }
+
+  function renderFeed(){
+    const feedEl = document.getElementById('styleFeed');
+    feedEl.innerHTML = STYLE_FEED.map(f=>{
+      const look = TPO_LOOKS[f.sit][f.gender];
+      const t = TPO[f.sit];
+      const img = faceImg(f.gender);
+      const tags = look.cosmetics.slice(0,3).map((c,i)=>
+        '<div class="feed-tag" style="top:'+TAG_POS[i].top+';left:'+TAG_POS[i].left+'">'+(i+1)+'</div>').join('');
+      return '<div class="feed-card" data-feed="'+f.id+'">' +
+        '<div class="feed-photo">' + (img?'<img src="'+img+'" alt="'+f.title+'" />':'') +
+          '<div class="feed-situation">'+t.emoji+' '+t.label+'</div>' + tags + '</div>' +
+        '<div class="feed-foot"><div class="feed-look-title">'+f.title+'</div>' +
+          '<div class="feed-keys">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div></div>' +
+      '</div>';
+    }).join('');
+    feedEl.querySelectorAll('.feed-card').forEach(c=>
+      c.addEventListener('click', ()=> openSheet(c.dataset.feed)));
+  }
+
+  function openSheet(feedId){
+    const f = STYLE_FEED.find(x=> x.id === feedId); if(!f) return;
+    const look = TPO_LOOKS[f.sit][f.gender];
+    const t = TPO[f.sit];
+    const img = faceImg(f.gender);
+    const sec = (icon,label,content)=>
+      '<div class="sheet-sec"><div class="sheet-sec-label">'+icon+label+'</div>'+content+'</div>';
+    document.getElementById('sheetCard').innerHTML =
+      '<div class="sheet-grip"></div>' +
+      '<div class="sheet-photo"><button type="button" class="sheet-close" id="sheetClose">×</button>' +
+        (img?'<img src="'+img+'" alt="'+f.title+'" />':'') + '</div>' +
+      '<div class="sheet-body">' +
+        '<div class="sheet-situation">'+t.emoji+' '+t.label+'</div>' +
+        '<div class="sheet-title">'+f.title+'</div>' +
+        '<div class="sheet-keys">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
+        sec(IC_SKIN,'피부 타입 추천 포인트','<div class="sheet-skin">'+look.skin+'</div>') +
+        sec(IC_COS,'사용 화장품', look.cosmetics.map((c,i)=>
+          '<div class="sheet-prod"><div class="sheet-prod-no">'+(i+1)+'</div><div class="sheet-prod-txt"><b>'+c+'</b></div></div>').join('')) +
+        '<div class="sheet-sec"><div class="sheet-two">' +
+          '<div><div class="sheet-sec-label">'+IC_SHIRT+'추천 옷 스타일</div><div class="sheet-mini-main">'+look.outfit.main+'</div><div class="sheet-mini-sub">'+look.outfit.sub+'</div></div>' +
+          '<div><div class="sheet-sec-label">'+IC_HAIR+'헤어 스타일</div><div class="sheet-mini-main">'+look.hair.main+'</div><div class="sheet-mini-sub">'+look.hair.sub+'</div></div>' +
+        '</div></div>' +
+      '</div>';
+    const sheet = document.getElementById('styleSheet');
+    sheet.hidden = false;
+    document.getElementById('sheetClose').addEventListener('click', closeSheet);
+  }
+  function closeSheet(){ document.getElementById('styleSheet').hidden = true; }
+
+  function initStyle(){
+    styleInitialized = true;
+    const tabsEl = document.getElementById('tpoTabs');
+    tabsEl.innerHTML = TPO_ORDER.map((k,i)=>
+      '<button type="button" class="tpo-tab'+(i===0?' active':'')+'" data-tpo="'+k+'">' +
+      '<span class="tpo-emoji">'+TPO[k].emoji+'</span>'+TPO[k].label+'</button>').join('');
+    tabsEl.addEventListener('click', e=>{
+      const b = e.target.closest('.tpo-tab'); if(!b) return;
+      tabsEl.querySelectorAll('.tpo-tab').forEach(x=> x.classList.remove('active'));
+      b.classList.add('active');
+      renderTpo(b.dataset.tpo);
+    });
+    document.getElementById('sheetBackdrop').addEventListener('click', closeSheet);
+    renderTpo('date');
+    renderFeed();
+  }
 
   /* ---------------- product card helper ---------------- */
   function renderProductCards(list){
