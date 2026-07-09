@@ -720,6 +720,116 @@ DEMO_HTML = """
   .simple-actions{display:flex;gap:8px;padding:12px 18px 16px;}
   .simple-actions .btn{flex:1;padding:10px;font-size:12.5px;}
   #screenSimple{min-height:600px;}
+
+  /* ---------- INTRO MEMBER CTA ---------- */
+  .intro-member{margin-top:20px;}
+  .intro-member-or{display:flex;align-items:center;gap:12px;color:#6f6e67;font-size:11.5px;margin-bottom:14px;}
+  .intro-member-or::before,.intro-member-or::after{content:'';height:1px;background:#3a3934;flex:1;}
+  .intro-member-btn{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 18px;border-radius:14px;
+    border:1.5px solid #3a3934;background:#201f1c;color:#f6f5f2;font-family:inherit;cursor:pointer;transition:border-color .15s ease;
+  }
+  .intro-member-btn:hover{border-color:var(--gold);}
+  .intro-member-txt{flex:1;}
+  .intro-member-txt b{display:block;font-size:14px;font-weight:700;}
+  .intro-member-txt span{display:block;font-size:11.5px;color:#a9a89f;margin-top:3px;}
+  .intro-member-btn svg{width:18px;height:18px;color:var(--gold);flex:none;}
+
+  /* ---------- AUTH (social login) ---------- */
+  .auth{background:radial-gradient(120% 140% at 15% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);opacity:0;transition:opacity .5s ease;padding:24px;}
+  .auth.visible{opacity:1;}
+  .auth-card{width:100%;max-width:420px;color:#f6f5f2;}
+  .auth-back,.consent-card .auth-back{
+    display:inline-flex;align-items:center;gap:4px;background:none;border:none;color:#c9c8c1;font-size:13px;font-weight:600;
+    font-family:inherit;cursor:pointer;padding:0;margin-bottom:22px;
+  }
+  .auth-back svg{width:16px;height:16px;}
+  .auth-back:hover{color:#f6f5f2;}
+  .auth-title{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.3;}
+  .auth-title em{font-style:normal;color:var(--gold);}
+  .auth-sub{font-size:13.5px;color:#c9c8c1;margin-top:10px;line-height:1.6;}
+  .auth-benefits{display:flex;flex-direction:column;gap:10px;margin:24px 0;}
+  .auth-benefit{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:12px;background:#201f1c;border:1px solid #33322d;}
+  .auth-benefit svg{width:22px;height:22px;color:var(--gold);flex:none;}
+  .auth-benefit b{display:block;font-size:13.5px;font-weight:700;}
+  .auth-benefit span{display:block;font-size:11.5px;color:#a9a89f;margin-top:2px;}
+  .social-btns{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
+  .social-btn{
+    display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;border-radius:12px;
+    border:1.5px solid #3a3934;background:#26251f;color:#f6f5f2;font-family:inherit;font-size:14.5px;font-weight:700;
+    cursor:pointer;transition:border-color .15s ease,transform .12s ease;
+  }
+  .social-btn:hover{border-color:#6f6e67;}
+  .social-btn:active{transform:scale(.99);}
+  .social-ic{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:none;}
+  .auth-skip{width:100%;margin-top:18px;background:none;border:none;color:#a9a89f;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;}
+  .auth-skip:hover{color:#f6f5f2;}
+
+  /* ---------- CONSENT ---------- */
+  .consent{background:radial-gradient(120% 140% at 85% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);opacity:0;transition:opacity .5s ease;padding:24px;}
+  .consent.visible{opacity:1;}
+  .consent-card{width:100%;max-width:460px;color:#f6f5f2;}
+  .consent-title{font-size:22px;font-weight:700;letter-spacing:-.02em;}
+  .consent-sub{font-size:13px;color:#c9c8c1;margin-top:8px;line-height:1.6;}
+  .consent-all{display:flex;align-items:center;gap:11px;margin:22px 0 12px;padding:15px 16px;border-radius:12px;background:#26251f;border:1.5px solid var(--gold);cursor:pointer;font-size:15px;}
+  .consent-list{display:flex;flex-direction:column;}
+  .consent-item{border-top:1px solid #33322d;padding:14px 2px;}
+  .consent-item label{display:flex;align-items:center;gap:11px;cursor:pointer;}
+  .consent-label{flex:1;font-size:13.5px;color:#e8e7e0;}
+  .consent-tag{font-style:normal;font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;margin-right:6px;}
+  .consent-tag.req{background:var(--gold-soft);color:var(--gold);}
+  .consent-tag.opt{background:#33322d;color:#a9a89f;}
+  .consent-all input,.consent-item input{position:absolute;opacity:0;width:0;height:0;}
+  .consent-check{width:22px;height:22px;border-radius:7px;border:1.5px solid #4a4940;flex:none;position:relative;transition:all .15s ease;}
+  .consent-check::after{content:'';position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #1a1a18;border-width:0 2px 2px 0;transform:rotate(45deg) scale(0);transition:transform .15s ease;}
+  .consent-all input:checked ~ .consent-check,.consent-item input:checked + .consent-check{background:var(--gold);border-color:var(--gold);}
+  .consent-all input:checked ~ .consent-check::after,.consent-item input:checked + .consent-check::after{transform:rotate(45deg) scale(1);}
+  .consent-more{margin-left:33px;margin-top:6px;background:none;border:none;color:#8f8e86;font-size:11.5px;font-family:inherit;cursor:pointer;text-decoration:underline;}
+  .consent-detail{display:none;margin:8px 0 0 33px;font-size:12px;color:#a9a89f;line-height:1.6;padding:10px 12px;background:#201f1c;border-radius:9px;}
+  .consent-detail.show{display:block;}
+  .consent-hint{min-height:18px;font-size:12.5px;color:#e0a3a3;margin:14px 0 4px;}
+  .consent-actions{display:flex;gap:10px;margin-top:6px;}
+  .consent-actions .btn{flex:1;padding:14px;font-size:14.5px;}
+  .consent-actions .btn-outline{border-color:#4a4940;color:#e8e7e0;}
+
+  /* ---------- MY PAGE ---------- */
+  .mypage{background:linear-gradient(180deg,#fbf8f4,#f3ede4);opacity:0;transition:opacity .5s ease;padding:32px 24px;}
+  .mypage.visible{opacity:1;}
+  .mypage-card{width:100%;max-width:720px;}
+  .mp-head{display:flex;align-items:center;gap:14px;}
+  .mp-user{display:flex;align-items:center;gap:12px;flex:1;}
+  .mp-avatar{width:48px;height:48px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;flex:none;}
+  .mp-name{font-size:18px;font-weight:800;color:#2b241d;letter-spacing:-.02em;}
+  .mp-provider{font-size:12px;color:#a89a86;font-weight:600;margin-top:2px;}
+  .mp-head-actions{display:flex;align-items:center;gap:8px;}
+  .mp-ghost{background:none;border:none;color:#a89a86;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
+  .mp-ghost:hover{color:#2b241d;}
+  .mp-hello{margin:18px 0 16px;font-size:13.5px;color:#5c5346;line-height:1.6;}
+  .mp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .mp-stat{background:#fffdfa;border:1px solid #e6dccd;border-radius:16px;padding:18px;text-align:center;}
+  .mp-stat b{display:block;font-size:26px;font-weight:800;color:var(--db-brown,#8a6a52);line-height:1;}
+  .mp-stat span{display:block;font-size:11.5px;color:#a89a86;font-weight:700;margin-top:6px;}
+  .mp-cta-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0 22px;}
+  .mp-recall{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:#8a6a52;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;}
+  .mp-recall svg{width:14px;height:14px;}
+  .mp-recall:hover{text-decoration:underline;}
+  .mp-tabs{display:flex;gap:8px;border-bottom:1px solid #e6dccd;margin-bottom:16px;overflow-x:auto;}
+  .mp-tab{padding:11px 4px;margin-right:12px;background:none;border:none;border-bottom:2px solid transparent;color:#a89a86;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s ease;}
+  .mp-tab.active{color:#2b241d;border-bottom-color:var(--db-brown,#8a6a52);}
+  .mp-panels{display:flex;flex-direction:column;gap:12px;}
+  .mp-record{background:#fffdfa;border:1px solid #e6dccd;border-radius:14px;padding:16px 18px;transition:box-shadow .15s ease;}
+  .mp-record:hover{box-shadow:0 8px 20px rgba(120,96,68,.08);}
+  .mp-record-top{display:flex;align-items:center;gap:10px;}
+  .mp-record-date{font-size:11.5px;color:#a89a86;font-weight:700;}
+  .mp-record-badge{margin-left:auto;font-size:11px;font-weight:800;color:var(--db-brown,#8a6a52);background:#efe4d8;padding:3px 10px;border-radius:999px;}
+  .mp-record-title{font-size:14.5px;font-weight:700;color:#2b241d;margin-top:7px;}
+  .mp-record-sum{font-size:12.5px;color:#5c5346;line-height:1.55;margin-top:5px;}
+  .mp-empty{text-align:center;color:#a89a86;font-size:13px;padding:40px 0;}
+
+  @media (max-width:560px){
+    .mp-head{flex-wrap:wrap;}
+    .auth-title{font-size:23px;}
+  }
 </style>
 </head>
 <body>
@@ -749,6 +859,17 @@ DEMO_HTML = """
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 2.6-6.36M3 4v5h5"/></svg>
       최근 분석 결과 다시 보기
     </button>
+
+    <div class="intro-member">
+      <div class="intro-member-or"><span>또는</span></div>
+      <button type="button" class="intro-member-btn" id="introMember">
+        <div class="intro-member-txt">
+          <b>회원가입하고 내 피부 기록 저장하기</b>
+          <span>피부 기록 저장 · 추천 이력 관리 · 변화 추적</span>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+    </div>
   </div>
 </div>
 
@@ -896,6 +1017,154 @@ DEMO_HTML = """
   </div>
 </div>
 
+<div class="screen auth hidden" id="screenAuth">
+  <div class="auth-card">
+    <button type="button" class="auth-back" id="authBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg> 뒤로
+    </button>
+    <div class="eyebrow on-dark">MEMBERSHIP</div>
+    <h1 class="auth-title">내 피부, <em>기록</em>해서 관리해요</h1>
+    <p class="auth-sub">가입하면 분석 결과와 추천을 저장하고, 피부 변화를 계속 추적할 수 있어요.</p>
+    <div class="auth-benefits">
+      <div class="auth-benefit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        <div><b>피부 기록 저장</b><span>분석 결과를 계정에 보관</span></div>
+      </div>
+      <div class="auth-benefit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <div><b>추천 이력 관리</b><span>받은 제품 추천을 한눈에</span></div>
+      </div>
+      <div class="auth-benefit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M14 7h7v7"/></svg>
+        <div><b>변화 추적</b><span>이전 대비 피부 점수 비교</span></div>
+      </div>
+    </div>
+    <div class="social-btns">
+      <button type="button" class="social-btn" data-provider="kakao">
+        <span class="social-ic" style="background:#FEE500;color:#3A1D1D;">K</span>카카오로 시작하기
+      </button>
+      <button type="button" class="social-btn" data-provider="google">
+        <span class="social-ic" style="background:#fff;color:#4285F4;border:1px solid #e6e4de;">G</span>구글로 시작하기
+      </button>
+      <button type="button" class="social-btn" data-provider="naver">
+        <span class="social-ic" style="background:#03C75A;color:#fff;">N</span>네이버로 시작하기
+      </button>
+    </div>
+    <button type="button" class="auth-skip" id="authSkip">회원가입 없이 둘러보기</button>
+  </div>
+</div>
+
+<div class="screen consent hidden" id="screenConsent">
+  <div class="consent-card">
+    <button type="button" class="auth-back" id="consentBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg> 뒤로
+    </button>
+    <h1 class="consent-title">약관에 동의해주세요</h1>
+    <p class="consent-sub">피부 데이터를 안전하게 관리하기 위해 아래 항목 동의가 필요해요.</p>
+
+    <label class="consent-all">
+      <input type="checkbox" id="consentAll" />
+      <span class="consent-check"></span>
+      <b>약관 전체 동의</b>
+    </label>
+
+    <div class="consent-list" id="consentList">
+      <div class="consent-item">
+        <label>
+          <input type="checkbox" class="consent-chk" data-req="1" />
+          <span class="consent-check"></span>
+          <span class="consent-label"><i class="consent-tag req">필수</i> 서비스 이용약관 동의</span>
+        </label>
+        <button type="button" class="consent-more">자세히</button>
+        <div class="consent-detail">본 서비스는 피부 분석 데모를 제공하며, 결과는 의료 진단이 아닌 참고용입니다. 서비스 운영정책을 준수하는 데 동의합니다.</div>
+      </div>
+      <div class="consent-item">
+        <label>
+          <input type="checkbox" class="consent-chk" data-req="1" />
+          <span class="consent-check"></span>
+          <span class="consent-label"><i class="consent-tag req">필수</i> 개인정보 수집 및 이용 동의</span>
+        </label>
+        <button type="button" class="consent-more">자세히</button>
+        <div class="consent-detail">닉네임·나이 등 최소한의 정보를 서비스 제공 목적으로 수집·이용합니다. 목적 달성 후 지체 없이 파기합니다.</div>
+      </div>
+      <div class="consent-item">
+        <label>
+          <input type="checkbox" class="consent-chk" data-req="1" />
+          <span class="consent-check"></span>
+          <span class="consent-label"><i class="consent-tag req">필수</i> 피부 분석 결과 및 상담 이력 저장 동의</span>
+        </label>
+        <button type="button" class="consent-more">자세히</button>
+        <div class="consent-detail">분석 점수·추천·상담 내역을 계정에 저장해 변화 추적과 재열람에 사용합니다. 이 서비스의 핵심 기능을 위한 필수 항목입니다.</div>
+      </div>
+      <div class="consent-item">
+        <label>
+          <input type="checkbox" class="consent-chk" data-req="1" />
+          <span class="consent-check"></span>
+          <span class="consent-label"><i class="consent-tag req">필수</i> 피부 이미지 분석 데이터 활용 안내</span>
+        </label>
+        <button type="button" class="consent-more">자세히</button>
+        <div class="consent-detail">촬영된 얼굴 이미지는 피부 상태 분석에만 사용되며 데모에서는 기기에 저장되지 않고 분석 후 폐기됩니다. 제3자에게 제공하지 않습니다.</div>
+      </div>
+      <div class="consent-item">
+        <label>
+          <input type="checkbox" class="consent-chk" data-req="0" />
+          <span class="consent-check"></span>
+          <span class="consent-label"><i class="consent-tag opt">선택</i> 마케팅 정보 수신 동의</span>
+        </label>
+        <button type="button" class="consent-more">자세히</button>
+        <div class="consent-detail">신제품·이벤트·맞춤 추천 소식을 받아볼 수 있습니다. 동의하지 않아도 서비스 이용에는 제한이 없습니다.</div>
+      </div>
+    </div>
+
+    <div class="consent-hint" id="consentHint"></div>
+    <div class="consent-actions">
+      <button type="button" class="btn btn-outline" id="consentReqOnly">필수만 동의</button>
+      <button type="button" class="btn btn-gold" id="consentSubmit">동의하고 시작하기</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen mypage hidden" id="screenMyPage">
+  <div class="mypage-card">
+    <div class="mp-head">
+      <div class="mp-user">
+        <div class="mp-avatar" id="mpAvatar">회</div>
+        <div>
+          <div class="mp-name" id="mpName">회원님</div>
+          <div class="mp-provider" id="mpProvider">로그인</div>
+        </div>
+      </div>
+      <div class="mp-head-actions">
+        <button type="button" class="mp-ghost" id="mpLogout">로그아웃</button>
+        <button type="button" class="btn btn-dark btn-sm" id="mpHome">홈으로</button>
+      </div>
+    </div>
+
+    <div class="mp-hello">내 피부 관리 페이지예요. 그동안의 기록을 한곳에서 확인해보세요.</div>
+
+    <div class="mp-stats">
+      <div class="mp-stat"><b id="mpCountA">0</b><span>피부 분석</span></div>
+      <div class="mp-stat"><b id="mpCountR">0</b><span>추천 이력</span></div>
+      <div class="mp-stat"><b id="mpCountC">0</b><span>상담 내역</span></div>
+    </div>
+
+    <div class="mp-cta-row">
+      <button type="button" class="btn btn-gold btn-sm" id="mpStart">새 피부 분석 시작</button>
+      <button type="button" class="mp-recall" id="mpRecall">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 2.6-6.36M3 4v5h5"/></svg>
+        최근 분석 결과 다시 보기
+      </button>
+    </div>
+
+    <div class="mp-tabs">
+      <button type="button" class="mp-tab active" data-mp="analyses">피부 분석 내역</button>
+      <button type="button" class="mp-tab" data-mp="recommends">추천 이력</button>
+      <button type="button" class="mp-tab" data-mp="consults">상담 내역</button>
+    </div>
+    <div class="mp-panels" id="mpPanels"></div>
+  </div>
+</div>
+
 <div id="screenApp" class="app-screen" style="display:none;">
 <div class="nav">
   <div class="wrap">
@@ -906,6 +1175,7 @@ DEMO_HTML = """
       <a href="javascript:void(0)" data-step="community">커뮤니티</a>
     </div>
     <button type="button" class="btn btn-outline btn-sm" id="navRecall" style="display:none;">최근 결과 다시 보기</button>
+    <button type="button" class="btn btn-outline btn-sm" id="navMember">로그인</button>
     <button type="button" class="btn btn-dark btn-sm" data-step="analysis">분석 시작</button>
   </div>
 </div>
@@ -1176,6 +1446,176 @@ DEMO_HTML = """
   document.getElementById('navRecall').addEventListener('click', viewLastResult);
   initRecallEntryPoints();
 
+  /* ---------------- membership + records (dummy social login) ---------------- */
+  const MEMBER_KEY = 'forhim_member';
+  const RECORDS_KEY = 'forhim_records';
+  const screenAuth = document.getElementById('screenAuth');
+  const screenConsent = document.getElementById('screenConsent');
+  const screenMyPage = document.getElementById('screenMyPage');
+  const CONCERN_LABEL = { scar:'흉터', pore:'모공', oil:'유분', acne:'여드름' };
+  let authOrigin = 'intro';
+  let pendingProvider = null;
+  let mpTab = 'analyses';
+
+  function loadMember(){ try{ return JSON.parse(localStorage.getItem(MEMBER_KEY) || 'null'); }catch(e){ return null; } }
+  function saveMember(m){ member = m; try{ if(m) localStorage.setItem(MEMBER_KEY, JSON.stringify(m)); else localStorage.removeItem(MEMBER_KEY); }catch(e){} }
+  function isMember(){ return !!(member && member.loggedIn); }
+  let member = loadMember();
+
+  function seedRecords(){
+    const now = Date.now(), D = 86400000;
+    return {
+      analyses:[
+        { id:'a1', date:now-14*D, score:62, type:'복합성', top:'모공', summary:'모공·유분 중심 분석, 종합 62점' },
+        { id:'a2', date:now-3*D,  score:71, type:'지성',   top:'트러블', summary:'유분·트러블 개선 추세, 종합 71점' }
+      ],
+      recommends:[
+        { id:'r1', date:now-3*D, title:'유분·트러블 맞춤 루틴', summary:'AI 매칭 기반 단계별 추천', items:['닥터지 레드 블레미쉬 토너','메디힐 마데카소사이드 선세럼','코스알엑스 6펩타이드 세럼'] }
+      ],
+      consults:[
+        { id:'s1', date:now-10*D, title:'화농성 여드름 상담', summary:'턱 트러블 반복 → 진정+유분 관리 제안', status:'답변완료' }
+      ]
+    };
+  }
+  function loadRecords(){ try{ const r = JSON.parse(localStorage.getItem(RECORDS_KEY) || 'null'); if(r) return r; }catch(e){} const s = seedRecords(); saveRecords(s); return s; }
+  function saveRecords(r){ records = r; try{ localStorage.setItem(RECORDS_KEY, JSON.stringify(r)); }catch(e){} }
+  let records = null;
+  records = loadRecords();
+
+  function mpEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function fmtDate(ts){ const d = new Date(ts); const p = n=>String(n).padStart(2,'0'); return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate()); }
+  function providerLabel(p){ return p==='kakao'?'카카오':p==='google'?'구글':p==='naver'?'네이버':'회원'; }
+  function concernLabel(k){ return CONCERN_LABEL[k] || k; }
+
+  function recordAnalysis(){
+    const metrics = computeDiagnosis();
+    const overall = Math.round(metrics.reduce((a,m)=>a+m.score,0)/metrics.length*10);
+    const worst = metrics.reduce((a,b)=> a.score<b.score?a:b);
+    const type = state.concerns.has('oil') ? '지성' : (state.concerns.has('pore')||state.concerns.has('scar')) ? '복합성' : '중성';
+    const cs = Array.from(state.concerns);
+    const rec = { id:'a'+Date.now(), date:Date.now(), score:overall, type:type, top:worst.label,
+      summary:(cs.map(concernLabel).join('·')||'전반') + ' 중심 분석, 종합 ' + overall + '점' };
+    if(records.analyses[0] && Date.now()-records.analyses[0].date < 60000){ records.analyses[0] = rec; }
+    else { records.analyses.unshift(rec); }
+    saveRecords(records);
+  }
+  function recordRecommend(){
+    const cs = Array.from(state.concerns);
+    const rec = { id:'r'+Date.now(), date:Date.now(), title:(cs.map(concernLabel).join('·')||'맞춤') + ' 루틴 추천',
+      summary:'AI 매칭 기반 단계별 추천', items:['1단계 세럼','2단계 선케어','3단계 커버'] };
+    if(records.recommends[0] && Date.now()-records.recommends[0].date < 60000){ records.recommends[0] = rec; }
+    else { records.recommends.unshift(rec); }
+    saveRecords(records);
+  }
+
+  const MEMBER_SCREENS = [splash, intro, camera, choice, simpleResult, diagnosis, screenAuth, screenConsent, screenMyPage];
+  function showMemberScreen(el){
+    MEMBER_SCREENS.forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
+    appScreen.style.display = 'none';
+    el.classList.remove('hidden'); requestAnimationFrame(()=> el.classList.add('visible'));
+    window.scrollTo(0,0);
+  }
+  function backToApp(){
+    [screenAuth, screenConsent, screenMyPage, intro, camera, choice, simpleResult, diagnosis].forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
+    appScreen.style.display = 'block';
+    if(window.showAppStep){ window.showAppStep('hero'); }
+    window.scrollTo(0,0);
+  }
+  function goCamera(){
+    if(!nickname){ nickname = (member && member.nickname) || '회원'; }
+    state.nickname = nickname; state.age = enteredAge;
+    showMemberScreen(camera);
+    startCamera();
+  }
+
+  function showAuth(origin){ authOrigin = origin || 'intro'; if(isMember()){ showMyPage(); return; } showMemberScreen(screenAuth); }
+  function backFromAuth(){ if(authOrigin==='app'){ backToApp(); } else { showMemberScreen(intro); } }
+  function doSocial(provider){ pendingProvider = provider; showMemberScreen(screenConsent); }
+
+  function setAllConsent(v){
+    document.querySelectorAll('#consentList .consent-chk').forEach(c=>{ c.checked = v; });
+    document.getElementById('consentAll').checked = v;
+  }
+  function setConsentReqOnly(){
+    document.querySelectorAll('#consentList .consent-chk').forEach(c=>{ c.checked = (c.dataset.req==='1'); });
+    syncConsentAll();
+  }
+  function syncConsentAll(){
+    const chks = [].slice.call(document.querySelectorAll('#consentList .consent-chk'));
+    document.getElementById('consentAll').checked = chks.every(c=>c.checked);
+    document.getElementById('consentHint').textContent = '';
+  }
+  function consentSubmit(){
+    const chks = [].slice.call(document.querySelectorAll('#consentList .consent-chk'));
+    const reqOk = chks.filter(c=>c.dataset.req==='1').every(c=>c.checked);
+    if(!reqOk){ document.getElementById('consentHint').textContent = '필수 항목에 모두 동의해주세요.'; return; }
+    const marketing = chks.some(c=>c.dataset.req==='0' && c.checked);
+    saveMember({ loggedIn:true, provider:pendingProvider||'kakao', nickname:(nickname||state.nickname||''),
+      joinedAt:Date.now(), agreements:{ required:true, marketing:marketing } });
+    updateMemberUI();
+    showMyPage();
+  }
+
+  function logout(){ saveMember(null); updateMemberUI(); showMemberScreen(intro); }
+  function updateMemberUI(){ const nav = document.getElementById('navMember'); if(nav){ nav.textContent = isMember() ? '마이페이지' : '로그인'; } }
+
+  function showMyPage(){ renderMyPage(); showMemberScreen(screenMyPage); }
+  function mpCard(date, title, summary, badge){
+    return '<div class="mp-record"><div class="mp-record-top"><span class="mp-record-date">'+date+'</span>'+
+      (badge?'<span class="mp-record-badge">'+mpEsc(badge)+'</span>':'')+'</div>'+
+      '<div class="mp-record-title">'+mpEsc(title)+'</div>'+
+      '<div class="mp-record-sum">'+mpEsc(summary)+'</div></div>';
+  }
+  function mpEmpty(msg){ return '<div class="mp-empty">'+msg+'</div>'; }
+  function renderMyPanels(){
+    const el = document.getElementById('mpPanels');
+    let html = '';
+    if(mpTab==='analyses'){
+      html = records.analyses.length ? records.analyses.map(a=> mpCard(fmtDate(a.date), a.type+' · '+a.top+' 집중', a.summary, a.score+'점')).join('') : mpEmpty('아직 분석 기록이 없어요.');
+    } else if(mpTab==='recommends'){
+      html = records.recommends.length ? records.recommends.map(r=> mpCard(fmtDate(r.date), r.title, r.summary+' · '+r.items.join(', '), '')).join('') : mpEmpty('아직 추천 이력이 없어요.');
+    } else {
+      html = records.consults.length ? records.consults.map(s=> mpCard(fmtDate(s.date), s.title, s.summary, s.status||'')).join('') : mpEmpty('아직 상담 내역이 없어요.');
+    }
+    el.innerHTML = html;
+  }
+  function renderMyPage(){
+    const name = (member && member.nickname) || nickname || '회원';
+    document.getElementById('mpName').textContent = name + '님';
+    document.getElementById('mpAvatar').textContent = (name[0] || '회');
+    document.getElementById('mpProvider').textContent = providerLabel(member && member.provider) + ' 로그인';
+    document.getElementById('mpCountA').textContent = records.analyses.length;
+    document.getElementById('mpCountR').textContent = records.recommends.length;
+    document.getElementById('mpCountC').textContent = records.consults.length;
+    document.getElementById('mpRecall').style.display = loadLastResult() ? 'inline-flex' : 'none';
+    renderMyPanels();
+  }
+
+  /* wiring */
+  document.getElementById('introMember').addEventListener('click', ()=> showAuth('intro'));
+  document.getElementById('navMember').addEventListener('click', ()=>{ if(isMember()) showMyPage(); else showAuth('app'); });
+  document.getElementById('authBack').addEventListener('click', backFromAuth);
+  document.getElementById('authSkip').addEventListener('click', ()=>{ if(authOrigin==='app') backToApp(); else showMemberScreen(intro); });
+  document.querySelectorAll('#screenAuth .social-btn').forEach(b=> b.addEventListener('click', ()=> doSocial(b.dataset.provider)));
+  document.getElementById('consentBack').addEventListener('click', ()=> showMemberScreen(screenAuth));
+  document.getElementById('consentSubmit').addEventListener('click', consentSubmit);
+  document.getElementById('consentReqOnly').addEventListener('click', ()=>{ setConsentReqOnly(); consentSubmit(); });
+  document.getElementById('consentAll').addEventListener('change', (e)=> setAllConsent(e.target.checked));
+  document.querySelectorAll('#consentList .consent-chk').forEach(c=> c.addEventListener('change', syncConsentAll));
+  document.querySelectorAll('#consentList .consent-more').forEach(m=> m.addEventListener('click', ()=>{
+    const d = m.parentElement.querySelector('.consent-detail');
+    d.classList.toggle('show'); m.textContent = d.classList.contains('show') ? '닫기' : '자세히';
+  }));
+  document.getElementById('mpLogout').addEventListener('click', logout);
+  document.getElementById('mpHome').addEventListener('click', backToApp);
+  document.getElementById('mpStart').addEventListener('click', goCamera);
+  document.getElementById('mpRecall').addEventListener('click', ()=>{ if(loadLastResult()) viewLastResult(); else goCamera(); });
+  document.querySelectorAll('#screenMyPage .mp-tab').forEach(t=> t.addEventListener('click', ()=>{
+    document.querySelectorAll('#screenMyPage .mp-tab').forEach(x=> x.classList.remove('active'));
+    t.classList.add('active'); mpTab = t.dataset.mp; renderMyPanels();
+  }));
+  updateMemberUI();
+
   /* ---------------- 1) splash ---------------- */
   setTimeout(()=> splashLogo.classList.add('sharp'), 150);
   setTimeout(()=> splashLogo.classList.remove('sharp'), 2400);
@@ -1293,6 +1733,7 @@ DEMO_HTML = """
       ['scar','pore','oil','acne'].forEach(k=> state.concerns.add(k));
     }
     saveLastResult();
+    recordAnalysis();
     setTimeout(showChoice, 1300);
   }
 
@@ -1503,6 +1944,7 @@ DEMO_HTML = """
       const greet = document.getElementById('heroGreet');
       if(greet && nickname){ greet.textContent = nickname + '님, '; }
       state.analyzed = true;
+      recordRecommend();
       appScreen.style.display = 'block';
       if(window.showAppStep){ window.showAppStep('recommend'); }
       window.scrollTo(0,0);
