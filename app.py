@@ -9,6 +9,20 @@ st.set_page_config(page_title="FOR HIM - Men's Beauty AI Demo", layout="wide")
 logo_path = Path(__file__).parent / "로고.png"
 logo_data_uri = "data:image/png;base64," + base64.b64encode(logo_path.read_bytes()).decode("ascii")
 
+
+def _img_data_uri(name: str) -> str:
+    """Encode a local PNG as a data URI; empty string if the file is missing."""
+    try:
+        p = Path(__file__).parent / name
+        return "data:image/png;base64," + base64.b64encode(p.read_bytes()).decode("ascii")
+    except Exception:
+        return ""
+
+
+# Real analysis faces used on the detailed diagnosis page (by member gender).
+face_male_uri = _img_data_uri("남자.png")
+face_female_uri = _img_data_uri("여자.png")
+
 DEMO_HTML = """
 <!doctype html>
 <html lang="ko">
@@ -16,7 +30,7 @@ DEMO_HTML = """
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FOR HIM — Men's Beauty AI Demo</title>
-<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;</script>
+<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";</script>
 <style>
   :root{
     --bg:#f6f5f2;
@@ -645,36 +659,37 @@ DEMO_HTML = """
   #diagCta{margin-top:20px;width:100%;padding:14px;font-size:15px;background:var(--db-brown);}
   #diagCta:hover{opacity:.9;}
 
-  .face-map{position:relative;width:184px;height:224px;margin:8px auto 0;}
+  .face-map{position:relative;width:100%;max-width:238px;aspect-ratio:1/1;margin:8px auto 0;}
   .face-model{
-    position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;
-    background:linear-gradient(180deg,#fbf6ef 0%,#f2e8d9 100%);
+    position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;background:#f2e8d9;
     box-shadow:inset 0 0 0 1px #ece2d2, 0 8px 20px rgba(120,96,68,.10);
   }
+  .face-model img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
   .face-model svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
-  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;z-index:2;}
+  /* 실제 사진 위에 문제 부위를 겹쳐 표시(멀티플라이로 피부에 자연스럽게 얹힘) */
+  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;z-index:2;mix-blend-mode:multiply;}
   .face-zone[data-zone="tzone"]{
-    top:20%;left:50%;width:26%;height:46%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
-    background:repeating-linear-gradient(115deg, rgba(201,138,60,.5) 0 3px, rgba(201,138,60,0) 3px 7px);
+    top:33%;left:50%;width:20%;height:30%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
+    background:repeating-linear-gradient(115deg, rgba(201,138,60,.6) 0 3px, rgba(201,138,60,0) 3px 7px);
   }
   .face-zone[data-zone="cheek-l"],.face-zone[data-zone="cheek-r"]{
-    top:54%;width:30%;height:22%;
-    background-image:radial-gradient(circle, rgba(200,110,70,.85) 0 6%, transparent 7%);
-    background-size:11px 11px;background-position:center;background-color:rgba(200,110,70,.12);
+    top:45%;width:17%;height:13%;
+    background-image:radial-gradient(circle, rgba(200,110,70,.9) 0 6%, transparent 7%);
+    background-size:10px 10px;background-position:center;background-color:rgba(200,110,70,.14);
   }
-  .face-zone[data-zone="cheek-l"]{left:24%;}
-  .face-zone[data-zone="cheek-r"]{left:76%;}
+  .face-zone[data-zone="cheek-l"]{left:37%;}
+  .face-zone[data-zone="cheek-r"]{left:63%;}
   .face-zone[data-zone="scar-mark"]{
-    top:58%;left:76%;width:22%;height:16%;
-    background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.85) 0 2px, transparent 2px 9px);
+    top:47%;left:64%;width:12%;height:11%;
+    background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.9) 0 2px, transparent 2px 9px);
   }
   .face-zone[data-zone="chin"]{
-    top:82%;left:50%;width:24%;height:16%;
+    top:56%;left:50%;width:16%;height:10%;
     background-image:
-      radial-gradient(circle at 30% 35%, rgba(193,60,60,.9) 0 9%, transparent 10%),
-      radial-gradient(circle at 65% 55%, rgba(193,60,60,.9) 0 8%, transparent 9%),
-      radial-gradient(circle at 45% 75%, rgba(193,60,60,.9) 0 7%, transparent 8%);
-    background-color:rgba(193,60,60,.1);
+      radial-gradient(circle at 30% 35%, rgba(193,60,60,.95) 0 9%, transparent 10%),
+      radial-gradient(circle at 65% 55%, rgba(193,60,60,.95) 0 8%, transparent 9%),
+      radial-gradient(circle at 45% 75%, rgba(193,60,60,.95) 0 7%, transparent 8%);
+    background-color:rgba(193,60,60,.12);
   }
   .face-zone.on{opacity:1;}
   .face-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;}
@@ -1118,7 +1133,7 @@ DEMO_HTML = """
           <div><span>분석 일시</span><b id="diagDate">-</b></div>
         </div>
         <div class="diag-survey" id="diagSurveyNote"></div>
-        <button class="btn btn-gold" id="diagCta">맞춤 제품 추천</button>
+        <button class="btn btn-gold" id="diagCta">나에게 맞는 제품 찾기</button>
       </div>
 
       <div class="diag-face-panel">
@@ -2397,9 +2412,18 @@ DEMO_HTML = """
   }
   function renderFaceModel(){
     const g = currentGender();
-    const kind = g === 'female' ? 'female' : g === 'male' ? 'male' : 'neutral';
     const el = document.getElementById('faceModel');
-    if(el) el.innerHTML = faceSVG(kind);
+    if(!el) return;
+    const male = window.FACE_MALE || '';
+    const female = window.FACE_FEMALE || '';
+    /* 성별에 맞는 실제 분석 사진 사용. 여성=여자.png, 그 외(남성·미선택)=남자.png */
+    const src = g === 'female' ? (female || male) : (male || female);
+    if(src){
+      el.innerHTML = '<img src="' + src + '" alt="AI 피부 분석 얼굴" />';
+    } else {
+      /* 사진이 없으면 벡터 모델로 폴백 */
+      el.innerHTML = faceSVG(g === 'female' ? 'female' : g === 'male' ? 'male' : 'neutral');
+    }
   }
 
   function computeDiagnosis(){
@@ -2479,7 +2503,7 @@ DEMO_HTML = """
       el.classList.toggle('active', state.concerns.has(el.dataset.concern));
     });
 
-    document.getElementById('diagCta').textContent = (nickname || '고객') + '님 맞춤 제품 추천';
+    document.getElementById('diagCta').textContent = '나에게 맞는 제품 찾기';
 
     renderConcernTabs(metrics);
   }
@@ -2556,15 +2580,14 @@ DEMO_HTML = """
       const band = m.score>=7?'good':m.score>=4?'mid':'bad';
       const bandText = band==='good'?'좋음':band==='mid'?'보통':'나쁨';
       const descText = detail.desc[band];
-      const products = window.recommendForConcern(detail.tag, 3);
+      /* 상세 분석 페이지에서는 제품을 추천하지 않고 상태·관리 팁만 보여준다.
+         제품은 '나에게 맞는 제품 찾기'로 넘어간 다음 페이지에서 확인. */
       return '<div class="diag-panel' + (k===defaultKey?' active':'') + '" data-panel="' + k + '">' +
         '<div class="panel-head">' +
           '<span class="panel-title">' + detail.label + ' · ' + m.score.toFixed(1) + '점</span>' +
           '<span class="panel-badge ' + band + '">' + bandText + '</span>' +
         '</div>' +
         '<div class="panel-score-track"><div class="panel-score-fill fill-' + band + '" style="width:' + (m.score*10) + '%"></div></div>' +
-        '<div class="tier-cat-label">' + detail.label + ' 맞춤 추천 · TOP 3 (내 피부 매칭순)</div>' +
-        '<div class="prod-row">' + window.renderProductCards(products) + '</div>' +
         '<p class="panel-desc">' + descText + '</p>' +
         '<div class="panel-tips">' +
           '<div class="panel-tips-title">관리 팁</div>' +
@@ -3720,6 +3743,8 @@ DEMO_HTML = DEMO_HTML.replace("__USER_LOGGED_IN__", json.dumps("1" if logged_in 
 DEMO_HTML = DEMO_HTML.replace("__USER_EMAIL__", json.dumps(user_email))
 DEMO_HTML = DEMO_HTML.replace("__USER_NAME__", json.dumps(user_name))
 DEMO_HTML = DEMO_HTML.replace("__APP_URL__", json.dumps(app_url))
+DEMO_HTML = DEMO_HTML.replace("__FACE_MALE__", face_male_uri)
+DEMO_HTML = DEMO_HTML.replace("__FACE_FEMALE__", face_female_uri)
 
 # Sidebar view switch: main demo vs. the face-model preview page. The preview
 # reuses the standalone face-model-preview.html (same faceSVG code as the demo).
