@@ -87,6 +87,7 @@ create policy analyses_self on public.analyses
 drop policy if exists posts_read   on public.posts;
 drop policy if exists posts_insert on public.posts;
 drop policy if exists posts_owner  on public.posts;
+drop policy if exists posts_delete on public.posts;
 create policy posts_read   on public.posts for select using (true);
 create policy posts_insert on public.posts for insert with check (auth.uid() = user_id);
 create policy posts_owner  on public.posts for update using (auth.uid() = user_id);

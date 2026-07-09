@@ -1045,14 +1045,8 @@ DEMO_HTML = """
       </div>
     </div>
     <div class="social-btns">
-      <button type="button" class="social-btn" data-provider="kakao">
-        <span class="social-ic" style="background:#FEE500;color:#3A1D1D;">K</span>카카오로 시작하기
-      </button>
       <button type="button" class="social-btn" data-provider="google">
         <span class="social-ic" style="background:#fff;color:#4285F4;border:1px solid #e6e4de;">G</span>구글로 시작하기
-      </button>
-      <button type="button" class="social-btn" data-provider="naver">
-        <span class="social-ic" style="background:#03C75A;color:#fff;">N</span>네이버로 시작하기
       </button>
     </div>
     <button type="button" class="auth-skip" id="authSkip">회원가입 없이 둘러보기</button>
