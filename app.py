@@ -1161,6 +1161,37 @@ DEMO_HTML = """
   </div>
 </div>
 
+<div class="screen choice hidden" id="screenStartChoice">
+  <div class="choice-card">
+    <div class="choice-badge">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12l5 5L20 7"/></svg>
+    </div>
+    <div class="choice-title" id="startChoiceTitle">가입이 완료되었어요</div>
+    <p class="choice-sub">어떤 방식으로 피부를 확인해볼까요?</p>
+
+    <button type="button" class="choice-btn choice-btn-primary" id="startCamera">
+      <div class="choice-btn-title">
+        <svg class="choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        영상 촬영으로 스캔하기
+      </div>
+      <span class="choice-btn-desc">카메라로 얼굴을 비추면 AI가 바로 분석해요</span>
+    </button>
+
+    <button type="button" class="choice-btn" id="startSurvey">
+      <div class="choice-btn-title">
+        <svg class="choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        설문으로 진단하기
+      </div>
+      <span class="choice-btn-desc">카메라 없이 고민을 선택해 결과를 확인해요</span>
+    </button>
+
+    <button type="button" class="mp-recall" id="startToMypage" style="margin:14px auto 0;display:flex;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>
+      내 피부 관리 페이지로 가기
+    </button>
+  </div>
+</div>
+
 <div id="screenApp" class="app-screen" style="display:none;">
 <div class="nav">
   <div class="wrap">
@@ -1453,6 +1484,7 @@ DEMO_HTML = """
   const screenConsent = document.getElementById('screenConsent');
   const screenProfile = document.getElementById('screenProfile');
   const screenMyPage = document.getElementById('screenMyPage');
+  const screenStartChoice = document.getElementById('screenStartChoice');
   const CONCERN_LABEL = { scar:'흉터', pore:'모공', oil:'유분', acne:'여드름' };
   /* 계정 연동 시 제공사에서 받아오는 정보(데모: 시뮬레이션). 실제 OAuth 연동 시
      이메일은 세션에서, 나이는 제공사 동의 범위에 따라 채워집니다. */
@@ -1553,8 +1585,11 @@ DEMO_HTML = """
     else { records.recommends.unshift(rec); }
     saveRecords(records);
   }
+  /* Exposed so the survey/analysis step (a separate IIFE) can log history too. */
+  window.recordRecommend = recordRecommend;
+  window.persistAnalysis = function(){ saveLastResult(); recordAnalysis(); };
 
-  const MEMBER_SCREENS = [splash, intro, camera, choice, simpleResult, diagnosis, screenAuth, screenConsent, screenProfile, screenMyPage];
+  const MEMBER_SCREENS = [splash, intro, camera, choice, simpleResult, diagnosis, screenAuth, screenConsent, screenProfile, screenMyPage, screenStartChoice];
   function showMemberScreen(el){
     MEMBER_SCREENS.forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
     appScreen.style.display = 'none';
@@ -1562,10 +1597,23 @@ DEMO_HTML = """
     window.scrollTo(0,0);
   }
   function backToApp(){
-    [screenAuth, screenConsent, screenProfile, screenMyPage, intro, camera, choice, simpleResult, diagnosis].forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
+    MEMBER_SCREENS.forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
     appScreen.style.display = 'block';
     if(window.showAppStep){ window.showAppStep('hero'); }
     window.scrollTo(0,0);
+  }
+  /* Enter the main app at a specific step (e.g. the survey/analysis step). */
+  function enterAppStep(step){
+    MEMBER_SCREENS.forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
+    appScreen.style.display = 'block';
+    if(window.showAppStep){ window.showAppStep(step || 'hero'); }
+    window.scrollTo(0,0);
+  }
+  /* Post-signup fork: shoot a video scan or take the concern survey. */
+  function showStartChoice(){
+    const t = document.getElementById('startChoiceTitle');
+    if(t){ t.textContent = ((member && member.nickname) || nickname || '회원') + '님, 가입이 완료되었어요'; }
+    showMemberScreen(screenStartChoice);
   }
   function goCamera(){
     if(!nickname){ nickname = (member && member.nickname) || '회원'; }
@@ -1631,7 +1679,7 @@ DEMO_HTML = """
        flow continues seamlessly and future records keep accumulating here. */
     mergeGuestIntoMember();
     updateMemberUI();
-    showMyPage();
+    showStartChoice();
   }
 
   function memberToast(msg){ const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2400); }
@@ -1714,6 +1762,9 @@ DEMO_HTML = """
   document.getElementById('consentBack').addEventListener('click', ()=> showMemberScreen(screenAuth));
   document.getElementById('profBack').addEventListener('click', ()=> showMemberScreen(screenConsent));
   document.getElementById('profSubmit').addEventListener('click', profileSubmit);
+  document.getElementById('startCamera').addEventListener('click', goCamera);
+  document.getElementById('startSurvey').addEventListener('click', ()=> enterAppStep('analysis'));
+  document.getElementById('startToMypage').addEventListener('click', showMyPage);
   document.getElementById('consentSubmit').addEventListener('click', consentSubmit);
   document.getElementById('consentReqOnly').addEventListener('click', ()=>{ setConsentReqOnly(); consentSubmit(); });
   document.getElementById('consentAll').addEventListener('change', (e)=> setAllConsent(e.target.checked));
@@ -2206,8 +2257,12 @@ DEMO_HTML = """
       resultEl.classList.add('show');
       state.analyzed = true;
       renderRoutine();
+      if(window.persistAnalysis){ window.persistAnalysis(); }
     }, 1400);
   });
+
+  const toRecoBtn = document.getElementById('toRecommend');
+  if(toRecoBtn){ toRecoBtn.addEventListener('click', ()=>{ if(window.recordRecommend){ window.recordRecommend(); } }); }
 
   function renderResult(metrics){
     const values = Object.values(metrics);
@@ -2597,6 +2652,35 @@ DEMO_HTML = """
     const r = await fetch(window.SB_URL + '/auth/v1/token?grant_type=password', { method:'POST', headers:sbAuthHeaders(), body:JSON.stringify({ email:email, password:pw }) });
     return r.json();
   }
+  /* Supabase access tokens expire (~1h). Exchange the refresh_token for a new
+     session so a write doesn't silently 401 after the user has been idle. */
+  async function cmRefreshToken(){
+    if(!(cmSession && cmSession.refresh_token)) return false;
+    try{
+      const r = await fetch(window.SB_URL + '/auth/v1/token?grant_type=refresh_token',
+        { method:'POST', headers:sbAuthHeaders(), body:JSON.stringify({ refresh_token: cmSession.refresh_token }) });
+      if(!r.ok) return false;
+      const res = await r.json();
+      if(res && res.access_token){ cmSaveSession(res); return true; }
+    }catch(e){}
+    return false;
+  }
+  /* Authenticated write with one automatic refresh-and-retry on 401/403. */
+  async function sbWrite(url, method, bodyObj){
+    const build = function(){ return { method:method, headers:sbRestHeaders(true), body:JSON.stringify(bodyObj) }; };
+    let r = await fetch(url, build());
+    if((r.status === 401 || r.status === 403) && await cmRefreshToken()){
+      r = await fetch(url, build());
+    }
+    return r;
+  }
+  /* Session is truly gone (refresh failed): clear it quietly and prompt login. */
+  function cmForceRelogin(hintEl, msg){
+    cmSession = null; try{ localStorage.removeItem(CM_SESS); }catch(e){}
+    cmRenderAuth();
+    if(hintEl) hintEl.textContent = msg || '세션이 만료됐어요. 다시 로그인 후 등록해주세요.';
+    cmOpenAuth();
+  }
   function cmMapRow(p){
     return { id:String(p.id), cat:p.category, title:p.title, body:p.body, photo:p.photo_url||null,
       author:p.author||'익명', skin:p.skin_tags||[], createdAt:p.created_at?new Date(p.created_at).getTime():Date.now(),
@@ -2759,10 +2843,9 @@ DEMO_HTML = """
     if(SB_ON){
       if(cmNeedLogin()) return;
       try{
-        const r = await fetch(window.SB_URL + '/rest/v1/comments', {
-          method:'POST', headers:sbRestHeaders(true),
-          body:JSON.stringify({ post_id:id, user_id:cmSession.user.id, author:cmUserName(), body:val })
-        });
+        const r = await sbWrite(window.SB_URL + '/rest/v1/comments', 'POST',
+          { post_id:id, user_id:cmSession.user.id, author:cmUserName(), body:val });
+        if(r.status === 401 || r.status === 403){ cmForceRelogin(null, ''); cmShowToast('세션이 만료됐어요. 다시 로그인해주세요.'); return; }
         if(!r.ok) throw new Error('HTTP ' + r.status);
         await cmRefresh(); cmRenderDetail(id);
       }catch(e){ cmShowToast('댓글 등록에 실패했어요.'); }
@@ -2850,23 +2933,23 @@ DEMO_HTML = """
       hint.textContent = '';
       try{
         if(cmEditingId){
-          const r = await fetch(window.SB_URL + '/rest/v1/posts?id=eq.' + encodeURIComponent(cmEditingId), {
-            method:'PATCH', headers:sbRestHeaders(true),
-            body:JSON.stringify({ category:cat, title:title, body:body, photo_url:cmPendingPhoto })
-          });
+          const r = await sbWrite(window.SB_URL + '/rest/v1/posts?id=eq.' + encodeURIComponent(cmEditingId),
+            'PATCH', { category:cat, title:title, body:body, photo_url:cmPendingPhoto });
+          if(r.status === 401 || r.status === 403){ cmForceRelogin(hint); return; }
           if(!r.ok) throw new Error('HTTP ' + r.status);
           cmShowToast('글이 수정되었어요.');
           await cmRefresh(); cmOpenDetail(cmEditingId);
         } else {
           const ins = { user_id:cmSession.user.id, author:cmUserName(), category:cat, title:title,
             body:body, photo_url:cmPendingPhoto, skin_tags:Array.from(window.appState.concerns||[]) };
-          const r = await fetch(window.SB_URL + '/rest/v1/posts', { method:'POST', headers:sbRestHeaders(true), body:JSON.stringify(ins) });
+          const r = await sbWrite(window.SB_URL + '/rest/v1/posts', 'POST', ins);
+          if(r.status === 401 || r.status === 403){ cmForceRelogin(hint); return; }
           if(!r.ok) throw new Error('HTTP ' + r.status);
           cmShowToast('글이 등록되었어요.');
           cmActiveCat = 'all'; cmQuery = ''; document.getElementById('cmSearch').value = '';
           await cmRefresh(); cmShow('list');
         }
-      }catch(e){ hint.textContent = '저장에 실패했어요. 로그인이 만료됐다면 다시 로그인해주세요.'; }
+      }catch(e){ hint.textContent = '저장에 실패했어요. 잠시 후 다시 시도해주세요.'; }
       return;
     }
 
