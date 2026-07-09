@@ -39,6 +39,41 @@ SUPABASE_ANON_KEY = "eyJhbGciOi..."   # anon public 키
 > 참고: 로그인 안 한 사용자도 글·댓글 **읽기**는 가능합니다(공개). 쓰기만 로그인 필요.
 > 액세스 토큰은 약 1시간 후 만료됩니다. 만료 후 저장 실패 시 다시 로그인하세요.
 
+## 5. 실제 구글 로그인 (Streamlit `st.login` / OIDC)
+구글 로그인은 iframe 안이 아니라 **Streamlit(Python) 레이어**에서 동작합니다. 설정하면 앱 상단에
+"Google 계정으로 로그인" 버튼이 나타나고, 로그인하면 실제 이메일·이름이 iframe에 전달되어
+프로필 설정(닉네임/나이 입력) → 마이페이지로 이어집니다. **미설정 시에는 앱이 기존 데모(가상 소셜 로그인)로
+그대로 동작**합니다.
+
+### 5-1. Google Cloud에서 OAuth 클라이언트 만들기
+1. Google Cloud Console > **APIs & Services > Credentials > Create OAuth client ID**
+2. 유형: **Web application**
+3. **Authorized redirect URI** 에 앱 주소 + `/oauth2callback` 추가
+   - 예) 로컬: `http://localhost:8501/oauth2callback`
+   - 예) 배포: `https://<your-app>.streamlit.app/oauth2callback`
+4. 생성된 **Client ID / Client secret** 복사
+
+### 5-2. `.streamlit/secrets.toml` 에 `[auth]` 추가
+```toml
+[auth]
+redirect_uri = "http://localhost:8501/oauth2callback"   # 배포 시 배포 URL로
+cookie_secret = "아무_긴_랜덤_문자열_32자이상"
+client_id = "구글 Client ID"
+client_secret = "구글 Client secret"
+server_metadata_url = "https://accounts.google.com/.well-known/openid-configuration"
+```
+> `requirements.txt`에 `Authlib>=1.3.2`가 포함돼 있어야 합니다(이미 추가됨).
+> Streamlit 1.42+ 필요(현재 1.59.0).
+
+### 5-3. 동작
+- 상단 **[Google 계정으로 로그인]** → 구글 동의 → 앱으로 복귀 → `st.user`에 이메일/이름 채워짐
+- iframe이 이를 받아 **프로필 설정**(닉네임 입력, 나이 입력; 이메일은 구글에서 자동) → 마이페이지
+- 상단 **[로그아웃]** 으로 세션 종료
+
+### 참고 / 한계
+- **카카오·네이버**는 이 방식의 실제 연동에 포함하지 않았습니다(구글만). 앱 내 카카오/네이버 버튼은 데모 시뮬레이션으로 남아 있습니다.
+- **나이**는 구글 OIDC 기본 스코프로 제공되지 않아, 프로필 단계에서 입력받습니다(이메일·이름만 자동).
+
 ## 현재 적용 범위
 - **적용됨(코드)**: 제품 카탈로그 읽기(`products`) + 커뮤니티 글·댓글 읽기/쓰기(`posts`/`comments`) + 이메일 로그인.
   → secrets가 없으면 카탈로그는 내장 배열, 커뮤니티는 localStorage로 자동 폴백.

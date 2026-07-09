@@ -1,4 +1,5 @@
 import base64
+import json
 from pathlib import Path
 
 import streamlit as st
@@ -15,7 +16,7 @@ DEMO_HTML = """
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FOR HIM — Men's Beauty AI Demo</title>
-<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";</script>
+<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;</script>
 <style>
   :root{
     --bg:#f6f5f2;
@@ -791,6 +792,10 @@ DEMO_HTML = """
   .consent-actions{display:flex;gap:10px;margin-top:6px;}
   .consent-actions .btn{flex:1;padding:14px;font-size:14.5px;}
   .consent-actions .btn-outline{border-color:#4a4940;color:#e8e7e0;}
+  #screenProfile .field-row label{display:flex;align-items:center;gap:8px;}
+  .prof-badge{font-style:normal;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--gold-soft);color:var(--gold);}
+  #screenProfile input[readonly]{opacity:.75;cursor:default;}
+  #screenProfile .btn-gold{margin-top:8px;}
 
   /* ---------- MY PAGE ---------- */
   .mypage{background:linear-gradient(180deg,#fbf8f4,#f3ede4);opacity:0;transition:opacity .5s ease;padding:32px 24px;}
@@ -1073,37 +1078,10 @@ DEMO_HTML = """
         <label>
           <input type="checkbox" class="consent-chk" data-req="1" />
           <span class="consent-check"></span>
-          <span class="consent-label"><i class="consent-tag req">필수</i> 서비스 이용약관 동의</span>
+          <span class="consent-label"><i class="consent-tag req">필수</i> 서비스 이용약관 및 개인정보 수집·이용 동의</span>
         </label>
         <button type="button" class="consent-more">자세히</button>
-        <div class="consent-detail">본 서비스는 피부 분석 데모를 제공하며, 결과는 의료 진단이 아닌 참고용입니다. 서비스 운영정책을 준수하는 데 동의합니다.</div>
-      </div>
-      <div class="consent-item">
-        <label>
-          <input type="checkbox" class="consent-chk" data-req="1" />
-          <span class="consent-check"></span>
-          <span class="consent-label"><i class="consent-tag req">필수</i> 개인정보 수집 및 이용 동의</span>
-        </label>
-        <button type="button" class="consent-more">자세히</button>
-        <div class="consent-detail">닉네임·나이 등 최소한의 정보를 서비스 제공 목적으로 수집·이용합니다. 목적 달성 후 지체 없이 파기합니다.</div>
-      </div>
-      <div class="consent-item">
-        <label>
-          <input type="checkbox" class="consent-chk" data-req="1" />
-          <span class="consent-check"></span>
-          <span class="consent-label"><i class="consent-tag req">필수</i> 피부 분석 결과 및 상담 이력 저장 동의</span>
-        </label>
-        <button type="button" class="consent-more">자세히</button>
-        <div class="consent-detail">분석 점수·추천·상담 내역을 계정에 저장해 변화 추적과 재열람에 사용합니다. 이 서비스의 핵심 기능을 위한 필수 항목입니다.</div>
-      </div>
-      <div class="consent-item">
-        <label>
-          <input type="checkbox" class="consent-chk" data-req="1" />
-          <span class="consent-check"></span>
-          <span class="consent-label"><i class="consent-tag req">필수</i> 피부 이미지 분석 데이터 활용 안내</span>
-        </label>
-        <button type="button" class="consent-more">자세히</button>
-        <div class="consent-detail">촬영된 얼굴 이미지는 피부 상태 분석에만 사용되며 데모에서는 기기에 저장되지 않고 분석 후 폐기됩니다. 제3자에게 제공하지 않습니다.</div>
+        <div class="consent-detail">서비스 제공을 위해 최소한의 정보(이메일·나이·닉네임)만 수집하고, 피부 분석·상담 이력을 계정에 저장해 변화 추적에 사용합니다. 촬영 이미지는 분석에만 쓰이며 데모에서는 저장되지 않고, 목적 달성 후 지체 없이 파기합니다.</div>
       </div>
       <div class="consent-item">
         <label>
@@ -1112,7 +1090,7 @@ DEMO_HTML = """
           <span class="consent-label"><i class="consent-tag opt">선택</i> 마케팅 정보 수신 동의</span>
         </label>
         <button type="button" class="consent-more">자세히</button>
-        <div class="consent-detail">신제품·이벤트·맞춤 추천 소식을 받아볼 수 있습니다. 동의하지 않아도 서비스 이용에는 제한이 없습니다.</div>
+        <div class="consent-detail">신제품·이벤트·맞춤 추천 소식을 받아볼 수 있습니다. 동의하지 않아도 서비스 이용에는 제한이 없어요.</div>
       </div>
     </div>
 
@@ -1121,6 +1099,30 @@ DEMO_HTML = """
       <button type="button" class="btn btn-outline" id="consentReqOnly">필수만 동의</button>
       <button type="button" class="btn btn-gold" id="consentSubmit">동의하고 시작하기</button>
     </div>
+  </div>
+</div>
+
+<div class="screen consent hidden" id="screenProfile">
+  <div class="consent-card">
+    <button type="button" class="auth-back" id="profBack">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg> 뒤로
+    </button>
+    <h1 class="consent-title">프로필을 설정해주세요</h1>
+    <p class="consent-sub" id="profProvider">계정에서 정보를 가져왔어요</p>
+    <div class="field-row">
+      <label>이메일 <i class="prof-badge">계정 연동</i></label>
+      <input type="email" id="profEmail" readonly />
+    </div>
+    <div class="field-row">
+      <label>나이 <i class="prof-badge">계정 연동</i></label>
+      <input type="number" id="profAge" min="1" max="120" placeholder="나이" />
+    </div>
+    <div class="field-row">
+      <label>닉네임</label>
+      <input type="text" id="profNick" maxlength="12" placeholder="사용할 닉네임을 입력해주세요" />
+    </div>
+    <div class="consent-hint" id="profHint"></div>
+    <button type="button" class="btn btn-gold" id="profSubmit" style="width:100%;padding:14px;">시작하기</button>
   </div>
 </div>
 
@@ -1451,10 +1453,20 @@ DEMO_HTML = """
   const RECORDS_KEY = 'forhim_records';
   const screenAuth = document.getElementById('screenAuth');
   const screenConsent = document.getElementById('screenConsent');
+  const screenProfile = document.getElementById('screenProfile');
   const screenMyPage = document.getElementById('screenMyPage');
   const CONCERN_LABEL = { scar:'흉터', pore:'모공', oil:'유분', acne:'여드름' };
+  /* 계정 연동 시 제공사에서 받아오는 정보(데모: 시뮬레이션). 실제 OAuth 연동 시
+     이메일은 세션에서, 나이는 제공사 동의 범위에 따라 채워집니다. */
+  const PROVIDER_SAMPLE = {
+    kakao:  { email:'minjun.kim@kakao.com',  age:28, name:'김민준' },
+    google: { email:'minjun.kim@gmail.com',  age:31, name:'Minjun' },
+    naver:  { email:'minjun.kim@naver.com',  age:26, name:'민준' }
+  };
   let authOrigin = 'intro';
   let pendingProvider = null;
+  let pendingMarketing = false;
+  let linkedAccount = null;
   let mpTab = 'analyses';
 
   function loadMember(){ try{ return JSON.parse(localStorage.getItem(MEMBER_KEY) || 'null'); }catch(e){ return null; } }
@@ -1508,7 +1520,7 @@ DEMO_HTML = """
     saveRecords(records);
   }
 
-  const MEMBER_SCREENS = [splash, intro, camera, choice, simpleResult, diagnosis, screenAuth, screenConsent, screenMyPage];
+  const MEMBER_SCREENS = [splash, intro, camera, choice, simpleResult, diagnosis, screenAuth, screenConsent, screenProfile, screenMyPage];
   function showMemberScreen(el){
     MEMBER_SCREENS.forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
     appScreen.style.display = 'none';
@@ -1516,7 +1528,7 @@ DEMO_HTML = """
     window.scrollTo(0,0);
   }
   function backToApp(){
-    [screenAuth, screenConsent, screenMyPage, intro, camera, choice, simpleResult, diagnosis].forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
+    [screenAuth, screenConsent, screenProfile, screenMyPage, intro, camera, choice, simpleResult, diagnosis].forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
     appScreen.style.display = 'block';
     if(window.showAppStep){ window.showAppStep('hero'); }
     window.scrollTo(0,0);
@@ -1530,7 +1542,11 @@ DEMO_HTML = """
 
   function showAuth(origin){ authOrigin = origin || 'intro'; if(isMember()){ showMyPage(); return; } showMemberScreen(screenAuth); }
   function backFromAuth(){ if(authOrigin==='app'){ backToApp(); } else { showMemberScreen(intro); } }
-  function doSocial(provider){ pendingProvider = provider; showMemberScreen(screenConsent); }
+  function doSocial(provider){
+    pendingProvider = provider;
+    linkedAccount = Object.assign({ provider:provider }, PROVIDER_SAMPLE[provider] || PROVIDER_SAMPLE.kakao);
+    showMemberScreen(screenConsent);
+  }
 
   function setAllConsent(v){
     document.querySelectorAll('#consentList .consent-chk').forEach(c=>{ c.checked = v; });
@@ -1548,16 +1564,49 @@ DEMO_HTML = """
   function consentSubmit(){
     const chks = [].slice.call(document.querySelectorAll('#consentList .consent-chk'));
     const reqOk = chks.filter(c=>c.dataset.req==='1').every(c=>c.checked);
-    if(!reqOk){ document.getElementById('consentHint').textContent = '필수 항목에 모두 동의해주세요.'; return; }
-    const marketing = chks.some(c=>c.dataset.req==='0' && c.checked);
-    saveMember({ loggedIn:true, provider:pendingProvider||'kakao', nickname:(nickname||state.nickname||''),
-      joinedAt:Date.now(), agreements:{ required:true, marketing:marketing } });
+    if(!reqOk){ document.getElementById('consentHint').textContent = '필수 항목에 동의해주세요.'; return; }
+    pendingMarketing = chks.some(c=>c.dataset.req==='0' && c.checked);
+    showProfile();
+  }
+
+  function showProfile(){
+    const acc = linkedAccount || PROVIDER_SAMPLE.kakao;
+    document.getElementById('profProvider').textContent = providerLabel(pendingProvider) + ' 계정에서 정보를 가져왔어요';
+    document.getElementById('profEmail').value = acc.email || '';
+    document.getElementById('profAge').value = acc.age || '';
+    document.getElementById('profNick').value = acc.name || nickname || '';
+    document.getElementById('profHint').textContent = '';
+    showMemberScreen(screenProfile);
+  }
+  function profileSubmit(){
+    const nick = document.getElementById('profNick').value.trim();
+    const age = parseInt(document.getElementById('profAge').value, 10);
+    const email = document.getElementById('profEmail').value.trim();
+    const hint = document.getElementById('profHint');
+    if(!nick){ hint.textContent = '닉네임을 입력해주세요.'; return; }
+    if(!age || age < 1 || age > 120){ hint.textContent = '나이를 올바르게 입력해주세요.'; return; }
+    nickname = nick; enteredAge = age; state.nickname = nick; state.age = age;
+    saveMember({ loggedIn:true, provider:pendingProvider||'kakao', nickname:nick, email:email, age:age,
+      joinedAt:Date.now(), agreements:{ required:true, marketing:!!pendingMarketing } });
     updateMemberUI();
     showMyPage();
   }
 
-  function logout(){ saveMember(null); updateMemberUI(); showMemberScreen(intro); }
+  function memberToast(msg){ const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2400); }
+  function logout(){
+    if(window.USER_LOGGED_IN==='1'){ memberToast('화면 상단의 로그아웃 버튼을 이용해주세요.'); return; }
+    saveMember(null); updateMemberUI(); showMemberScreen(intro);
+  }
   function updateMemberUI(){ const nav = document.getElementById('navMember'); if(nav){ nav.textContent = isMember() ? '마이페이지' : '로그인'; } }
+  /* real Google session (from Streamlit st.login) → continue to profile setup */
+  function initRealAuth(){
+    if(window.USER_LOGGED_IN !== '1') return;
+    if(isMember() && member.provider === 'google') return;
+    pendingProvider = 'google';
+    pendingMarketing = false;
+    linkedAccount = { provider:'google', email:(window.USER_EMAIL||''), name:(window.USER_NAME||''), age:'' };
+    showProfile();
+  }
 
   function showMyPage(){ renderMyPage(); showMemberScreen(screenMyPage); }
   function mpCard(date, title, summary, badge){
@@ -1583,7 +1632,10 @@ DEMO_HTML = """
     const name = (member && member.nickname) || nickname || '회원';
     document.getElementById('mpName').textContent = name + '님';
     document.getElementById('mpAvatar').textContent = (name[0] || '회');
-    document.getElementById('mpProvider').textContent = providerLabel(member && member.provider) + ' 로그인';
+    const mEmail = (member && member.email) || '';
+    const mAge = (member && member.age) || enteredAge;
+    document.getElementById('mpProvider').textContent =
+      providerLabel(member && member.provider) + ' 로그인' + (mEmail ? ' · ' + mEmail : '') + (mAge ? ' · ' + mAge + '세' : '');
     document.getElementById('mpCountA').textContent = records.analyses.length;
     document.getElementById('mpCountR').textContent = records.recommends.length;
     document.getElementById('mpCountC').textContent = records.consults.length;
@@ -1596,8 +1648,16 @@ DEMO_HTML = """
   document.getElementById('navMember').addEventListener('click', ()=>{ if(isMember()) showMyPage(); else showAuth('app'); });
   document.getElementById('authBack').addEventListener('click', backFromAuth);
   document.getElementById('authSkip').addEventListener('click', ()=>{ if(authOrigin==='app') backToApp(); else showMemberScreen(intro); });
-  document.querySelectorAll('#screenAuth .social-btn').forEach(b=> b.addEventListener('click', ()=> doSocial(b.dataset.provider)));
+  document.querySelectorAll('#screenAuth .social-btn').forEach(b=> b.addEventListener('click', ()=>{
+    if(b.dataset.provider==='google' && window.AUTH_ON==='1'){
+      memberToast('화면 상단의 [Google 계정으로 로그인] 버튼을 눌러주세요.');
+      return;
+    }
+    doSocial(b.dataset.provider);
+  }));
   document.getElementById('consentBack').addEventListener('click', ()=> showMemberScreen(screenAuth));
+  document.getElementById('profBack').addEventListener('click', ()=> showMemberScreen(screenConsent));
+  document.getElementById('profSubmit').addEventListener('click', profileSubmit);
   document.getElementById('consentSubmit').addEventListener('click', consentSubmit);
   document.getElementById('consentReqOnly').addEventListener('click', ()=>{ setConsentReqOnly(); consentSubmit(); });
   document.getElementById('consentAll').addEventListener('change', (e)=> setAllConsent(e.target.checked));
@@ -1615,6 +1675,7 @@ DEMO_HTML = """
     t.classList.add('active'); mpTab = t.dataset.mp; renderMyPanels();
   }));
   updateMemberUI();
+  initRealAuth();
 
   /* ---------------- 1) splash ---------------- */
   setTimeout(()=> splashLogo.classList.add('sharp'), 150);
@@ -2830,6 +2891,40 @@ def _secret(key: str, default: str = "") -> str:
         return default
 
 
+def _auth_configured() -> bool:
+    """True only when a [auth] block exists in secrets (Google OIDC set up)."""
+    try:
+        return "auth" in st.secrets
+    except Exception:
+        return False
+
+
+# Real Google login via Streamlit's native OIDC (st.login/st.user). This runs at
+# the Python layer because OAuth cannot complete inside the sandboxed iframe.
+# When [auth] is not configured, everything below is skipped and the in-app
+# demo (simulated social login) keeps working unchanged.
+auth_on = _auth_configured()
+logged_in = False
+user_email = ""
+user_name = ""
+if auth_on:
+    try:
+        if st.user.is_logged_in:
+            logged_in = True
+            user_email = getattr(st.user, "email", "") or ""
+            user_name = getattr(st.user, "name", "") or ""
+    except Exception:
+        pass
+
+    if logged_in:
+        _c1, _c2 = st.columns([5, 1])
+        _c1.caption(f"구글 계정으로 로그인됨 · {user_email}")
+        if _c2.button("로그아웃", use_container_width=True):
+            st.logout()
+    else:
+        if st.button("Google 계정으로 로그인", type="primary"):
+            st.login("google")
+
 # Optional Supabase config. When absent, the frontend falls back to its
 # built-in product catalog, so the demo keeps working with no secrets set.
 supabase_url = _secret("SUPABASE_URL")
@@ -2838,5 +2933,9 @@ supabase_key = _secret("SUPABASE_ANON_KEY")
 DEMO_HTML = DEMO_HTML.replace("__LOGO_SRC__", logo_data_uri)
 DEMO_HTML = DEMO_HTML.replace("__SUPABASE_URL__", supabase_url)
 DEMO_HTML = DEMO_HTML.replace("__SUPABASE_KEY__", supabase_key)
+DEMO_HTML = DEMO_HTML.replace("__AUTH_ON__", json.dumps("1" if auth_on else ""))
+DEMO_HTML = DEMO_HTML.replace("__USER_LOGGED_IN__", json.dumps("1" if logged_in else ""))
+DEMO_HTML = DEMO_HTML.replace("__USER_EMAIL__", json.dumps(user_email))
+DEMO_HTML = DEMO_HTML.replace("__USER_NAME__", json.dumps(user_name))
 
 st.iframe(DEMO_HTML, height="content", width="stretch")
