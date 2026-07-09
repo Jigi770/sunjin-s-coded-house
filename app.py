@@ -190,22 +190,29 @@ DEMO_HTML = """
     color:var(--ink-soft);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
   }
   .tier-tab.active{background:var(--dark);border-color:var(--dark);color:#fff;}
+  .tier-tab.locked{opacity:.4;cursor:not-allowed;}
+  .tier-tab.locked:hover{border-color:var(--line);}
   .tier-desc{margin-top:14px;padding:13px 18px;background:var(--accent-soft);border-radius:var(--radius);font-size:13px;color:#3c4636;line-height:1.5;}
   .tier-cat-label{margin-top:16px;font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
 
-  .prod-row{display:flex;gap:14px;margin-top:12px;overflow-x:auto;padding-bottom:6px;}
+  .prod-row{display:flex;gap:16px;margin-top:12px;overflow-x:auto;padding-bottom:6px;}
   .prod-card{
-    flex:0 0 200px;background:var(--bg);border:2px solid var(--line);border-radius:var(--radius-lg);
-    padding:18px;text-align:center;position:relative;
+    flex:0 0 240px;background:var(--bg);border:2px solid var(--line);border-radius:var(--radius-lg);
+    padding:20px;text-align:center;position:relative;
   }
   .prod-card.rank-1{border-color:var(--gold);background:linear-gradient(180deg,#fdf8ee,var(--bg));}
   .prod-rank{
     position:absolute;top:12px;left:12px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
-    background:var(--dark);color:#fff;
+    background:var(--dark);color:#fff;z-index:1;
   }
   .prod-card.rank-1 .prod-rank{background:var(--gold);color:#1a1a18;}
   .prod-icon{width:58px;height:72px;border-radius:11px 11px 5px 5px;margin:14px auto 12px;position:relative;}
   .prod-icon::before{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:24px;height:10px;border-radius:3px;background:rgba(0,0,0,.28);}
+  .prod-photo{
+    width:100%;height:150px;border-radius:12px;margin:0 auto 12px;background:#fff;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .prod-photo img{width:100%;height:100%;object-fit:contain;padding:8px;}
   .prod-brand{font-size:11.5px;font-weight:700;color:var(--ink-soft);}
   .prod-name{font-size:13.5px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.35;min-height:36px;}
   .prod-tag{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);}
@@ -354,27 +361,53 @@ DEMO_HTML = """
     .cam-frame-outer{width:min(220px,60vw);}
   }
 
-  /* ---------- DIAGNOSIS RESULT ---------- */
-  .diagnosis{background:var(--bg);opacity:0;transition:opacity .5s ease;padding:24px;}
+  /* ---------- DIAGNOSIS RESULT (report dashboard) ---------- */
+  .diagnosis{
+    background:linear-gradient(180deg,#fbf8f4,#f3ede4);opacity:0;transition:opacity .5s ease;padding:32px 24px;
+    --db-brown:#8a6a52; --db-brown-soft:#efe4d8; --db-line:#e6dccd;
+  }
   .diagnosis.visible{opacity:1;}
-  .diag-card{width:100%;max-width:640px;}
+  .diag-card{width:100%;max-width:1180px;}
   .diag-back{
     display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px;border-radius:999px;
-    border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:700;
-    font-family:inherit;cursor:pointer;margin-bottom:16px;transition:border-color .15s ease,color .15s ease;
+    border:1.5px solid var(--db-line);background:#fff;color:#8a8072;font-size:13px;font-weight:700;
+    font-family:inherit;cursor:pointer;margin-bottom:18px;transition:border-color .15s ease,color .15s ease;
   }
-  .diag-back:hover{border-color:#c8c6bd;color:var(--ink);}
+  .diag-back:hover{border-color:var(--db-brown);color:var(--db-brown);}
   .diag-back svg{width:16px;height:16px;}
-  .diag-title{font-size:clamp(20px,3.4vw,26px);margin-top:10px;font-weight:700;letter-spacing:-.02em;color:var(--ink);}
-  .diag-top{display:grid;grid-template-columns:1fr 1.15fr;gap:16px;margin-top:22px;}
-  .diag-summary,.diag-face{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
-  .diag-summary-title,.diag-face-title{font-size:12.5px;font-weight:700;letter-spacing:.06em;color:var(--ink-soft);text-transform:uppercase;margin-bottom:14px;}
-  .diag-summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-  .diag-summary-grid span{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:4px;}
-  .diag-summary-grid b{font-size:19px;font-weight:700;color:var(--ink);}
-  .diag-summary-grid b i{font-style:normal;font-size:11px;font-weight:600;color:var(--ink-soft);margin-left:2px;}
+  .diag-title{font-size:clamp(19px,3vw,23px);margin-top:8px;font-weight:700;letter-spacing:-.02em;color:#2b241d;}
+  .diag-face-title,.diag-summary-title{font-size:12px;font-weight:700;letter-spacing:.06em;color:#a89a86;text-transform:uppercase;margin-bottom:12px;}
 
-  .face-map{position:relative;width:132px;height:160px;margin:0 auto;}
+  .diag-report{
+    display:grid;grid-template-columns:1fr 1.25fr 1fr;grid-template-areas:"info face score";gap:22px;
+    align-items:start;
+  }
+  .diag-info-panel,.diag-face-panel,.diag-scorelist{
+    background:#fffdfa;border:1px solid var(--db-line);border-radius:24px;padding:26px;
+    box-shadow:0 10px 28px rgba(120,96,68,.06);
+  }
+  .diag-info-panel{grid-area:info;}
+  .diag-face-panel{grid-area:face;text-align:center;}
+  .diag-scorelist{grid-area:score;}
+
+  .diag-score-hero{display:flex;align-items:baseline;gap:6px;margin-top:16px;}
+  .diag-score-hero b{font-size:52px;font-weight:800;color:var(--db-brown);letter-spacing:-.02em;line-height:1;}
+  .diag-score-hero span{font-size:14px;color:#a89a86;font-weight:700;}
+  .diag-score-tag{
+    display:inline-block;margin-top:10px;font-size:11.5px;font-weight:700;color:var(--db-brown);
+    background:var(--db-brown-soft);padding:5px 12px;border-radius:999px;
+  }
+  .diag-sentence{
+    margin-top:16px;font-size:13.5px;color:#5c5346;line-height:1.7;padding-top:16px;border-top:1px solid var(--db-line);
+  }
+  .diag-userinfo{margin-top:16px;padding-top:16px;border-top:1px solid var(--db-line);}
+  .diag-userinfo div{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+  .diag-userinfo span{color:#a89a86;}
+  .diag-userinfo b{color:#2b241d;font-weight:700;}
+  #diagCta{margin-top:20px;width:100%;padding:14px;font-size:15px;background:var(--db-brown);}
+  #diagCta:hover{opacity:.9;}
+
+  .face-map{position:relative;width:170px;height:206px;margin:8px auto 0;}
   .face-ear{position:absolute;top:44%;width:11%;height:16%;border-radius:50%;background:#f1ede4;border:1.5px solid #ddd6c6;}
   .face-ear.left{left:-4%;}
   .face-ear.right{right:-4%;}
@@ -416,24 +449,28 @@ DEMO_HTML = """
   .legend-dot.scar{background:#965a96;}
   .legend-dot.acne{background:#c13c3c;}
 
-  .diag-sentence{margin-top:18px;padding:16px 20px;background:var(--accent-soft);border-radius:var(--radius);font-size:14px;color:#3c4636;line-height:1.6;}
-  .diag-concerns{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
-  .diag-concerns-head{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;font-weight:700;color:var(--ink);}
-  .diag-tag{font-size:11px;font-weight:700;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);padding:4px 10px;border-radius:999px;}
-  .diag-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft);margin-top:14px;padding:0 2px;}
-  .diag-row{display:grid;grid-template-columns:64px 1fr 38px 18px;align-items:center;gap:12px;margin-top:14px;}
-  .diag-row-label{font-size:13.5px;font-weight:600;color:var(--ink);}
-  .diag-row-track{height:8px;border-radius:999px;background:linear-gradient(90deg,#c1666b,#c98a3c,#54634a);position:relative;}
-  .diag-row-marker{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:#fff;border:2.5px solid var(--ink);transform:translate(-50%,-50%);}
-  .diag-row-value{font-size:13px;font-weight:700;text-align:right;color:var(--ink);}
-  .diag-row-dot{width:10px;height:10px;border-radius:50%;margin:0 auto;}
-  .diag-row-dot.good{background:var(--good);}
-  .diag-row-dot.mid{background:var(--mid);}
-  .diag-row-dot.bad{background:var(--bad);}
-  #diagCta{margin-top:26px;width:100%;padding:14px;font-size:15px;}
+  .score-row{
+    display:flex;align-items:center;justify-content:space-between;padding:12px 0;
+    border-bottom:1px solid var(--db-line);
+  }
+  .score-row:last-child{border-bottom:none;}
+  .score-row.overall{padding-bottom:16px;margin-bottom:6px;border-bottom:1.5px solid var(--db-line);}
+  .score-row.overall .score-row-label{font-size:14px;font-weight:700;color:#2b241d;}
+  .score-row.overall .score-row-value{font-size:22px;color:var(--db-brown);}
+  .score-row-label{font-size:13.5px;font-weight:600;color:#4a4436;display:flex;align-items:center;gap:8px;}
+  .score-row-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .score-row-dot.good{background:#6f9b7a;}
+  .score-row-dot.mid{background:#c98a3c;}
+  .score-row-dot.bad{background:#c1666b;}
+  .score-row-right{display:flex;align-items:center;gap:6px;}
+  .score-row-value{font-size:15px;font-weight:700;color:#2b241d;}
+  .score-row-chev{width:14px;height:14px;color:#c3b8a5;}
 
   /* ---------- CONCERN TABS ---------- */
-  .diag-tabsblock{margin-top:22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .diag-tabsblock{
+    margin-top:24px;background:#fffdfa;border:1px solid var(--db-line);border-radius:24px;padding:26px;
+    box-shadow:0 10px 28px rgba(120,96,68,.06);
+  }
   .diag-tabs{display:flex;gap:8px;flex-wrap:wrap;}
   .diag-tab{
     display:flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);
@@ -462,10 +499,14 @@ DEMO_HTML = """
   .panel-routine-label{font-size:11px;font-weight:700;color:var(--ink-soft);}
   .panel-routine-name{font-size:13px;font-weight:700;color:var(--ink);}
 
+  @media (max-width:1023px){
+    .diag-report{grid-template-columns:1fr 1fr;grid-template-areas:"face face" "info score";}
+  }
   @media (max-width:640px){
-    .diag-top{grid-template-columns:1fr;}
-    .face-map{margin-top:10px;}
-    .diag-row{grid-template-columns:56px 1fr 34px 16px;gap:8px;}
+    .diag-report{grid-template-columns:1fr;grid-template-areas:"face" "info" "score";gap:16px;}
+    .diag-info-panel,.diag-face-panel,.diag-scorelist{padding:20px;border-radius:18px;}
+    .face-map{margin-top:6px;}
+    .diag-tabsblock{padding:20px;border-radius:18px;}
   }
 
   /* ---------- RESULT CHOICE ---------- */
@@ -652,20 +693,24 @@ DEMO_HTML = """
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
       결과 선택으로
     </button>
-    <div class="eyebrow">DIAGNOSIS</div>
-    <h2 class="diag-title">피부 진단 결과예요</h2>
 
-    <div class="diag-top">
-      <div class="diag-summary">
-        <div class="diag-summary-title">요약</div>
-        <div class="diag-summary-grid">
+    <div class="diag-report">
+      <div class="diag-info-panel">
+        <div class="eyebrow" style="color:#8a6a52;">SKIN ANALYSIS REPORT</div>
+        <h2 class="diag-title">피부 진단 결과예요</h2>
+        <div class="diag-score-hero"><b id="diagScoreBig">-</b><span>/ 100</span></div>
+        <div class="diag-score-tag" id="diagPriorityTag">우선 관리 · -</div>
+        <p class="diag-sentence" id="diagSentence"></p>
+        <div class="diag-userinfo">
+          <div><span>닉네임</span><b id="diagUserNick">-</b></div>
           <div><span>피부 나이</span><b id="diagAge">-</b></div>
-          <div><span>피부 점수</span><b id="diagScore">-</b></div>
-          <div><span>우선 관리 항목</span><b id="diagPriority">-</b></div>
           <div><span>피부 타입</span><b id="diagType">-</b></div>
+          <div><span>분석 일시</span><b id="diagDate">-</b></div>
         </div>
+        <button class="btn btn-gold" id="diagCta">맞춤 제품 추천</button>
       </div>
-      <div class="diag-face">
+
+      <div class="diag-face-panel">
         <div class="diag-face-title">관리가 필요한 부위</div>
         <div class="face-map">
           <div class="face-ear left"></div>
@@ -684,14 +729,11 @@ DEMO_HTML = """
           <span class="legend-item" data-concern="acne"><span class="legend-dot acne"></span>여드름 · 턱</span>
         </div>
       </div>
-    </div>
 
-    <div class="diag-sentence" id="diagSentence"></div>
-
-    <div class="diag-concerns">
-      <div class="diag-concerns-head"><span>피부 고민</span><span class="diag-tag">맞춤 기준: 기본</span></div>
-      <div class="diag-scale"><span>나쁨</span><span>보통</span><span>좋음</span></div>
-      <div id="diagRows"></div>
+      <div class="diag-scorelist">
+        <div class="diag-summary-title">항목별 점수</div>
+        <div id="diagScoreRows"></div>
+      </div>
     </div>
 
     <div class="diag-tabsblock">
@@ -701,8 +743,6 @@ DEMO_HTML = """
       <div class="diag-tabs" id="diagTabs"></div>
       <div id="diagPanels"></div>
     </div>
-
-    <button class="btn btn-gold" id="diagCta">맞춤 제품 추천</button>
   </div>
 </div>
 
@@ -1091,23 +1131,27 @@ DEMO_HTML = """
       : (state.concerns.has('pore') || state.concerns.has('scar')) ? '복합성' : '중성';
 
     document.getElementById('diagAge').innerHTML = skinAge + '<i> 세</i>';
-    document.getElementById('diagScore').innerHTML = overall.toFixed(1) + '<i> 10점 만점</i>';
-    document.getElementById('diagPriority').textContent = worst.label;
+    document.getElementById('diagScoreBig').textContent = Math.round(overall*10);
+    document.getElementById('diagPriorityTag').textContent = '우선 관리 · ' + worst.label;
     document.getElementById('diagType').textContent = skinType;
+    document.getElementById('diagUserNick').textContent = nickname || '고객';
+    document.getElementById('diagDate').textContent = formatToday();
 
     document.getElementById('diagSentence').textContent =
       '좋습니다! 당신의 피부 점수는 ' + overall.toFixed(1) + '입니다. 우선 ' + best.label +
       ' 은(는) 관리가 잘 되어 있어요. ' + worst.label + ' 은(는) 좀 더 관리가 필요해요.';
 
-    document.getElementById('diagRows').innerHTML = metrics.map(m=>{
-      const band = m.score>=7 ? 'good' : m.score>=4 ? 'mid' : 'bad';
-      return '<div class="diag-row">' +
-        '<div class="diag-row-label">' + m.label + '</div>' +
-        '<div class="diag-row-track"><div class="diag-row-marker" style="left:' + (m.score*10) + '%"></div></div>' +
-        '<div class="diag-row-value">' + m.score.toFixed(1) + '</div>' +
-        '<div class="diag-row-dot ' + band + '"></div>' +
-      '</div>';
-    }).join('');
+    document.getElementById('diagScoreRows').innerHTML =
+      '<div class="score-row overall"><div class="score-row-label">종합</div>' +
+        '<div class="score-row-right"><span class="score-row-value">' + Math.round(overall*10) + '</span></div></div>' +
+      metrics.map(m=>{
+        const band = m.score>=7 ? 'good' : m.score>=4 ? 'mid' : 'bad';
+        return '<div class="score-row">' +
+          '<div class="score-row-label"><span class="score-row-dot ' + band + '"></span>' + m.label + '</div>' +
+          '<div class="score-row-right"><span class="score-row-value">' + Math.round(m.score*10) + '</span>' +
+          '<svg class="score-row-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 6l6 6-6 6"/></svg></div>' +
+        '</div>';
+      }).join('');
 
     document.querySelectorAll('.face-zone').forEach(z=>{
       const zone = z.dataset.zone;
@@ -1462,7 +1506,9 @@ DEMO_HTML = """
     return list.map(p=>
       '<div class="prod-card rank-' + p.rank + '">' +
         '<div class="prod-rank">' + p.rank + '위</div>' +
-        '<div class="prod-icon" style="background:' + p.color + '"></div>' +
+        (p.img
+          ? '<div class="prod-photo"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" /></div>'
+          : '<div class="prod-icon" style="background:' + p.color + '"></div>') +
         '<div class="prod-brand">' + p.brand + '</div>' +
         '<div class="prod-name">' + p.name + '</div>' +
         '<div class="prod-tag">' + p.tag + '</div>' +
@@ -1471,36 +1517,51 @@ DEMO_HTML = """
   }
 
   /* ---------------- recommend: tier tabs ---------------- */
+  const PIMG = {
+    cosrx: 'https://dn5hzapyfrpio.cloudfront.net/product/a97/a97c0080-1b38-11f0-a461-e9e3e4353caa.jpeg?w=426',
+    toriden: 'https://dn5hzapyfrpio.cloudfront.net/product/302/3029f520-5fed-11f1-94d9-bb4c387ac818.jpeg?w=426',
+    anua: 'https://dn5hzapyfrpio.cloudfront.net/product/18f/18f9d910-e811-11ef-b7ff-9d94b272a52e.jpeg?w=426',
+    mediheal: 'https://dn5hzapyfrpio.cloudfront.net/product/bf9/bf9d94f0-77ef-11f0-ba45-05d1d2abb09d.jpeg?w=426',
+    ahc: 'https://dn5hzapyfrpio.cloudfront.net/product/417/417b9320-49b2-11f1-ab05-f74f22f2eff9.jpeg?w=426',
+    goodal: 'https://dn5hzapyfrpio.cloudfront.net/product/6f3/6f3891e0-c8cb-11f0-b07b-5b53b651bab0.jpeg?w=426',
+    jsm: 'https://dn5hzapyfrpio.cloudfront.net/product/5f6/5f61dd30-7850-11ee-b842-db65e1eeb438.jpeg?w=426',
+    hera: 'https://dn5hzapyfrpio.cloudfront.net/product/fe1/fe18aa80-ebc8-11ee-8b0a-6d2974cceb54.jpeg?w=426',
+    clioCushion: 'https://dn5hzapyfrpio.cloudfront.net/product/a88/a88ee6f0-846b-11f0-b021-b5dec3c00b35.jpeg?w=426',
+    lumir: 'https://dn5hzapyfrpio.cloudfront.net/product/629/629e9f90-47ff-11ef-9c5c-759480f80bcd.jpeg?w=426',
+    peripera: 'https://dn5hzapyfrpio.cloudfront.net/product/d34/d3475980-92e5-11f0-9444-11e570e33be4.jpeg?w=426',
+    clioEye: 'https://dn5hzapyfrpio.cloudfront.net/product/9cb/9cbc3980-4242-11ee-88cc-5d4011facace.jpeg?w=426'
+  };
+
   const TIERS = [
     { key:'t1', label:'1단계', category:'세럼',
       desc:'클렌징·스킨·로션·세럼·크림으로 여드름을 억제하고 전반적인 피부 컨디션을 개선해요.',
       products:[
-        {rank:1, brand:'코스알엑스', name:'더 6 펩타이드 화잘먹 세럼', tag:'여드름 · 컨디션 개선', color:'#8b6f47'},
-        {rank:2, brand:'토리든', name:'다이브인 저분자 히알루론산 세럼', tag:'수분 진정', color:'#5c7a8b'},
-        {rank:3, brand:'아누아', name:'PDRN 히알루론산 캡슐 100 세럼', tag:'피부 컨디션 개선', color:'#7a8b5c'}
+        {rank:1, brand:'코스알엑스', name:'더 6 펩타이드 스킨 부스터 세럼', tag:'여드름 · 컨디션 개선', img:PIMG.cosrx, color:'#8b6f47'},
+        {rank:2, brand:'토리든', name:'다이브인 저분자 히알루론산 세럼', tag:'수분 진정', img:PIMG.toriden, color:'#5c7a8b'},
+        {rank:3, brand:'아누아', name:'PDRN 히알루론산 캡슐 100 세럼', tag:'피부 컨디션 개선', img:PIMG.anua, color:'#7a8b5c'}
       ]},
-    { key:'t2', label:'1+2단계', category:'선크림',
+    { key:'t2', label:'2단계', category:'선크림',
       desc:'기초 제품에 이어 피부 타입에 맞는 선케어로 노화·주름까지 예방해요.',
       products:[
-        {rank:1, brand:'메디힐', name:'마데카소사이드 수분 선세럼', tag:'저자극 진정', color:'#6b8b6f'},
-        {rank:2, brand:'웰라쥬', name:'리얼 히알루로닉 블루 선크림', tag:'산뜻한 마무리', color:'#4a7a9b'},
-        {rank:3, brand:'구달', name:'맑은 어성초 진정 수분 선크림', tag:'민감성 피부용', color:'#7a9b6f'}
+        {rank:1, brand:'메디힐', name:'마데카소사이드 수분 선세럼', tag:'저자극 진정', img:PIMG.mediheal, color:'#6b8b6f'},
+        {rank:2, brand:'AHC', name:'마스터즈 에어 리치 선스틱', tag:'산뜻한 마무리', img:PIMG.ahc, color:'#4a7a9b'},
+        {rank:3, brand:'구달', name:'맑은 어성초 진정 수분 선크림', tag:'민감성 피부용', img:PIMG.goodal, color:'#7a9b6f'}
       ]},
-    { key:'t3', label:'1+2+3단계', category:'쿠션',
+    { key:'t3', label:'3단계', category:'쿠션',
       desc:'기초·선케어에 이어 간단한 색조 화장으로 피부 보정 효과까지 더해요.',
       products:[
-        {rank:1, brand:'정샘물', name:'에센셜 스킨 누더 쿠션', tag:'자연스러운 피부 보정', color:'#c9915c'},
-        {rank:2, brand:'헤라', name:'블랙 쿠션 파운데이션', tag:'커버력 + 지속력', color:'#9b7a4a'},
-        {rank:3, brand:'토코보', name:'블러 피니쉬 선 쿠션', tag:'선케어 + 톤업', color:'#b58b5c'}
+        {rank:1, brand:'정샘물', name:'에센셜 스킨 누더 쿠션', tag:'자연스러운 피부 보정', img:PIMG.jsm, color:'#c9915c'},
+        {rank:2, brand:'헤라', name:'블랙 쿠션 파운데이션', tag:'커버력 + 지속력', img:PIMG.hera, color:'#9b7a4a'},
+        {rank:3, brand:'클리오', name:'킬커버 파운웨어 쿠션', tag:'커버 + 지속력', img:PIMG.clioCushion, color:'#b58b5c'}
       ]},
-    { key:'t4', label:'1+2+3+4단계', category:'아이 · 립',
-      desc:'색조 화장에 이어 퍼스널 컬러에 맞는 쉐도우·립 제품으로 나만의 개성을 표현해요.',
+    { key:'t4', label:'4단계', category:'아이 메이크업',
+      desc:'색조 화장에 이어 퍼스널 컬러에 맞는 쉐도우 제품으로 나만의 개성을 표현해요.',
       products:[
-        {rank:1, brand:'홀리카홀리카', name:'마이 페이브 피스 아이섀도우', tag:'퍼스널컬러 팔레트', color:'#9b6f8b'},
-        {rank:2, brand:'롬앤', name:'쥬시 라스팅 틴트', tag:'데일리 립 컬러', color:'#c15c5c'},
-        {rank:3, brand:'페리페라', name:'잉크 무드 매트 틴트', tag:'퍼스널컬러 립', color:'#a85c6f'}
+        {rank:1, brand:'루미르', name:'라이트 온 아이즈 섀도우 팔레트', tag:'퍼스널컬러 팔레트', img:PIMG.lumir, color:'#9b6f8b'},
+        {rank:2, brand:'페리페라', name:'올테이크 무드 팔레트', tag:'데일리 아이 컬러', img:PIMG.peripera, color:'#c15c5c'},
+        {rank:3, brand:'클리오', name:'프로 아이 팔레트 에어', tag:'퍼스널컬러 팔레트', img:PIMG.clioEye, color:'#a85c6f'}
       ]},
-    { key:'t5', label:'1+2+3+4+5단계', category:'뷰티 디바이스',
+    { key:'t5', label:'5단계', category:'뷰티 디바이스',
       desc:'클렌징·기초·색조 3요소를 갖춘 뒤, 뷰티 디바이스로 얼굴형과 붓기까지 관리해요.',
       products:[
         {rank:1, brand:'메디큐브', name:'AGE-R 부스터 프로', tag:'리프팅 디바이스', color:'#5c6f8b'},
@@ -1509,27 +1570,45 @@ DEMO_HTML = """
       ]}
   ];
   let tierInitialized = false;
+  let tierUnlocked = 1;
 
   function initTierTabs(){
     tierInitialized = true;
+    tierUnlocked = 1;
+    renderTierTabs();
+    renderTier(TIERS[0].key);
+  }
+
+  function renderTierTabs(){
     const tabsEl = document.getElementById('tierTabs');
     tabsEl.innerHTML = TIERS.map((t,i)=>
-      '<button type="button" class="tier-tab' + (i===0?' active':'') + '" data-tier="' + t.key + '">' + t.label + '</button>'
+      '<button type="button" class="tier-tab' + (i===0?' active':'') + (i>=tierUnlocked?' locked':'') +
+      '" data-tier="' + t.key + '" data-idx="' + i + '"' + (i>=tierUnlocked?' disabled':'') + '>' + t.label + '</button>'
     ).join('');
     tabsEl.querySelectorAll('.tier-tab').forEach(btn=>{
       btn.addEventListener('click', ()=>{
+        if(btn.disabled) return;
         tabsEl.querySelectorAll('.tier-tab').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
+        const idx = Number(btn.dataset.idx);
+        const nextUnlock = Math.min(TIERS.length, idx + 2);
+        if(nextUnlock > tierUnlocked){ tierUnlocked = nextUnlock; renderTierTabs(); reselectTab(btn.dataset.tier); }
         renderTier(btn.dataset.tier);
       });
     });
-    renderTier(TIERS[0].key);
+  }
+
+  function reselectTab(key){
+    const tabsEl = document.getElementById('tierTabs');
+    tabsEl.querySelectorAll('.tier-tab').forEach(b=>{
+      b.classList.toggle('active', b.dataset.tier === key);
+    });
   }
 
   function renderTier(key){
     const tier = TIERS.find(t=>t.key===key);
     document.getElementById('tierDesc').textContent = tier.desc;
-    document.getElementById('tierCatLabel').textContent = '이번 단계 추천 · ' + tier.category + ' TOP 3 (올리브영 랭킹 기준)';
+    document.getElementById('tierCatLabel').textContent = tier.label + ' 추천 · ' + tier.category + ' TOP 3 (올리브영 랭킹 기준)';
     document.getElementById('tierProdRow').innerHTML = renderProductCards(tier.products);
   }
 
@@ -1541,24 +1620,24 @@ DEMO_HTML = """
       {rank:3,brand:'메디큐브',name:'PDRN 핑크 펩타이드 앰플',tag:'재생 케어',color:'#a86f7a'}
     ]},
     { key:'texture', label:'피부결 개선', products:[
-      {rank:1,brand:'토리든',name:'다이브인 세럼',tag:'결 정돈',color:'#5c7a8b'},
-      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 화잘먹 세럼',tag:'피부 컨디션',color:'#8b6f47'},
+      {rank:1,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'결 정돈',img:PIMG.toriden,color:'#5c7a8b'},
+      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'피부 컨디션',img:PIMG.cosrx,color:'#8b6f47'},
       {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'모공 · 결 관리',color:'#7a8b5c'}
     ]},
     { key:'spot', label:'기미', products:[
       {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'브라이트닝',color:'#c9915c'},
-      {rank:2,brand:'아누아',name:'PDRN 캡슐 100 세럼',tag:'톤 개선',color:'#7a8b5c'},
+      {rank:2,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'톤 개선',img:PIMG.anua,color:'#7a8b5c'},
       {rank:3,brand:'에스네이처',name:'아쿠아 스쿠알란 수분크림',tag:'수분 진정',color:'#6b8b8b'}
     ]},
     { key:'blemish', label:'잡티', products:[
       {rank:1,brand:'닥터지',name:'레드 블레미쉬 포맨 올인원',tag:'트러블 케어',color:'#a85c5c'},
-      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 화잘먹 세럼',tag:'피부 진정',color:'#8b6f47'},
+      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'피부 진정',img:PIMG.cosrx,color:'#8b6f47'},
       {rank:3,brand:'라운드랩',name:'마데카 크림',tag:'재생 진정',color:'#5c8b6f'}
     ]},
     { key:'tone', label:'피부톤 불균일', products:[
       {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'톤 케어',color:'#c9915c'},
-      {rank:2,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'톤 보정',color:'#c9915c'},
-      {rank:3,brand:'토코보',name:'블러 피니쉬 선쿠션',tag:'톤업 + 선케어',color:'#b58b5c'}
+      {rank:2,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'톤 보정',img:PIMG.jsm,color:'#c9915c'},
+      {rank:3,brand:'클리오',name:'킬커버 파운웨어 쿠션',tag:'톤업 + 커버',img:PIMG.clioCushion,color:'#b58b5c'}
     ]},
     { key:'blackhead', label:'블랙헤드', products:[
       {rank:1,brand:'에스트라',name:'아토베리어365 클렌징폼',tag:'저자극 클렌징',color:'#6b7a8b'},
@@ -1566,7 +1645,7 @@ DEMO_HTML = """
       {rank:3,brand:'이니스프리',name:'그린티 클렌징폼',tag:'산뜻 세안',color:'#5c8b6f'}
     ]},
     { key:'darkcircle', label:'다크서클', products:[
-      {rank:1,brand:'토리든',name:'다이브인 세럼',tag:'눈가 수분',color:'#5c7a8b'},
+      {rank:1,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'눈가 수분',img:PIMG.toriden,color:'#5c7a8b'},
       {rank:2,brand:'메디큐브',name:'PDRN 핑크 펩타이드 앰플',tag:'재생 케어',color:'#a86f7a'},
       {rank:3,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'}
     ]},
@@ -1583,7 +1662,7 @@ DEMO_HTML = """
     { key:'dull', label:'얼굴 칙칙함', products:[
       {rank:1,brand:'오리진스',name:'메가 버섯 퍼스트 에센스',tag:'생기 부여',color:'#8b7a5c'},
       {rank:2,brand:'구달',name:'청귤 비타C 세럼',tag:'톤 브라이트닝',color:'#c9915c'},
-      {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'생기 있는 톤',color:'#c9915c'}
+      {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'생기 있는 톤',img:PIMG.jsm,color:'#c9915c'}
     ]},
     { key:'dryness', label:'세안 후 건조함', products:[
       {rank:1,brand:'피지오겔',name:'레드수딩 크림',tag:'수분 장벽',color:'#a86f6f'},
@@ -1597,12 +1676,12 @@ DEMO_HTML = """
     ]},
     { key:'pigment', label:'색소 침착', products:[
       {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'색소 케어',color:'#c9915c'},
-      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 화잘먹 세럼',tag:'톤 개선',color:'#8b6f47'},
-      {rank:3,brand:'아누아',name:'PDRN 캡슐 100 세럼',tag:'재생 브라이트닝',color:'#7a8b5c'}
+      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'톤 개선',img:PIMG.cosrx,color:'#8b6f47'},
+      {rank:3,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'재생 브라이트닝',img:PIMG.anua,color:'#7a8b5c'}
     ]},
     { key:'flake', label:'얼굴 각질', products:[
       {rank:1,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'각질 케어',color:'#8b6f47'},
-      {rank:2,brand:'토리든',name:'다이브인 세럼',tag:'수분 결 정돈',color:'#5c7a8b'},
+      {rank:2,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'수분 결 정돈',img:PIMG.toriden,color:'#5c7a8b'},
       {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'진정 각질 케어',color:'#7a8b5c'}
     ]}
   ];
