@@ -3054,13 +3054,13 @@ DEMO_HTML = """
     { key:'t3', label:'3단계', category:'베이스 메이크업',
       desc:'선케어에 이어 자연스러운 베이스로 피부 톤·결을 정리해요.',
       lines:[ { label:'베이스 라인', sub:'톤·커버', cat:'cushion' } ] },
-    { key:'t4', label:'4단계', category:'아이 메이크업',
+    { key:'t4', label:'4단계', category:'아이메이크업',
       desc:'아이브로우로 인상을 잡고, 아이섀도우로 분위기를 완성해요.',
       lines:[
         { label:'아이브로우', sub:'눈썹 정리', cat:'brow' },
         { label:'아이섀도우', sub:'분위기 연출', cat:'eye' }
       ] },
-    { key:'t5', label:'5단계', category:'퍼퓸 & 바디',
+    { key:'t5', label:'5단계', category:'퍼퓸&바디',
       desc:'향과 바디케어로 하루의 마무리까지 완성해요.',
       lines:[
         { label:'향수', sub:'시그니처 향', cat:'perfume' },
@@ -3075,7 +3075,7 @@ DEMO_HTML = """
     tierInitialized = true;
     const tabsEl = document.getElementById('tierTabs');
     tabsEl.innerHTML = TIERS.map((t,i)=>
-      '<button type="button" class="tier-tab' + (i===0?' active':'') + '" data-tier="' + t.key + '">' + t.label + '</button>'
+      '<button type="button" class="tier-tab' + (i===0?' active':'') + '" data-tier="' + t.key + '">' + t.category + '</button>'
     ).join('');
     tabsEl.addEventListener('click', onTierTabClick);
     renderTier(TIERS[0].key);
