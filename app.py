@@ -507,6 +507,67 @@ DEMO_HTML = """
     .cam-frame-outer{width:min(220px,60vw);}
   }
 
+  /* ---------- ANALYSIS LOADING (bridge) ---------- */
+  .loadscreen{
+    background:radial-gradient(120% 140% at 50% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);
+    opacity:0;transition:opacity .5s ease;padding:24px;
+  }
+  .loadscreen.visible{opacity:1;}
+  .load-card{width:100%;max-width:420px;color:#f6f5f2;text-align:center;}
+  .load-orb{position:relative;width:128px;height:128px;margin:8px auto 30px;}
+  .load-orb .orb-core{
+    position:absolute;inset:36px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #efdcad, var(--gold) 58%, #8a6a3a);
+    box-shadow:0 0 28px 6px rgba(201,168,106,.42);animation:orb-pulse 1.8s ease-in-out infinite;
+  }
+  .load-orb svg{position:absolute;inset:0;width:100%;height:100%;animation:cam-ring-spin 3.6s linear infinite;}
+  .load-orb svg circle{fill:none;stroke:var(--gold);stroke-width:2;stroke-dasharray:4 8;opacity:.7;}
+  .load-orb svg.ring2{animation-duration:5.6s;animation-direction:reverse;}
+  .load-orb svg.ring2 circle{stroke:#7d7a70;stroke-dasharray:2 10;opacity:.5;}
+  @keyframes orb-pulse{0%,100%{transform:scale(.92);opacity:.85;}50%{transform:scale(1.06);opacity:1;}}
+  .load-title{font-size:clamp(19px,3.4vw,23px);font-weight:700;letter-spacing:-.02em;min-height:31px;transition:opacity .35s ease;}
+  .load-sub{font-size:13px;color:#a9a89f;margin-top:10px;line-height:1.65;}
+  .load-bar{margin-top:26px;height:6px;border-radius:999px;background:#33322d;overflow:hidden;}
+  .load-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),#efdcad);border-radius:999px;transition:width .55s ease;}
+  .load-phase{margin-top:12px;font-size:11.5px;color:#8f8e86;letter-spacing:.03em;min-height:16px;}
+
+  /* ---------- SKIN SURVEY ---------- */
+  .survey{
+    background:radial-gradient(120% 140% at 15% 0%, #232320 0%, var(--dark) 60%, var(--dark) 100%);
+    opacity:0;transition:opacity .5s ease;padding:24px;
+  }
+  .survey.visible{opacity:1;}
+  .survey-card{width:100%;max-width:440px;color:#f6f5f2;}
+  .sv-top{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+  .sv-back{background:none;border:none;color:#c9c8c1;cursor:pointer;padding:4px;display:inline-flex;font-family:inherit;flex:none;transition:opacity .15s ease;}
+  .sv-back svg{width:20px;height:20px;}
+  .sv-back:hover{color:#f6f5f2;}
+  .sv-back[disabled]{opacity:0;pointer-events:none;}
+  .sv-progress{flex:1;height:6px;border-radius:999px;background:#33322d;overflow:hidden;}
+  .sv-progress-fill{height:100%;width:0%;background:var(--gold);border-radius:999px;transition:width .35s ease;}
+  .sv-count{font-size:12px;color:#a9a89f;font-weight:700;flex:none;min-width:40px;text-align:right;}
+  .sv-eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .sv-q{font-size:clamp(20px,3.6vw,25px);font-weight:700;letter-spacing:-.02em;line-height:1.35;margin-top:10px;min-height:34px;}
+  .sv-opts{margin-top:22px;display:flex;flex-direction:column;gap:10px;animation:fade .3s ease;}
+  .sv-opts.grid{flex-direction:row;flex-wrap:wrap;}
+  .sv-opt{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 18px;border-radius:14px;
+    border:1.5px solid #3a3934;background:#201f1c;color:#f6f5f2;font-family:inherit;cursor:pointer;
+    transition:border-color .15s ease,background .15s ease,transform .12s ease;
+  }
+  .sv-opt:hover{border-color:var(--gold);}
+  .sv-opt:active{transform:scale(.98);}
+  .sv-opt.on{border-color:var(--gold);background:#2a2820;}
+  .sv-opt-txt{flex:1;}
+  .sv-opt-txt b{display:block;font-size:15px;font-weight:700;}
+  .sv-opt-txt span{display:block;font-size:11.5px;color:#a9a89f;margin-top:3px;}
+  .sv-opt-check{width:22px;height:22px;border-radius:50%;border:1.5px solid #4a4940;flex:none;position:relative;transition:all .15s ease;}
+  .sv-opt.on .sv-opt-check{background:var(--gold);border-color:var(--gold);}
+  .sv-opt.on .sv-opt-check::after{content:'';position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #1a1a18;border-width:0 2px 2px 0;transform:rotate(45deg);}
+  .sv-opts.grid .sv-opt{flex:1 1 calc(50% - 5px);justify-content:center;text-align:center;padding:15px 12px;}
+  .sv-opts.grid .sv-opt-txt b{font-size:14.5px;}
+  .sv-opts.grid .sv-opt-check{display:none;}
+
   /* ---------- DIAGNOSIS RESULT (report dashboard) ---------- */
   .diagnosis{
     background:linear-gradient(180deg,#fbf8f4,#f3ede4);opacity:0;transition:opacity .5s ease;padding:32px 24px;
@@ -550,6 +611,16 @@ DEMO_HTML = """
   .diag-userinfo div{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
   .diag-userinfo span{color:#a89a86;}
   .diag-userinfo b{color:#2b241d;font-weight:700;}
+  .diag-survey{margin-top:16px;padding-top:16px;border-top:1px solid var(--db-line);}
+  .diag-survey-flag{
+    display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#3c6b4a;
+    background:#e4efe4;border-radius:10px;padding:9px 12px;margin-bottom:12px;line-height:1.4;
+  }
+  .diag-survey-flag::before{content:'✓';font-weight:800;color:#4a8a5f;}
+  .diag-survey-title{font-size:11px;font-weight:700;letter-spacing:.06em;color:#a89a86;text-transform:uppercase;margin-bottom:9px;}
+  .diag-survey-tags{display:flex;flex-wrap:wrap;gap:6px;}
+  .diag-survey-tags span{font-size:11.5px;font-weight:700;color:var(--db-brown);background:var(--db-brown-soft);padding:5px 11px;border-radius:999px;}
+  .diag-survey-empty{font-size:12.5px;color:#5c5346;line-height:1.6;}
   #diagCta{margin-top:20px;width:100%;padding:14px;font-size:15px;background:var(--db-brown);}
   #diagCta:hover{opacity:.9;}
 
@@ -704,6 +775,10 @@ DEMO_HTML = """
   .simple-score-main b{font-size:30px;font-weight:800;color:var(--ink);letter-spacing:-.02em;}
   .simple-score-main span{font-size:11.5px;color:var(--ink-soft);}
   .simple-tier{font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .simple-survey{margin-top:9px;display:flex;flex-wrap:wrap;gap:5px;}
+  .simple-survey .ss-flag{width:100%;font-size:11px;font-weight:700;color:#3c6b4a;background:#e4efe4;border-radius:8px;padding:6px 10px;display:flex;align-items:center;gap:6px;}
+  .simple-survey .ss-flag::before{content:'✓';font-weight:800;}
+  .simple-survey .ss-tag{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:999px;}
   .radar-holder{margin-top:2px;}
   .radar-wrap{position:relative;width:100%;max-width:250px;margin:0 auto;}
   .radar-svg{width:100%;height:auto;display:block;}
@@ -900,6 +975,36 @@ DEMO_HTML = """
   </div>
 </div>
 
+<div class="screen loadscreen hidden" id="screenLoading">
+  <div class="load-card">
+    <div class="eyebrow on-dark">SKIN ANALYSIS AI</div>
+    <div class="load-orb">
+      <svg viewBox="0 0 132 132"><circle cx="66" cy="66" r="63"/></svg>
+      <svg class="ring2" viewBox="0 0 132 132"><circle cx="66" cy="66" r="52"/></svg>
+      <div class="orb-core"></div>
+    </div>
+    <div class="load-title" id="loadTitle">얼굴 영상을 분석하고 있어요</div>
+    <p class="load-sub">촬영된 영상에서 피부 상태를 정밀하게 읽어내고 있어요.<br/>잠시만 기다려 주세요.</p>
+    <div class="load-bar"><div class="load-bar-fill" id="loadBarFill"></div></div>
+    <div class="load-phase" id="loadPhase">피부 이미지 정합 중…</div>
+  </div>
+</div>
+
+<div class="screen survey hidden" id="screenSurvey">
+  <div class="survey-card">
+    <div class="sv-top">
+      <button type="button" class="sv-back" id="svBack" disabled aria-label="이전 질문">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="sv-progress"><div class="sv-progress-fill" id="svProgress"></div></div>
+      <div class="sv-count" id="svCount">1 / 9</div>
+    </div>
+    <div class="sv-eyebrow">SKIN SURVEY</div>
+    <div class="sv-q" id="svQuestion">-</div>
+    <div class="sv-opts" id="svOpts"></div>
+  </div>
+</div>
+
 <div class="screen choice hidden" id="screenChoice">
   <div class="choice-card">
     <div class="choice-badge">
@@ -950,6 +1055,7 @@ DEMO_HTML = """
       </div>
       <div class="simple-score-main"><b id="simpleScore">-</b><span>점 / 100</span></div>
       <div class="simple-tier" id="simpleTier">-</div>
+      <div class="simple-survey" id="simpleSurveyNote"></div>
 
       <div class="radar-holder" id="radarHolder"></div>
     </div>
@@ -981,6 +1087,7 @@ DEMO_HTML = """
           <div><span>피부 타입</span><b id="diagType">-</b></div>
           <div><span>분석 일시</span><b id="diagDate">-</b></div>
         </div>
+        <div class="diag-survey" id="diagSurveyNote"></div>
         <button class="btn btn-gold" id="diagCta">맞춤 제품 추천</button>
       </div>
 
@@ -1413,7 +1520,7 @@ DEMO_HTML = """
 
 <script>
 (function(){
-  window.appState = { concerns:new Set(), analyzed:false, allInOne:false, age:29, nickname:'' };
+  window.appState = { concerns:new Set(), analyzed:false, allInOne:false, age:29, nickname:'', survey:{} };
   const state = window.appState;
 
   const splash = document.getElementById('screenSplash');
@@ -1423,6 +1530,8 @@ DEMO_HTML = """
   const choice = document.getElementById('screenChoice');
   const simpleResult = document.getElementById('screenSimple');
   const diagnosis = document.getElementById('screenDiagnosis');
+  const loadScreen = document.getElementById('screenLoading');
+  const surveyScreen = document.getElementById('screenSurvey');
   const appScreen = document.getElementById('screenApp');
   let nickname = '';
   let enteredAge = 29;
@@ -1597,7 +1706,7 @@ DEMO_HTML = """
   window.recordRecommend = recordRecommend;
   window.persistAnalysis = function(){ saveLastResult(); recordAnalysis(); };
 
-  const MEMBER_SCREENS = [splash, intro, camera, choice, simpleResult, diagnosis, screenAuth, screenConsent, screenProfile, screenMyPage, screenStartChoice];
+  const MEMBER_SCREENS = [splash, intro, camera, loadScreen, surveyScreen, choice, simpleResult, diagnosis, screenAuth, screenConsent, screenProfile, screenMyPage, screenStartChoice];
   function showMemberScreen(el){
     MEMBER_SCREENS.forEach(s=>{ s.classList.add('hidden'); s.classList.remove('visible'); });
     appScreen.style.display = 'none';
@@ -1918,11 +2027,12 @@ DEMO_HTML = """
       camProgressFill.style.transition = 'none';
       camProgressFill.style.width = '0%';
       requestAnimationFrame(()=>{
-        camProgressFill.style.transition = 'width 1.9s linear';
+        camProgressFill.style.transition = 'width 2.9s linear';
         camProgressFill.style.width = '100%';
       });
       i++;
-      setTimeout(step, 2000);
+      /* 방향별 안내를 각 1초씩 더 길게 유지해 인식 흐름을 안정적으로 느끼게 함 */
+      setTimeout(step, 3000);
     }
     step();
   }
@@ -1936,19 +2046,173 @@ DEMO_HTML = """
     if(state.concerns.size === 0){
       ['scar','pore','oil','acne'].forEach(k=> state.concerns.add(k));
     }
-    saveLastResult();
-    recordAnalysis();
-    setTimeout(showChoice, 1300);
+    /* 스캔 직후 바로 결과로 넘기지 않고 로딩 브릿지 → 설문 단계로 이어짐 */
+    setTimeout(showLoading, 1200);
   }
 
-  function showChoice(){
+  /* ---- 분석 로딩 브릿지 (스캔 → 설문 사이) ---- */
+  const LOAD_PHASES = [
+    { title:'얼굴 영상을 분석하고 있어요', phase:'피부 이미지를 정합하는 중…' },
+    { title:'모공과 피부결을 정밀 스캔 중이에요', phase:'T존·볼 영역을 분석하는 중…' },
+    { title:'유분·트러블 분포를 확인하고 있어요', phase:'분석 결과를 정리하는 중…' }
+  ];
+
+  function showLoading(){
     camera.classList.remove('visible');
     setTimeout(()=>{
       camera.classList.add('hidden');
-      choice.classList.remove('hidden');
-      requestAnimationFrame(()=> choice.classList.add('visible'));
+      loadScreen.classList.remove('hidden');
+      requestAnimationFrame(()=> loadScreen.classList.add('visible'));
+      runLoading();
     }, 550);
   }
+
+  function runLoading(){
+    const fill = document.getElementById('loadBarFill');
+    const title = document.getElementById('loadTitle');
+    const phase = document.getElementById('loadPhase');
+    let i = 0;
+    fill.style.width = '0%';
+    function tick(){
+      if(i >= LOAD_PHASES.length){ setTimeout(showSurvey, 500); return; }
+      const p = LOAD_PHASES[i];
+      title.style.opacity = '0';
+      setTimeout(()=>{ title.textContent = p.title; title.style.opacity = '1'; }, 200);
+      phase.textContent = p.phase;
+      fill.style.width = Math.round((i+1)/LOAD_PHASES.length*100) + '%';
+      i++;
+      setTimeout(tick, 900);
+    }
+    tick();
+  }
+
+  /* ---- 추가 피부 설문 (체감 상태 반영) ---- */
+  const SURVEY = [
+    { key:'sensitive', q:'평소 피부가 예민한 편인가요?', opts:[
+        {v:'high', t:'예민해요', s:'화장품·환경에 쉽게 반응해요'},
+        {v:'mid', t:'보통이에요', s:'가끔 반응하는 정도'},
+        {v:'low', t:'둔감한 편이에요', s:'거의 반응 없어요'} ]},
+    { key:'atopy', q:'아토피나 피부염을 겪은 적 있나요?', opts:[
+        {v:'yes', t:'있어요', s:'현재 또는 최근에'},
+        {v:'past', t:'예전에요', s:'지금은 괜찮아요'},
+        {v:'no', t:'없어요', s:'경험이 없어요'} ]},
+    { key:'oil', q:'유분·피지는 어느 정도인가요?', opts:[
+        {v:'high', t:'많아요', s:'금방 번들거려요'},
+        {v:'mid', t:'보통이에요', s:'T존 위주로 나요'},
+        {v:'low', t:'적어요', s:'건조한 편이에요'} ]},
+    { key:'dryness', q:'세안 후 피부가 당기고 건조한가요?', opts:[
+        {v:'high', t:'심해요', s:'바로 당기고 갈라져요'},
+        {v:'mid', t:'조금요', s:'금방 괜찮아져요'},
+        {v:'low', t:'없어요', s:'촉촉함이 유지돼요'} ]},
+    { key:'trouble', q:'트러블(여드름)은 얼마나 자주 올라오나요?', opts:[
+        {v:'high', t:'자주요', s:'거의 항상 있어요'},
+        {v:'mid', t:'가끔요', s:'컨디션에 따라'},
+        {v:'low', t:'거의 없어요', s:'드물게 올라와요'} ]},
+    { key:'redness', q:'붉어짐이나 자극 반응이 잘 생기나요?', opts:[
+        {v:'high', t:'잘 생겨요', s:'쉽게 붉어지고 따가워요'},
+        {v:'mid', t:'가끔요', s:'특정 상황에서만'},
+        {v:'low', t:'거의 없어요', s:'안정적인 편이에요'} ]},
+    { key:'focus', q:'가장 신경 쓰이는 피부 고민은?', opts:[
+        {v:'trouble', t:'트러블·여드름'},
+        {v:'pore', t:'모공·피지'},
+        {v:'pigment', t:'색소·잡티'},
+        {v:'aging', t:'주름·탄력'},
+        {v:'dry', t:'건조·거칢'} ]},
+    { key:'goal', q:'원하는 관리 방식은?', opts:[
+        {v:'soothe', t:'진정·저자극'},
+        {v:'hydrate', t:'수분·보습'},
+        {v:'bright', t:'미백·톤업'},
+        {v:'pore', t:'모공·피지 조절'},
+        {v:'firm', t:'탄력·안티에이징'} ]},
+    { key:'current', q:'지금 하고 있는 관리는?', opts:[
+        {v:'none', t:'거의 안 해요'},
+        {v:'basic', t:'기초만 발라요'},
+        {v:'multi', t:'여러 단계 챙겨요'} ]}
+  ];
+  let svIndex = 0;
+  const svQEl = document.getElementById('svQuestion');
+  const svOptsEl = document.getElementById('svOpts');
+  const svCountEl = document.getElementById('svCount');
+  const svProgEl = document.getElementById('svProgress');
+  const svBackBtn = document.getElementById('svBack');
+
+  function showSurvey(){
+    loadScreen.classList.remove('visible');
+    setTimeout(()=>{
+      loadScreen.classList.add('hidden');
+      surveyScreen.classList.remove('hidden');
+      requestAnimationFrame(()=> surveyScreen.classList.add('visible'));
+      svIndex = 0;
+      state.survey = {};
+      renderSurvey();
+    }, 500);
+  }
+
+  function renderSurvey(){
+    const item = SURVEY[svIndex];
+    svCountEl.textContent = (svIndex+1) + ' / ' + SURVEY.length;
+    svProgEl.style.width = Math.round(svIndex / SURVEY.length * 100) + '%';
+    svBackBtn.disabled = svIndex === 0;
+    svQEl.textContent = item.q;
+    const isGrid = item.opts.every(o=> !o.s);
+    svOptsEl.className = 'sv-opts' + (isGrid ? ' grid' : '');
+    svOptsEl.innerHTML = item.opts.map(o=>{
+      const chosen = state.survey[item.key] === o.v;
+      return '<button type="button" class="sv-opt' + (chosen?' on':'') + '" data-v="' + o.v + '">' +
+        '<span class="sv-opt-txt"><b>' + o.t + '</b>' + (o.s ? '<span>'+o.s+'</span>' : '') + '</span>' +
+        '<span class="sv-opt-check"></span>' +
+      '</button>';
+    }).join('');
+    svOptsEl.querySelectorAll('.sv-opt').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        state.survey[item.key] = btn.dataset.v;
+        svOptsEl.querySelectorAll('.sv-opt').forEach(b=> b.classList.remove('on'));
+        btn.classList.add('on');
+        setTimeout(nextSurvey, 240);
+      });
+    });
+  }
+
+  function nextSurvey(){
+    if(svIndex < SURVEY.length - 1){ svIndex++; renderSurvey(); }
+    else { finishSurvey(); }
+  }
+
+  svBackBtn.addEventListener('click', ()=>{ if(svIndex > 0){ svIndex--; renderSurvey(); } });
+
+  function finishSurvey(){
+    svProgEl.style.width = '100%';
+    if(state.concerns.size === 0){
+      ['scar','pore','oil','acne'].forEach(k=> state.concerns.add(k));
+    }
+    /* 영상 분석 + 설문을 함께 반영한 결과를 저장/기록 */
+    saveLastResult();
+    recordAnalysis();
+    surveyScreen.classList.remove('visible');
+    setTimeout(()=>{
+      surveyScreen.classList.add('hidden');
+      choice.classList.remove('hidden');
+      requestAnimationFrame(()=> choice.classList.add('visible'));
+    }, 500);
+  }
+
+  /* 설문 기반 보정 포인트 / 저자극·진정 모드 판정 (결과·추천 공용) */
+  function surveyCorrectionNote(){
+    const sv = state.survey || {};
+    const pts = [];
+    if(sv.sensitive === 'high') pts.push('예민 피부 반영');
+    if(sv.atopy === 'yes') pts.push('아토피·피부염 이력 반영');
+    if(sv.redness === 'high') pts.push('붉어짐·자극 민감 반영');
+    if(sv.dryness === 'high') pts.push('세안 후 건조 보정');
+    if(sv.oil === 'high') pts.push('과잉 유분 보정');
+    if(sv.trouble === 'high') pts.push('잦은 트러블 보정');
+    return pts;
+  }
+  function isSoothingMode(){
+    const sv = state.survey || {};
+    return sv.sensitive === 'high' || sv.atopy === 'yes' || sv.redness === 'high' || sv.goal === 'soothe';
+  }
+  window.isSoothingMode = isSoothingMode;
 
   function switchScreen(from, to, delay){
     from.classList.remove('visible');
@@ -1977,13 +2241,16 @@ DEMO_HTML = """
 
   function computeDiagnosis(){
     const c = state.concerns;
+    /* 영상 분석 점수에 설문(체감 상태) 보정을 더한다. */
+    const sv = state.survey || {};
+    const sens = (sv.sensitive === 'high') || (sv.atopy === 'yes');
     return [
-      { key:'wrinkle', label:'주름', score: clamp10(8.2 - Math.max(0, enteredAge-25)*0.12) },
-      { key:'pigment', label:'색소침착', score: clamp10(7.6 - (c.has('scar')?3.4:0)) },
-      { key:'redness', label:'붉은기', score: clamp10(8.6 - (c.has('acne')?2.2:0) - (c.has('oil')?0.8:0)) },
-      { key:'pore', label:'모공', score: clamp10(8.0 - (c.has('pore')?5.2:0)) },
-      { key:'oil', label:'피지', score: clamp10(7.6 - (c.has('oil')?4.0:0) - (c.has('acne')?1.4:0)) },
-      { key:'trouble', label:'트러블', score: clamp10(8.6 - (c.has('acne')?5.0:0) - (c.has('oil')?0.8:0)) }
+      { key:'wrinkle', label:'주름', score: clamp10(8.2 - Math.max(0, enteredAge-25)*0.12 - ((sv.focus==='aging'||sv.goal==='firm')?0.6:0)) },
+      { key:'pigment', label:'색소침착', score: clamp10(7.6 - (c.has('scar')?3.4:0) - (sv.focus==='pigment'?0.8:0)) },
+      { key:'redness', label:'붉은기', score: clamp10(8.6 - (c.has('acne')?2.2:0) - (c.has('oil')?0.8:0) - (sens?1.8:0) - (sv.redness==='high'?1.2:0)) },
+      { key:'pore', label:'모공', score: clamp10(8.0 - (c.has('pore')?5.2:0) - (sv.oil==='high'?0.8:0)) },
+      { key:'oil', label:'피지', score: clamp10(7.6 - (c.has('oil')?4.0:0) - (c.has('acne')?1.4:0) - (sv.oil==='high'?1.4:0) + (sv.oil==='low'?0.8:0)) },
+      { key:'trouble', label:'트러블', score: clamp10(8.6 - (c.has('acne')?5.0:0) - (c.has('oil')?0.8:0) - (sv.trouble==='high'?1.6:0) + (sv.trouble==='low'?0.6:0)) }
     ];
   }
 
@@ -2006,6 +2273,21 @@ DEMO_HTML = """
     document.getElementById('diagSentence').textContent =
       '좋습니다! 당신의 피부 점수는 ' + overall.toFixed(1) + '입니다. 우선 ' + best.label +
       ' 은(는) 관리가 잘 되어 있어요. ' + worst.label + ' 은(는) 좀 더 관리가 필요해요.';
+
+    /* 영상 분석 + 설문 보정 포인트 표시 */
+    const noteEl = document.getElementById('diagSurveyNote');
+    if(noteEl){
+      const pts = surveyCorrectionNote();
+      let html = '';
+      if(isSoothingMode()){
+        html += '<div class="diag-survey-flag">민감·자극 반응이 높아 저자극·진정 중심으로 추천을 조정했어요</div>';
+      }
+      html += '<div class="diag-survey-title">영상 분석 + 설문 보정 포인트</div>';
+      html += pts.length
+        ? '<div class="diag-survey-tags">' + pts.map(p=>'<span>'+p+'</span>').join('') + '</div>'
+        : '<div class="diag-survey-empty">체감 상태가 안정적이라 영상 분석 결과를 그대로 반영했어요.</div>';
+      noteEl.innerHTML = html;
+    }
 
     document.getElementById('diagScoreRows').innerHTML =
       '<div class="score-row overall"><div class="score-row-label">종합</div>' +
@@ -2223,6 +2505,16 @@ DEMO_HTML = """
     document.getElementById('simpleTier').textContent = tier + '의 점수예요';
     document.getElementById('cmpAll').textContent = cmpAll + '%';
     document.getElementById('cmpAge').textContent = cmpAge + '%';
+
+    const ssEl = document.getElementById('simpleSurveyNote');
+    if(ssEl){
+      const pts = surveyCorrectionNote();
+      let html = '';
+      if(isSoothingMode()){ html += '<div class="ss-flag">저자극·진정 중심 추천</div>'; }
+      html += pts.slice(0,3).map(p=>'<span class="ss-tag">'+p+'</span>').join('');
+      ssEl.innerHTML = html;
+    }
+
     document.getElementById('radarHolder').innerHTML = renderRadar(metrics);
   }
 })();
@@ -2459,13 +2751,38 @@ DEMO_HTML = """
     if(c.has('scar')){ bump('scar',.95); bump('pigment',.8); bump('spot',.6); bump('tone',.6); bump('texture',.55); }
     if(age>=30){ bump('elastic',.6); bump('wrinkle',.6); bump('darkcircle',.5); bump('dull',.5); bump('dryness',.5); }
     if(age>=40){ bump('elastic',.85); bump('wrinkle',.85); bump('pigment',.6); }
-    return { sev:sev, age:age };
+
+    /* 추가 설문(체감 상태)을 프로파일에 반영 → 영상 분석 + 설문 통합 추천 */
+    const sv = (window.appState && window.appState.survey) || {};
+    const soothing = sv.sensitive==='high' || sv.atopy==='yes' || sv.redness==='high' || sv.goal==='soothe';
+    if(soothing){ bump('redness',.92); bump('dryness',.75); }
+    if(sv.atopy==='yes'){ bump('dryness',.85); bump('flake',.62); bump('redness',.8); }
+    if(sv.redness==='high'){ bump('redness',.9); }
+    if(sv.oil==='high'){ bump('oil',.9); bump('blackhead',.62); }
+    if(sv.oil==='low' || sv.dryness==='high'){ bump('dryness',.9); bump('flake',.6); }
+    if(sv.trouble==='high'){ bump('acne',.9); bump('blemish',.68); }
+    if(sv.focus==='trouble'){ bump('acne',.85); }
+    else if(sv.focus==='pore'){ bump('pore',.85); bump('blackhead',.6); }
+    else if(sv.focus==='pigment'){ bump('pigment',.85); bump('spot',.7); bump('tone',.6); }
+    else if(sv.focus==='aging'){ bump('elastic',.85); bump('wrinkle',.75); }
+    else if(sv.focus==='dry'){ bump('dryness',.9); bump('flake',.6); }
+    if(sv.goal==='hydrate'){ bump('dryness',.85); }
+    else if(sv.goal==='bright'){ bump('spot',.8); bump('tone',.7); }
+    else if(sv.goal==='pore'){ bump('pore',.8); bump('blackhead',.6); }
+    else if(sv.goal==='firm'){ bump('elastic',.8); bump('wrinkle',.7); }
+
+    return { sev:sev, age:age, soothing:soothing };
   }
 
   function scoreProduct(p, profile){
     let s = 0;
     for(const tag in p.aff){ s += p.aff[tag] * (profile.sev[tag] || 0); }
     s += (p.pop || 70) * 0.012;
+    if(profile.soothing){
+      /* 저자극·진정 모드: 강한 각질/피지 제거 제품은 후순위로, 진정 성분 제품은 가산 */
+      if((p.aff.blackhead || 0) >= 3 || p.id==='cosrxBHA' || p.id==='innisfree'){ s *= 0.6; }
+      if((p.aff.redness || 0) >= 2){ s += 0.5; }
+    }
     return s;
   }
 
