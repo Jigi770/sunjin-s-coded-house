@@ -15,6 +15,7 @@ DEMO_HTML = """
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FOR HIM — Men's Beauty AI Demo</title>
+<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";</script>
 <style>
   :root{
     --bg:#f6f5f2;
@@ -221,6 +222,10 @@ DEMO_HTML = """
   .prod-brand{font-size:11.5px;font-weight:700;color:var(--ink-soft);}
   .prod-name{font-size:13.5px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.35;min-height:36px;}
   .prod-tag{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);}
+  .prod-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin-top:8px;}
+  .prod-tags .prod-tag{margin-top:0;}
+  .prod-match{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:#eef1e7;color:#54634a;}
+  .prod-card.rank-1 .prod-match{background:#f6ecd6;color:#9a7b3f;}
 
   /* ---------- EXTRA CONCERNS ---------- */
   .extra-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-top:20px;}
@@ -231,23 +236,137 @@ DEMO_HTML = """
   .extra-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
   /* ---------- COMMUNITY ---------- */
-  .filter-row{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 18px;}
-  .filter-chip{padding:8px 16px;border-radius:999px;border:1.5px solid var(--line);font-size:13.5px;font-weight:600;color:var(--ink-soft);background:var(--surface);}
-  .filter-chip.active{background:var(--dark);border-color:var(--dark);color:#fff;}
-  .post-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
-  .post{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
-  .post-top{display:flex;align-items:center;gap:8px;}
-  .avatar{width:28px;height:28px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex:none;}
-  .post-meta b{font-size:12.5px;display:block;}
-  .post-meta span{font-size:10.5px;color:var(--ink-soft);}
-  .post-tag{margin-left:auto;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:999px;}
-  .post-body{
-    font-size:12px;color:#3a3a36;margin:9px 0 10px;line-height:1.5;
-    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
-  }
-  .post-stats{display:flex;gap:12px;font-size:11px;color:var(--ink-soft);}
-  .post-stats span{display:flex;align-items:center;gap:4px;}
+  .avatar{width:30px;height:30px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;}
   .icon{width:13px;height:13px;}
+  .cm-view[hidden]{display:none;}
+
+  /* toolbar: search + write */
+  .cm-toolbar{display:flex;gap:12px;align-items:center;margin:22px 0 14px;flex-wrap:wrap;}
+  .cm-search{
+    flex:1 1 240px;display:flex;align-items:center;gap:9px;padding:11px 16px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--surface);transition:border-color .15s ease;
+  }
+  .cm-search:focus-within{border-color:var(--accent);}
+  .cm-search svg{width:17px;height:17px;color:var(--ink-soft);flex:none;}
+  .cm-search input{border:none;outline:none;background:none;font-family:inherit;font-size:14px;color:var(--ink);width:100%;}
+  .cm-write-btn{flex:none;display:inline-flex;align-items:center;gap:7px;}
+  .cm-write-btn svg{width:15px;height:15px;}
+
+  /* category tabs */
+  .cm-cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;}
+  .cm-cat{
+    flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:12.5px;font-weight:700;
+    font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s ease;
+  }
+  .cm-cat:hover{border-color:#c8c6bd;}
+  .cm-cat.active{background:var(--dark);border-color:var(--dark);color:#fff;}
+  .cm-cat .cm-cat-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+  .cm-cat.fav.active{background:var(--gold);border-color:var(--gold);color:#1a1a18;}
+
+  /* post list */
+  .cm-list{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .cm-card{
+    position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 16px 14px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+    display:flex;flex-direction:column;
+  }
+  .cm-card:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(20,20,18,.07);border-color:#d8d6cc;}
+  .cm-card-top{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+  .cm-cat-chip{font-size:10.5px;font-weight:800;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px;}
+  .cm-fav{
+    margin-left:auto;background:none;border:none;padding:2px;cursor:pointer;color:var(--line);
+    display:inline-flex;transition:transform .15s ease,color .15s ease;flex:none;
+  }
+  .cm-fav svg{width:19px;height:19px;}
+  .cm-fav:hover{transform:scale(1.12);color:#d9c48f;}
+  .cm-fav.on{color:var(--gold);}
+  .cm-card-title{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.4;margin-bottom:6px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .cm-card-body{font-size:12.5px;color:#4a4944;line-height:1.55;margin-bottom:12px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .cm-card-thumb{width:100%;height:120px;border-radius:10px;object-fit:cover;margin-bottom:12px;border:1px solid var(--line);}
+  .cm-card-foot{display:flex;align-items:center;gap:8px;margin-top:auto;}
+  .cm-card-foot .avatar{width:24px;height:24px;font-size:10.5px;}
+  .cm-author{font-size:11.5px;font-weight:700;color:var(--ink);}
+  .cm-time{font-size:10px;color:var(--ink-soft);}
+  .cm-card-stats{margin-left:auto;display:flex;gap:10px;font-size:11px;color:var(--ink-soft);}
+  .cm-card-stats span{display:flex;align-items:center;gap:4px;}
+  .cm-skintags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+  .cm-skintag{font-size:9.5px;font-weight:700;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);padding:2px 8px;border-radius:999px;}
+  .cm-empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:44px 0;}
+
+  /* detail view */
+  .cm-back{
+    display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px;border-radius:999px;
+    border:1.5px solid var(--line);background:var(--surface);color:var(--ink-soft);font-size:13px;font-weight:700;
+    font-family:inherit;cursor:pointer;margin:20px 0 16px;transition:border-color .15s ease,color .15s ease;
+  }
+  .cm-back:hover{border-color:var(--ink);color:var(--ink);}
+  .cm-back svg{width:16px;height:16px;}
+  .cm-detail-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:26px;box-shadow:var(--shadow);}
+  .cm-detail-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .cm-detail-actions{margin-left:auto;display:flex;gap:8px;}
+  .cm-icon-btn{
+    display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:999px;border:1.5px solid var(--line);
+    background:var(--surface);color:var(--ink-soft);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .cm-icon-btn:hover{border-color:var(--ink);color:var(--ink);}
+  .cm-icon-btn svg{width:14px;height:14px;}
+  .cm-icon-btn.on{border-color:var(--gold);color:var(--gold);background:var(--gold-soft);}
+  .cm-detail-title{font-size:clamp(19px,2.6vw,24px);font-weight:700;letter-spacing:-.02em;color:var(--ink);margin:14px 0 10px;line-height:1.35;}
+  .cm-detail-meta{display:flex;align-items:center;gap:9px;padding-bottom:16px;border-bottom:1px solid var(--line);}
+  .cm-detail-photo{width:100%;max-height:420px;object-fit:cover;border-radius:14px;margin:18px 0;border:1px solid var(--line);}
+  .cm-detail-body{font-size:14.5px;color:#3a3a36;line-height:1.75;margin:18px 0 6px;white-space:pre-wrap;}
+  .cm-comments{margin-top:24px;padding-top:20px;border-top:1px solid var(--line);}
+  .cm-comments-title{font-size:13px;font-weight:800;color:var(--ink);margin-bottom:14px;}
+  .cm-comment{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .cm-comment:last-of-type{border-bottom:none;}
+  .cm-comment-main b{font-size:12.5px;color:var(--ink);}
+  .cm-comment-main .cm-time{margin-left:6px;}
+  .cm-comment-main p{margin:5px 0 0;font-size:13px;color:#4a4944;line-height:1.55;}
+  .cm-comment-form{display:flex;gap:8px;margin-top:14px;}
+  .cm-comment-form input{
+    flex:1;padding:11px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);
+    font-family:inherit;font-size:13.5px;color:var(--ink);
+  }
+  .cm-comment-form input:focus{outline:none;border-color:var(--accent);}
+
+  /* write / edit form */
+  .cm-form{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:26px;box-shadow:var(--shadow);margin-top:8px;}
+  .cm-form-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:20px;letter-spacing:-.02em;}
+  .cm-field{margin-bottom:18px;}
+  .cm-field label{display:block;font-size:12.5px;font-weight:800;color:var(--ink);margin-bottom:9px;}
+  .cm-field select,.cm-field input[type=text],.cm-field textarea{
+    width:100%;padding:12px 15px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);
+    font-family:inherit;font-size:14px;color:var(--ink);
+  }
+  .cm-field select:focus,.cm-field input:focus,.cm-field textarea:focus{outline:none;border-color:var(--accent);}
+  .cm-field textarea{min-height:150px;resize:vertical;line-height:1.6;}
+  .cm-photo-drop{
+    display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;border:1.5px dashed var(--line);
+    background:var(--bg);cursor:pointer;transition:border-color .15s ease;
+  }
+  .cm-photo-drop:hover{border-color:var(--accent);}
+  .cm-photo-drop svg{width:22px;height:22px;color:var(--ink-soft);flex:none;}
+  .cm-photo-drop span{font-size:13px;color:var(--ink-soft);}
+  .cm-photo-preview{position:relative;margin-top:12px;display:none;}
+  .cm-photo-preview.show{display:block;}
+  .cm-photo-preview img{width:100%;max-height:260px;object-fit:cover;border-radius:12px;border:1px solid var(--line);}
+  .cm-photo-remove{
+    position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;border:none;cursor:pointer;
+    background:rgba(26,26,24,.75);color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;
+  }
+  .cm-form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+  .cm-form-hint{font-size:12px;color:var(--bad);min-height:16px;margin-bottom:8px;}
+
+  @media (max-width:860px){
+    .cm-list{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:560px){
+    .cm-list{grid-template-columns:1fr;}
+    .cm-detail-card,.cm-form{padding:20px;}
+  }
   .toast{
     position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(120%);
     background:var(--dark);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;
@@ -845,7 +964,7 @@ DEMO_HTML = """
   <div class="wrap">
     <div class="eyebrow">PRODUCT RECOMMEND AI</div>
     <h2>제품 추천 AI</h2>
-    <p class="sub">원하는 관리 단계를 선택하면, 올리브영 랭킹 기준 TOP 3 제품을 보여드려요.</p>
+    <p class="sub">원하는 관리 단계를 선택하면, 선택하신 고민과 나이에 맞춰 AI가 매칭한 TOP 3 제품을 보여드려요.</p>
 
     <div class="tier-tabs" id="tierTabs"></div>
     <div class="tier-desc" id="tierDesc"></div>
@@ -883,16 +1002,69 @@ DEMO_HTML = """
     <h2>커뮤니티</h2>
     <p class="sub">같은 고민, 같은 눈높이에서 편하게 물어보세요.</p>
 
-    <div class="filter-row" id="filterRow">
-      <button class="filter-chip active" data-tag="all">전체</button>
-      <button class="filter-chip" data-tag="모공">모공</button>
-      <button class="filter-chip" data-tag="트러블">트러블</button>
-      <button class="filter-chip" data-tag="유분">유분</button>
-      <button class="filter-chip" data-tag="왕초보질문">왕초보질문</button>
-      <button class="btn btn-outline btn-sm" id="writeBtn" style="margin-left:auto;">글 남기기</button>
+    <div class="cm-view" id="cmViewList">
+      <div class="cm-toolbar">
+        <label class="cm-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input type="text" id="cmSearch" placeholder="궁금한 키워드로 검색해보세요" />
+        </label>
+        <button type="button" class="btn btn-dark btn-sm cm-write-btn" id="cmWriteBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+          글 남기기
+        </button>
+      </div>
+      <div class="cm-cats" id="cmCats"></div>
+      <div class="cm-list" id="cmList"></div>
+      <div class="cm-empty" id="cmEmpty" hidden>조건에 맞는 글이 아직 없어요. 첫 글을 남겨보세요!</div>
     </div>
 
-    <div class="post-grid" id="postGrid"></div>
+    <div class="cm-view" id="cmViewDetail" hidden>
+      <button type="button" class="cm-back" id="cmDetailBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+        목록으로
+      </button>
+      <div class="cm-detail-card" id="cmDetailCard"></div>
+    </div>
+
+    <div class="cm-view" id="cmViewWrite" hidden>
+      <button type="button" class="cm-back" id="cmWriteBack">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+        목록으로
+      </button>
+      <div class="cm-form">
+        <div class="cm-form-title" id="cmFormTitle">새 글 남기기</div>
+        <div class="cm-field">
+          <label>카테고리</label>
+          <select id="cmFormCat"></select>
+        </div>
+        <div class="cm-field">
+          <label>제목</label>
+          <input type="text" id="cmFormTitleInput" maxlength="60" placeholder="제목을 입력해주세요" />
+        </div>
+        <div class="cm-field">
+          <label>내용</label>
+          <textarea id="cmFormBody" placeholder="같은 고민을 가진 분들에게 편하게 이야기해보세요"></textarea>
+        </div>
+        <div class="cm-field">
+          <label>사진 첨부 (선택)</label>
+          <label class="cm-photo-drop" for="cmFormPhoto">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>사진을 선택하세요 (JPG·PNG)</span>
+          </label>
+          <input type="file" id="cmFormPhoto" accept="image/*" hidden />
+          <div class="cm-photo-preview" id="cmPhotoPreview">
+            <img id="cmPhotoImg" alt="첨부 미리보기" />
+            <button type="button" class="cm-photo-remove" id="cmPhotoRemove" aria-label="사진 삭제">×</button>
+          </div>
+        </div>
+        <div class="cm-form-hint" id="cmFormHint"></div>
+        <div class="cm-form-actions">
+          <button type="button" class="btn btn-outline btn-sm" id="cmFormCancel">취소</button>
+          <button type="button" class="btn btn-dark btn-sm" id="cmFormSubmit">등록하기</button>
+        </div>
+      </div>
+    </div>
+
     <footer>
       <div class="fine">본 화면은 데모이며 모든 분석·추천 결과는 예시 데이터입니다.</div>
     </footer>
@@ -909,7 +1081,7 @@ DEMO_HTML = """
 
 <script>
 (function(){
-  window.appState = { concerns:new Set(), analyzed:false, allInOne:false };
+  window.appState = { concerns:new Set(), analyzed:false, allInOne:false, age:29, nickname:'' };
   const state = window.appState;
 
   const splash = document.getElementById('screenSplash');
@@ -946,6 +1118,8 @@ DEMO_HTML = """
     if(!saved) return;
     nickname = saved.nickname || '고객';
     enteredAge = saved.age || 29;
+    state.age = enteredAge;
+    state.nickname = nickname;
     state.concerns = new Set(saved.concerns && saved.concerns.length ? saved.concerns : ['scar','pore','oil','acne']);
 
     appScreen.style.display = 'none';
@@ -995,6 +1169,8 @@ DEMO_HTML = """
     }
     nickname = nick;
     enteredAge = Number(age);
+    state.age = enteredAge;
+    state.nickname = nickname;
     intro.classList.remove('visible');
     setTimeout(()=>{
       intro.classList.add('hidden');
@@ -1184,64 +1360,40 @@ DEMO_HTML = """
   /* ---------------- concern detail tabs ---------------- */
   const CONCERN_DETAIL = {
     pore: {
-      label:'모공', metricKey:'pore',
+      label:'모공', metricKey:'pore', tag:'pore',
       desc:{
         bad:'모공이 눈에 띄게 넓어져 있어요. 피지와 노폐물이 쌓이기 쉬운 상태라 꾸준한 관리가 필요해요.',
         mid:'모공이 약간 넓어진 편이에요. 지금부터 관리하면 눈에 띄게 좋아질 수 있어요.',
         good:'모공 상태가 양호해요. 지금 루틴을 유지해주세요.'
       },
-      tips:['이중세안으로 모공 속 노폐물을 자주 제거해주세요.','뜨거운 물 세안은 피하고 미온수를 사용하세요.','주 1~2회 각질 케어로 모공을 정돈해주세요.'],
-      routine:'포어 타이트닝 토너',
-      products:[
-        {rank:1,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'모공 결 정돈',imgKey:'cosrx'},
-        {rank:2,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'수분 진정',imgKey:'toriden'},
-        {rank:3,brand:'클리오',name:'킬커버 파운웨어 쿠션',tag:'모공 커버',imgKey:'clioCushion'}
-      ]
+      tips:['이중세안으로 모공 속 노폐물을 자주 제거해주세요.','뜨거운 물 세안은 피하고 미온수를 사용하세요.','주 1~2회 각질 케어로 모공을 정돈해주세요.']
     },
     oil: {
-      label:'유분', metricKey:'oil',
+      label:'유분', metricKey:'oil', tag:'oil',
       desc:{
         bad:'T존을 중심으로 유분이 많이 분비되고 있어요. 번들거림과 트러블로 이어지기 쉬운 상태예요.',
         mid:'유분이 약간 많은 편이에요. 가벼운 제형으로 관리하면 균형을 잡을 수 있어요.',
         good:'유분·수분 밸런스가 좋은 편이에요. 지금 루틴을 유지해주세요.'
       },
-      tips:['하루 2회, 약산성 클렌저로 과도한 유분만 부드럽게 제거해주세요.','무거운 크림 대신 가벼운 젤 타입 제형을 사용해보세요.','오후에 유분이 심하면 블로팅 페이퍼로 가볍게 눌러주세요.'],
-      routine:'라이트 젤 로션',
-      products:[
-        {rank:1,brand:'AHC',name:'마스터즈 에어 리치 선스틱',tag:'산뜻한 마무리',imgKey:'ahc'},
-        {rank:2,brand:'구달',name:'맑은 어성초 진정 수분 선크림',tag:'가벼운 제형',imgKey:'goodal'},
-        {rank:3,brand:'메디힐',name:'마데카소사이드 수분 선세럼',tag:'저자극 진정',imgKey:'mediheal'}
-      ]
+      tips:['하루 2회, 약산성 클렌저로 과도한 유분만 부드럽게 제거해주세요.','무거운 크림 대신 가벼운 젤 타입 제형을 사용해보세요.','오후에 유분이 심하면 블로팅 페이퍼로 가볍게 눌러주세요.']
     },
     acne: {
-      label:'여드름', metricKey:'trouble',
+      label:'여드름', metricKey:'trouble', tag:'acne',
       desc:{
         bad:'염증성 트러블이 반복되고 있어요. 자극을 줄이고 원인균 관리가 필요한 상태예요.',
         mid:'가끔 트러블이 올라오는 편이에요. 초기에 진정시켜주면 흉터로 남는 걸 줄일 수 있어요.',
         good:'트러블이 잘 관리되고 있어요. 지금 상태를 유지해주세요.'
       },
-      tips:['손으로 만지거나 짜지 말고 진정 성분으로 케어해주세요.','베개 커버, 마스크 등 피부에 닿는 물건을 자주 세척해주세요.','트러블 부위엔 저자극 스팟 제품을 사용해보세요.'],
-      routine:'포어 클린 폼',
-      products:[
-        {rank:1,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'트러블 진정',imgKey:'cosrx'},
-        {rank:2,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'재생 케어',imgKey:'anua'},
-        {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'가벼운 커버',imgKey:'jsm'}
-      ]
+      tips:['손으로 만지거나 짜지 말고 진정 성분으로 케어해주세요.','베개 커버, 마스크 등 피부에 닿는 물건을 자주 세척해주세요.','트러블 부위엔 저자극 스팟 제품을 사용해보세요.']
     },
     scar: {
-      label:'흉터', metricKey:'pigment',
+      label:'흉터', metricKey:'pigment', tag:'scar',
       desc:{
         bad:'흉터·색소 자국이 두드러져 피부결이 고르지 않은 상태예요. 꾸준한 진정·재생 관리가 필요해요.',
         mid:'옅은 자국이 남아있어요. 꾸준히 관리하면 결이 점점 매끈해질 수 있어요.',
         good:'흉터·색소 부담이 적은 편이에요. 지금 루틴을 유지해주세요.'
       },
-      tips:['자외선 차단제를 매일 발라 색소 자국이 짙어지는 걸 막아주세요.','브라이트닝 성분(나이아신아마이드 등)을 꾸준히 사용해보세요.','새로 생긴 트러블은 짜지 않아야 흉터로 남지 않아요.'],
-      routine:'브라이트닝 세럼',
-      products:[
-        {rank:1,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'브라이트닝',imgKey:'anua'},
-        {rank:2,brand:'헤라',name:'블랙 쿠션 파운데이션',tag:'자국 커버',imgKey:'hera'},
-        {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'자연스러운 커버',imgKey:'jsm'}
-      ]
+      tips:['자외선 차단제를 매일 발라 색소 자국이 짙어지는 걸 막아주세요.','브라이트닝 성분(나이아신아마이드 등)을 꾸준히 사용해보세요.','새로 생긴 트러블은 짜지 않아야 흉터로 남지 않아요.']
     }
   };
   const CONCERN_ORDER = ['pore','oil','acne','scar'];
@@ -1277,14 +1429,14 @@ DEMO_HTML = """
       const band = m.score>=7?'good':m.score>=4?'mid':'bad';
       const bandText = band==='good'?'좋음':band==='mid'?'보통':'나쁨';
       const descText = detail.desc[band];
-      const products = detail.products.map(p=> Object.assign({}, p, { img: window.PIMG[p.imgKey] }));
+      const products = window.recommendForConcern(detail.tag, 3);
       return '<div class="diag-panel' + (k===defaultKey?' active':'') + '" data-panel="' + k + '">' +
         '<div class="panel-head">' +
           '<span class="panel-title">' + detail.label + ' · ' + m.score.toFixed(1) + '점</span>' +
           '<span class="panel-badge ' + band + '">' + bandText + '</span>' +
         '</div>' +
         '<div class="panel-score-track"><div class="panel-score-fill fill-' + band + '" style="width:' + (m.score*10) + '%"></div></div>' +
-        '<div class="tier-cat-label">' + detail.label + ' 맞춤 추천 · TOP 3 (올리브영 랭킹 기준)</div>' +
+        '<div class="tier-cat-label">' + detail.label + ' 맞춤 추천 · TOP 3 (내 피부 매칭순)</div>' +
         '<div class="prod-row">' + window.renderProductCards(products) + '</div>' +
         '<p class="panel-desc">' + descText + '</p>' +
         '<div class="panel-tips">' +
@@ -1542,7 +1694,10 @@ DEMO_HTML = """
           : '<div class="prod-icon" style="background:' + p.color + '"></div>') +
         '<div class="prod-brand">' + p.brand + '</div>' +
         '<div class="prod-name">' + p.name + '</div>' +
-        '<div class="prod-tag">' + p.tag + '</div>' +
+        '<div class="prod-tags">' +
+          '<span class="prod-tag">' + p.tag + '</span>' +
+          (p.match ? '<span class="prod-match">나와 ' + p.match + '% 매치</span>' : '') +
+        '</div>' +
         '<div class="prod-cart-btn">올리브영에서 담기 →</div>' +
       '</a>';
     }).join('');
@@ -1569,42 +1724,132 @@ DEMO_HTML = """
   };
   window.PIMG = PIMG;
 
+  /* ---------------- product catalog + recommendation engine ---------------- */
+  /* aff: 관심사(concern) 태그별 적합도 가중치 0~3. pop: 기본 인기도(동점 보정). */
+  const ALL_TAGS = ['pore','oil','acne','scar','elastic','texture','spot','blemish',
+    'tone','blackhead','darkcircle','shave','ingrown','dull','dryness','redness','pigment','flake','wrinkle','cover'];
+
+  let PRODUCTS = [
+    {id:'cosrx', brand:'코스알엑스', name:'더 6 펩타이드 스킨 부스터 세럼', img:PIMG.cosrx, color:'#8b6f47', cats:['serum'], pop:96, tag:'결·컨디션 개선', aff:{pore:2,texture:3,acne:2,blemish:2,pigment:2,dull:2,spot:1,scar:1}},
+    {id:'toriden', brand:'토리든', name:'다이브인 저분자 히알루론산 세럼', img:PIMG.toriden, color:'#5c7a8b', cats:['serum'], pop:94, tag:'저분자 수분 진정', aff:{dryness:3,texture:2,redness:2,flake:2,darkcircle:1}},
+    {id:'anua', brand:'아누아', name:'PDRN 히알루론산 캡슐 100 세럼', img:PIMG.anua, color:'#7a8b5c', cats:['serum'], pop:90, tag:'PDRN 재생 케어', aff:{scar:3,pigment:2,elastic:2,tone:2,darkcircle:1,spot:2}},
+    {id:'anuaTuner', brand:'아누아', name:'어성초 77 토너', color:'#7a8b5c', cats:['toner'], pop:82, tag:'모공·진정 토너', aff:{pore:3,oil:2,acne:2,ingrown:2,flake:2,texture:2,blackhead:2}},
+    {id:'mediheal', brand:'메디힐', name:'마데카소사이드 수분 선세럼', img:PIMG.mediheal, color:'#6b8b6f', cats:['sun'], pop:85, tag:'저자극 선케어', aff:{oil:2,redness:2,acne:2}},
+    {id:'ahc', brand:'AHC', name:'마스터즈 에어 리치 선스틱', img:PIMG.ahc, color:'#4a7a9b', cats:['sun'], pop:88, tag:'산뜻한 선스틱', aff:{oil:2,dull:1}},
+    {id:'goodalSun', brand:'구달', name:'맑은 어성초 진정 수분 선크림', img:PIMG.goodal, color:'#7a9b6f', cats:['sun'], pop:80, tag:'민감성 선크림', aff:{oil:2,redness:2,acne:2}},
+    {id:'goodalVitaC', brand:'구달', name:'청귤 비타C 잡티 세럼', color:'#c9915c', cats:['serum'], pop:87, tag:'비타민C 브라이트닝', aff:{spot:3,pigment:3,tone:2,dull:2,blemish:2}},
+    {id:'jsm', brand:'정샘물', name:'에센셜 스킨 누더 쿠션', img:PIMG.jsm, color:'#c9915c', cats:['cushion'], pop:89, tag:'자연스러운 피부 보정', aff:{cover:3,tone:2,dull:1}},
+    {id:'hera', brand:'헤라', name:'블랙 쿠션 파운데이션', img:PIMG.hera, color:'#9b7a4a', cats:['cushion'], pop:84, tag:'커버 + 지속력', aff:{cover:3,tone:2,scar:1}},
+    {id:'clioCushion', brand:'클리오', name:'킬커버 파운웨어 쿠션', img:PIMG.clioCushion, color:'#b58b5c', cats:['cushion'], pop:83, tag:'모공 커버', aff:{cover:3,pore:1,tone:2}},
+    {id:'lumir', brand:'루미르', name:'라이트 온 아이즈 섀도우 팔레트', img:PIMG.lumir, color:'#9b6f8b', cats:['eye'], pop:72, tag:'퍼스널컬러 팔레트', aff:{}},
+    {id:'peripera', brand:'페리페라', name:'올테이크 무드 팔레트', img:PIMG.peripera, color:'#c15c5c', cats:['eye'], pop:78, tag:'데일리 아이 컬러', aff:{}},
+    {id:'clioEye', brand:'클리오', name:'프로 아이 팔레트 에어', img:PIMG.clioEye, color:'#a85c6f', cats:['eye'], pop:76, tag:'데일리 섀도우', aff:{}},
+    {id:'medicubeAger', brand:'메디큐브', name:'AGE-R 부스터 프로', color:'#5c6f8b', cats:['device'], pop:79, tag:'리프팅 디바이스', aff:{elastic:3,wrinkle:2,dull:1}},
+    {id:'vflab', brand:'브이플랩', name:'브이토닝 디바이스', color:'#6f5c8b', cats:['device'], pop:70, tag:'얼굴 라인 관리', aff:{elastic:2}},
+    {id:'wellbeing', brand:'웰빙시크릿', name:'4D 페이스 마사지기', color:'#5c8b7a', cats:['device'], pop:68, tag:'붓기 케어', aff:{darkcircle:2,elastic:1}},
+    {id:'estraCream', brand:'에스트라', name:'아토베리어365 크림', color:'#6b7a8b', cats:['cream'], pop:86, tag:'장벽 강화 크림', aff:{dryness:3,redness:2,elastic:2,flake:2}},
+    {id:'origins', brand:'오리진스', name:'메가 버섯 퍼스트 에센스', color:'#8b7a5c', cats:['serum'], pop:74, tag:'탄력 영양 에센스', aff:{elastic:2,dull:2,texture:2}},
+    {id:'medicubeMist', brand:'메디큐브', name:'PDRN 핑크 콜라겐 젤리 미스트 세럼', img:PIMG.medicubeMist, color:'#a86f7a', cats:['serum'], pop:81, tag:'PDRN 재생 미스트', aff:{elastic:2,darkcircle:2,dryness:2,dull:1,scar:1}},
+    {id:'esnature', brand:'에스네이처', name:'아쿠아 스쿠알란 수분크림', color:'#6b8b8b', cats:['cream'], pop:77, tag:'수분 진정 크림', aff:{dryness:3,redness:1,flake:1}},
+    {id:'drg', brand:'닥터지', name:'레드 블레미쉬 클리어 수딩 토너', img:PIMG.drg, color:'#a85c5c', cats:['toner'], pop:88, tag:'트러블 진정 토너', aff:{acne:3,blemish:2,redness:3,shave:2}},
+    {id:'roundlabMadeca', brand:'라운드랩', name:'마데카 크림', color:'#5c8b6f', cats:['cream'], pop:85, tag:'재생 진정 크림', aff:{redness:2,acne:2,shave:2,ingrown:2,elastic:1}},
+    {id:'cosrxBHA', brand:'코스알엑스', name:'BHA 블랙헤드 파워 리퀴드', color:'#8b6f47', cats:['toner'], pop:84, tag:'모공 각질 케어', aff:{blackhead:3,pore:2,flake:2,ingrown:2,texture:2}},
+    {id:'innisfree', brand:'이니스프리', name:'그린티 클렌징폼', color:'#5c8b6f', cats:['cleanser'], pop:75, tag:'산뜻한 세안', aff:{blackhead:2,oil:2}},
+    {id:'estraCleanser', brand:'에스트라', name:'아토베리어365 클렌징폼', color:'#6b7a8b', cats:['cleanser'], pop:76, tag:'저자극 클렌징', aff:{dryness:2,redness:1}},
+    {id:'roundlabBirch', brand:'라운드랩', name:'자작나무 수분크림', color:'#5c8b6f', cats:['cream'], pop:80, tag:'수분 진정', aff:{dryness:2,ingrown:1,redness:1}},
+    {id:'physiogel', brand:'피지오겔', name:'데일리 모이스쳐 테라피 에센스 인 토너', img:PIMG.physiogel, color:'#a86f6f', cats:['toner'], pop:78, tag:'저자극 수분 토너', aff:{dryness:2,redness:2,shave:2,darkcircle:1,flake:2}}
+  ];
+  window.PRODUCTS = PRODUCTS;
+
+  function buildUserProfile(){
+    const c = (window.appState && window.appState.concerns) || new Set();
+    const age = (window.appState && window.appState.age) ? window.appState.age : 29;
+    const sev = {};
+    const BASE = 0.32;
+    ALL_TAGS.forEach(t=> sev[t] = BASE);
+    const bump = (t,v)=>{ sev[t] = Math.min(1, Math.max(sev[t], v)); };
+    if(c.has('oil')){ bump('oil',.95); bump('blackhead',.7); bump('shave',.55); bump('dull',.5); bump('acne',.55); }
+    if(c.has('pore')){ bump('pore',.95); bump('blackhead',.7); bump('texture',.65); bump('flake',.5); }
+    if(c.has('acne')){ bump('acne',.95); bump('blemish',.75); bump('redness',.65); bump('ingrown',.55); bump('shave',.6); }
+    if(c.has('scar')){ bump('scar',.95); bump('pigment',.8); bump('spot',.6); bump('tone',.6); bump('texture',.55); }
+    if(age>=30){ bump('elastic',.6); bump('wrinkle',.6); bump('darkcircle',.5); bump('dull',.5); bump('dryness',.5); }
+    if(age>=40){ bump('elastic',.85); bump('wrinkle',.85); bump('pigment',.6); }
+    return { sev:sev, age:age };
+  }
+
+  function scoreProduct(p, profile){
+    let s = 0;
+    for(const tag in p.aff){ s += p.aff[tag] * (profile.sev[tag] || 0); }
+    s += (p.pop || 70) * 0.012;
+    return s;
+  }
+
+  function recommendFrom(pool, N, focal){
+    const profile = buildUserProfile();
+    /* focal: 지금 보고 있는 고민 태그. 그 고민 특화 제품이 범용 제품보다 우선되도록 가중. */
+    const scored = pool.map(p=>({
+      p:p,
+      s: scoreProduct(p, profile) + (focal ? (p.aff[focal] || 0) * 1.7 : 0)
+    }));
+    const max = scored.reduce((m,x)=> Math.max(m, x.s), 0.0001);
+    scored.sort((a,b)=> b.s - a.s);
+    return scored.slice(0, N).map((x,i)=> Object.assign({}, x.p, {
+      rank: i+1,
+      match: Math.round(72 + 27 * (x.s / max))
+    }));
+  }
+  function recommendForConcern(tag, N){
+    return recommendFrom(PRODUCTS.filter(p=> (p.aff[tag] || 0) > 0), N, tag);
+  }
+  function recommendForCat(cat, N){
+    return recommendFrom(PRODUCTS.filter(p=> p.cats.indexOf(cat) >= 0), N, null);
+  }
+  window.recommendForConcern = recommendForConcern;
+  window.recommendForCat = recommendForCat;
+
+  /* ---------------- optional Supabase catalog (graceful fallback) ---------------- */
+  /* Supabase가 설정돼 있으면 products 테이블에서 카탈로그를 불러오고,
+     없거나 실패하면 위의 내장 배열을 그대로 사용한다. 매칭 엔진은 동일하게 동작. */
+  function normalizeProduct(row){
+    return {
+      id: row.id, brand: row.brand, name: row.name,
+      cats: row.cats || [], pop: row.pop || 70, tag: row.tag || '',
+      img: row.img_url || null, color: row.color || '#8b6f47', aff: row.aff || {}
+    };
+  }
+  async function loadCatalogFromSupabase(){
+    const url = window.SB_URL, key = window.SB_KEY;
+    if(!url || !key || url.indexOf('http') !== 0) return;   // 미설정 → 내장 카탈로그 유지
+    try{
+      const r = await fetch(url + '/rest/v1/products?select=*', {
+        headers: { apikey: key, Authorization: 'Bearer ' + key }
+      });
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const rows = await r.json();
+      if(Array.isArray(rows) && rows.length){
+        PRODUCTS = rows.map(normalizeProduct);
+        window.PRODUCTS = PRODUCTS;
+        /* 현재 열려 있는 추천 화면이 있으면 새 카탈로그로 다시 그린다 */
+        if(typeof tierInitialized !== 'undefined' && tierInitialized){
+          const active = document.querySelector('.tier-tab.active');
+          if(active) renderTier(active.dataset.tier);
+        }
+      }
+    }catch(e){ /* 폴백: 내장 카탈로그 사용 */ }
+  }
+  loadCatalogFromSupabase();
+
   const TIERS = [
-    { key:'t1', label:'1단계', category:'세럼',
-      desc:'클렌징·스킨·로션·세럼·크림으로 여드름을 억제하고 전반적인 피부 컨디션을 개선해요.',
-      products:[
-        {rank:1, brand:'코스알엑스', name:'더 6 펩타이드 스킨 부스터 세럼', tag:'여드름 · 컨디션 개선', img:PIMG.cosrx, color:'#8b6f47'},
-        {rank:2, brand:'토리든', name:'다이브인 저분자 히알루론산 세럼', tag:'수분 진정', img:PIMG.toriden, color:'#5c7a8b'},
-        {rank:3, brand:'아누아', name:'PDRN 히알루론산 캡슐 100 세럼', tag:'피부 컨디션 개선', img:PIMG.anua, color:'#7a8b5c'}
-      ]},
-    { key:'t2', label:'2단계', category:'선크림',
-      desc:'기초 제품에 이어 피부 타입에 맞는 선케어로 노화·주름까지 예방해요.',
-      products:[
-        {rank:1, brand:'메디힐', name:'마데카소사이드 수분 선세럼', tag:'저자극 진정', img:PIMG.mediheal, color:'#6b8b6f'},
-        {rank:2, brand:'AHC', name:'마스터즈 에어 리치 선스틱', tag:'산뜻한 마무리', img:PIMG.ahc, color:'#4a7a9b'},
-        {rank:3, brand:'구달', name:'맑은 어성초 진정 수분 선크림', tag:'민감성 피부용', img:PIMG.goodal, color:'#7a9b6f'}
-      ]},
-    { key:'t3', label:'3단계', category:'쿠션',
-      desc:'기초·선케어에 이어 간단한 색조 화장으로 피부 보정 효과까지 더해요.',
-      products:[
-        {rank:1, brand:'정샘물', name:'에센셜 스킨 누더 쿠션', tag:'자연스러운 피부 보정', img:PIMG.jsm, color:'#c9915c'},
-        {rank:2, brand:'헤라', name:'블랙 쿠션 파운데이션', tag:'커버력 + 지속력', img:PIMG.hera, color:'#9b7a4a'},
-        {rank:3, brand:'클리오', name:'킬커버 파운웨어 쿠션', tag:'커버 + 지속력', img:PIMG.clioCushion, color:'#b58b5c'}
-      ]},
-    { key:'t4', label:'4단계', category:'아이 메이크업',
-      desc:'색조 화장에 이어 퍼스널 컬러에 맞는 쉐도우 제품으로 나만의 개성을 표현해요.',
-      products:[
-        {rank:1, brand:'루미르', name:'라이트 온 아이즈 섀도우 팔레트', tag:'퍼스널컬러 팔레트', img:PIMG.lumir, color:'#9b6f8b'},
-        {rank:2, brand:'페리페라', name:'올테이크 무드 팔레트', tag:'데일리 아이 컬러', img:PIMG.peripera, color:'#c15c5c'},
-        {rank:3, brand:'클리오', name:'프로 아이 팔레트 에어', tag:'퍼스널컬러 팔레트', img:PIMG.clioEye, color:'#a85c6f'}
-      ]},
-    { key:'t5', label:'5단계', category:'뷰티 디바이스',
-      desc:'클렌징·기초·색조 3요소를 갖춘 뒤, 뷰티 디바이스로 얼굴형과 붓기까지 관리해요.',
-      products:[
-        {rank:1, brand:'메디큐브', name:'AGE-R 부스터 프로', tag:'리프팅 디바이스', color:'#5c6f8b'},
-        {rank:2, brand:'브이플랩', name:'브이토닝 디바이스', tag:'얼굴 라인 관리', color:'#6f5c8b'},
-        {rank:3, brand:'웰빙시크릿', name:'4D 페이스 마사지기', tag:'붓기 케어', color:'#5c8b7a'}
-      ]}
+    { key:'t1', label:'1단계', category:'세럼', cat:'serum',
+      desc:'클렌징·스킨·로션·세럼·크림으로 여드름을 억제하고 전반적인 피부 컨디션을 개선해요.' },
+    { key:'t2', label:'2단계', category:'선크림', cat:'sun',
+      desc:'기초 제품에 이어 피부 타입에 맞는 선케어로 노화·주름까지 예방해요.' },
+    { key:'t3', label:'3단계', category:'쿠션', cat:'cushion',
+      desc:'기초·선케어에 이어 간단한 색조 화장으로 피부 보정 효과까지 더해요.' },
+    { key:'t4', label:'4단계', category:'아이 메이크업', cat:'eye',
+      desc:'색조 화장에 이어 퍼스널 컬러에 맞는 쉐도우 제품으로 나만의 개성을 표현해요.' },
+    { key:'t5', label:'5단계', category:'뷰티 디바이스', cat:'device',
+      desc:'클렌징·기초·색조 3요소를 갖춘 뒤, 뷰티 디바이스로 얼굴형과 붓기까지 관리해요.' }
   ];
   let tierInitialized = false;
 
@@ -1630,82 +1875,26 @@ DEMO_HTML = """
   function renderTier(key){
     const tier = TIERS.find(t=>t.key===key);
     document.getElementById('tierDesc').textContent = tier.desc;
-    document.getElementById('tierCatLabel').textContent = tier.label + ' 추천 · ' + tier.category + ' TOP 3 (올리브영 랭킹 기준)';
-    document.getElementById('tierProdRow').innerHTML = renderProductCards(tier.products);
+    document.getElementById('tierCatLabel').textContent = tier.label + ' 추천 · ' + tier.category + ' TOP 3 (내 피부 맞춤순)';
+    document.getElementById('tierProdRow').innerHTML = renderProductCards(recommendForCat(tier.cat, 3));
   }
 
   /* ---------------- extra concerns ---------------- */
   const EXTRA_CONCERNS = [
-    { key:'elastic', label:'탄력 저하', products:[
-      {rank:1,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'},
-      {rank:2,brand:'오리진스',name:'메가 버섯 퍼스트 에센스',tag:'탄력 영양',color:'#8b7a5c'},
-      {rank:3,brand:'메디큐브',name:'PDRN 핑크 콜라겐 젤리 미스트 세럼',tag:'재생 케어',img:PIMG.medicubeMist,color:'#a86f7a'}
-    ]},
-    { key:'texture', label:'피부결 개선', products:[
-      {rank:1,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'결 정돈',img:PIMG.toriden,color:'#5c7a8b'},
-      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'피부 컨디션',img:PIMG.cosrx,color:'#8b6f47'},
-      {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'모공 · 결 관리',color:'#7a8b5c'}
-    ]},
-    { key:'spot', label:'기미', products:[
-      {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'브라이트닝',color:'#c9915c'},
-      {rank:2,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'톤 개선',img:PIMG.anua,color:'#7a8b5c'},
-      {rank:3,brand:'에스네이처',name:'아쿠아 스쿠알란 수분크림',tag:'수분 진정',color:'#6b8b8b'}
-    ]},
-    { key:'blemish', label:'잡티', products:[
-      {rank:1,brand:'닥터지',name:'레드 블레미쉬 클리어 수딩 토너',tag:'트러블 케어',img:PIMG.drg,color:'#a85c5c'},
-      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'피부 진정',img:PIMG.cosrx,color:'#8b6f47'},
-      {rank:3,brand:'라운드랩',name:'마데카 크림',tag:'재생 진정',color:'#5c8b6f'}
-    ]},
-    { key:'tone', label:'피부톤 불균일', products:[
-      {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'톤 케어',color:'#c9915c'},
-      {rank:2,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'톤 보정',img:PIMG.jsm,color:'#c9915c'},
-      {rank:3,brand:'클리오',name:'킬커버 파운웨어 쿠션',tag:'톤업 + 커버',img:PIMG.clioCushion,color:'#b58b5c'}
-    ]},
-    { key:'blackhead', label:'블랙헤드', products:[
-      {rank:1,brand:'에스트라',name:'아토베리어365 클렌징폼',tag:'저자극 클렌징',color:'#6b7a8b'},
-      {rank:2,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'모공 각질 케어',color:'#8b6f47'},
-      {rank:3,brand:'이니스프리',name:'그린티 클렌징폼',tag:'산뜻 세안',color:'#5c8b6f'}
-    ]},
-    { key:'darkcircle', label:'다크서클', products:[
-      {rank:1,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'눈가 수분',img:PIMG.toriden,color:'#5c7a8b'},
-      {rank:2,brand:'메디큐브',name:'PDRN 핑크 콜라겐 젤리 미스트 세럼',tag:'재생 케어',img:PIMG.medicubeMist,color:'#a86f7a'},
-      {rank:3,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'}
-    ]},
-    { key:'shave', label:'면도 트러블', products:[
-      {rank:1,brand:'라운드랩',name:'마데카 크림',tag:'진정 재생',color:'#5c8b6f'},
-      {rank:2,brand:'피지오겔',name:'데일리 모이스쳐 테라피 에센스 인 토너',tag:'저자극 진정',img:PIMG.physiogel,color:'#a86f6f'},
-      {rank:3,brand:'닥터지',name:'레드 블레미쉬 클리어 수딩 토너',tag:'트러블 케어',img:PIMG.drg,color:'#a85c5c'}
-    ]},
-    { key:'ingrown', label:'인그로운 헤어', products:[
-      {rank:1,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'각질 · 모공 케어',color:'#8b6f47'},
-      {rank:2,brand:'라운드랩',name:'자작나무 수분크림',tag:'수분 진정',color:'#5c8b6f'},
-      {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'진정 케어',color:'#7a8b5c'}
-    ]},
-    { key:'dull', label:'얼굴 칙칙함', products:[
-      {rank:1,brand:'오리진스',name:'메가 버섯 퍼스트 에센스',tag:'생기 부여',color:'#8b7a5c'},
-      {rank:2,brand:'구달',name:'청귤 비타C 세럼',tag:'톤 브라이트닝',color:'#c9915c'},
-      {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'생기 있는 톤',img:PIMG.jsm,color:'#c9915c'}
-    ]},
-    { key:'dryness', label:'세안 후 건조함', products:[
-      {rank:1,brand:'피지오겔',name:'데일리 모이스쳐 테라피 에센스 인 토너',tag:'수분 장벽',img:PIMG.physiogel,color:'#a86f6f'},
-      {rank:2,brand:'에스네이처',name:'아쿠아 스쿠알란 수분크림',tag:'수분 채우기',color:'#6b8b8b'},
-      {rank:3,brand:'라운드랩',name:'자작나무 수분크림',tag:'속당김 케어',color:'#5c8b6f'}
-    ]},
-    { key:'redness', label:'안면 홍조', products:[
-      {rank:1,brand:'피지오겔',name:'데일리 모이스쳐 테라피 에센스 인 토너',tag:'홍조 진정',img:PIMG.physiogel,color:'#a86f6f'},
-      {rank:2,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'},
-      {rank:3,brand:'라운드랩',name:'마데카 크림',tag:'저자극 진정',color:'#5c8b6f'}
-    ]},
-    { key:'pigment', label:'색소 침착', products:[
-      {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'색소 케어',color:'#c9915c'},
-      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'톤 개선',img:PIMG.cosrx,color:'#8b6f47'},
-      {rank:3,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'재생 브라이트닝',img:PIMG.anua,color:'#7a8b5c'}
-    ]},
-    { key:'flake', label:'얼굴 각질', products:[
-      {rank:1,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'각질 케어',color:'#8b6f47'},
-      {rank:2,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'수분 결 정돈',img:PIMG.toriden,color:'#5c7a8b'},
-      {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'진정 각질 케어',color:'#7a8b5c'}
-    ]}
+    { key:'elastic', label:'탄력 저하', tag:'elastic' },
+    { key:'texture', label:'피부결 개선', tag:'texture' },
+    { key:'spot', label:'기미', tag:'spot' },
+    { key:'blemish', label:'잡티', tag:'blemish' },
+    { key:'tone', label:'피부톤 불균일', tag:'tone' },
+    { key:'blackhead', label:'블랙헤드', tag:'blackhead' },
+    { key:'darkcircle', label:'다크서클', tag:'darkcircle' },
+    { key:'shave', label:'면도 트러블', tag:'shave' },
+    { key:'ingrown', label:'인그로운 헤어', tag:'ingrown' },
+    { key:'dull', label:'얼굴 칙칙함', tag:'dull' },
+    { key:'dryness', label:'세안 후 건조함', tag:'dryness' },
+    { key:'redness', label:'안면 홍조', tag:'redness' },
+    { key:'pigment', label:'색소 침착', tag:'pigment' },
+    { key:'flake', label:'얼굴 각질', tag:'flake' }
   ];
   let extraInitialized = false;
 
@@ -1727,51 +1916,286 @@ DEMO_HTML = """
 
   function renderExtra(key){
     const c = EXTRA_CONCERNS.find(c=>c.key===key);
-    document.getElementById('extraProdRow').innerHTML = renderProductCards(c.products);
+    document.getElementById('extraProdRow').innerHTML = renderProductCards(recommendForConcern(c.tag, 3));
   }
 
-  /* ---------------- community ---------------- */
-  const POSTS = [
-    {name:'코딩하는곰', time:'3시간 전', tag:'모공', body:'모공 넓은 거 때문에 파운데이션도 안 바르는데 클렌징만 잘해도 좀 나아지나요?', likes:12, comments:4},
-    {name:'야근장인', time:'5시간 전', tag:'트러블', body:'턱쪽에 화농성 여드름이 계속 나는데 저만 이런가요... 뭐부터 해보면 좋을지 궁금해요.', likes:21, comments:9},
-    {name:'초보루틴', time:'1일 전', tag:'왕초보질문', body:'스킨케어 뭐부터 사야하는지 진짜 모르겠어요. 올인원 제품 하나로 시작해도 될까요?', likes:34, comments:15},
-    {name:'T존건조', time:'1일 전', tag:'유분', body:'T존은 번들거리는데 볼은 당기는 복합성 피부, 다들 어떻게 관리하세요?', likes:8, comments:3},
-    {name:'무던한직장인', time:'2일 전', tag:'모공', body:'매장 가서 상담받는 게 너무 부담스러워서 대충 쓰고 있었는데 여기서 정보 얻어가요.', likes:40, comments:6},
-    {name:'출근전5분', time:'3일 전', tag:'트러블', body:'아침에 시간 없어서 스킵하는 날 많은데 최소한 뭐는 꼭 발라야 할까요?', likes:17, comments:7}
+  /* ---------------- community (localStorage + dummy data) ---------------- */
+  const CM_CATS = [
+    {key:'all', label:'전체'},
+    {key:'pore', label:'모공', color:'#c86e46'},
+    {key:'oil', label:'유분/피지', color:'#c98a3c'},
+    {key:'acne', label:'여드름/트러블', color:'#c13c3c'},
+    {key:'scar', label:'흉터/자국', color:'#965a96'},
+    {key:'sensitive', label:'민감성', color:'#c1666b'},
+    {key:'dry', label:'건조', color:'#5c8b9b'},
+    {key:'elastic', label:'탄력/주름', color:'#8b6f47'},
+    {key:'shave', label:'면도 자극', color:'#6b8b6f'},
+    {key:'allinone', label:'올인원 추천', color:'#7a8b5c'},
+    {key:'beginner', label:'초보자 루틴', color:'#54634a'},
+    {key:'product', label:'제품 추천', color:'#b58b5c'}
   ];
+  const CM_CAT_LABEL = {};
+  CM_CATS.forEach(c=>{ CM_CAT_LABEL[c.key] = c.label; });
+  const CM_SKIN_LABEL = {scar:'흉터',pore:'모공',oil:'유분',acne:'여드름',sensitive:'민감성',dry:'건조',elastic:'탄력'};
 
-  const postGrid = document.getElementById('postGrid');
-  function renderPosts(filter){
-    const list = (filter==='all' ? POSTS : POSTS.filter(p=>p.tag===filter)).slice(0,3);
-    postGrid.innerHTML = list.map(p=>`
-      <div class="post">
-        <div class="post-top">
-          <div class="avatar">${p.name[0]}</div>
-          <div class="post-meta"><b>${p.name}</b><span>${p.time}</span></div>
-          <div class="post-tag">#${p.tag}</div>
-        </div>
-        <div class="post-body">${p.body}</div>
-        <div class="post-stats">
-          <span>${HEART_SVG}${p.likes}</span>
-          <span>${CHAT_SVG}${p.comments}</span>
-        </div>
-      </div>`).join('');
+  const CM_STORE = 'forhim_community_posts';
+  const CM_FAV = 'forhim_community_favs';
+
+  function cmSeed(){
+    const now = Date.now(); const H = 3600000, D = 86400000;
+    return [
+      {id:'seed2', cat:'acne', title:'턱에 화농성 여드름이 계속 올라와요', body:'턱 주변으로 크고 아픈 여드름이 반복돼요. 뭐부터 시작하면 좋을까요? 진정 위주로 가는 게 맞나요?', author:'야근장인', skin:['acne','oil'], photo:null, createdAt:now-5*H, comments:[{id:'c2',author:'초보탈출',body:'저도 비슷했는데 유분 잡고 진정 토너 쓰니 확실히 덜 나요.',createdAt:now-4*H},{id:'c3',author:'피부과다녀옴',body:'심하면 피부과 병행도 추천이요!',createdAt:now-3*H}]},
+      {id:'seed1', cat:'pore', title:'모공 넓은데 클렌징만 잘해도 나아질까요?', body:'파운데이션도 안 바르는데 코 옆 모공이 너무 신경 쓰여요. 세안만 신경 써도 좀 나아질까요? 이중세안 꼭 해야 하나요?', author:'코딩하는곰', skin:['pore','oil'], photo:null, createdAt:now-3*H, comments:[{id:'c1',author:'루틴관리중',body:'저는 미온수 세안 + 주2회 각질케어로 확실히 줄었어요!',createdAt:now-2*H}]},
+      {id:'seed3', cat:'beginner', title:'스킨케어 완전 초보인데 뭐부터 사야 하나요?', body:'화장품 한 번도 안 써봤어요. 올인원 하나로 시작해도 괜찮을까요? 순서도 잘 모르겠어요.', author:'초보루틴', skin:['acne'], photo:null, createdAt:now-1*D, comments:[]},
+      {id:'seed4', cat:'oil', title:'T존만 번들거리는 복합성 관리 팁', body:'T존은 기름지고 볼은 당기는데 다들 어떻게 관리하세요? 제품을 부위별로 다르게 써야 하나요?', author:'T존건조', skin:['oil','dry'], photo:null, createdAt:now-1*D-2*H, comments:[]},
+      {id:'seed5', cat:'shave', title:'면도 후 따갑고 붉어지는 거 어떻게 잡죠?', body:'매일 면도하는데 턱 라인이 늘 붉고 따가워요. 면도 후에 뭘 발라야 진정이 될까요?', author:'아침면도', skin:['sensitive','acne'], photo:null, createdAt:now-2*D, comments:[{id:'c4',author:'수염관리',body:'면도 후 진정크림 필수예요. 알콜 든 애프터쉐이브는 피하세요!',createdAt:now-1*D}]},
+      {id:'seed6', cat:'product', title:'입문용 선크림 추천 좀 해주세요', body:'백탁 없고 산뜻한 남성용 선크림 찾고 있어요. 데일리로 부담 없이 쓸만한 거 있을까요?', author:'출근전5분', skin:['oil'], photo:null, createdAt:now-3*D, comments:[]},
+      {id:'seed7', cat:'dry', title:'세안 후 당김이 너무 심해요', body:'세안하고 나면 얼굴이 쫙 당겨요. 보습을 어떻게 쌓아야 촉촉함이 오래 갈까요?', author:'건조주의보', skin:['dry','sensitive'], photo:null, createdAt:now-4*D, comments:[]},
+      {id:'seed8', cat:'allinone', title:'귀찮은 사람용 올인원 루틴 공유', body:'아침에 시간 없어서 올인원 + 선크림만 발라요. 이 정도만 해도 충분할까요? 다들 최소 루틴 뭐 쓰세요?', author:'미니멀케어', skin:['oil'], photo:null, createdAt:now-5*D, comments:[{id:'c5',author:'바쁨',body:'저도 딱 그 루틴인데 안 하는 것보단 훨씬 나아요.',createdAt:now-4*D}]}
+    ];
   }
-  renderPosts('all');
+  function cmSave(list){ try{ localStorage.setItem(CM_STORE, JSON.stringify(list)); }catch(e){} }
+  function cmLoad(){
+    try{ const raw = localStorage.getItem(CM_STORE); if(raw){ return JSON.parse(raw); } }catch(e){}
+    const seed = cmSeed(); cmSave(seed); return seed;
+  }
+  function cmSaveFavs(set){ try{ localStorage.setItem(CM_FAV, JSON.stringify(Array.from(set))); }catch(e){} }
+  function cmLoadFavs(){ try{ return new Set(JSON.parse(localStorage.getItem(CM_FAV) || '[]')); }catch(e){ return new Set(); } }
 
-  document.getElementById('filterRow').querySelectorAll('.filter-chip').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      renderPosts(btn.dataset.tag);
-    });
+  let cmPosts = cmLoad();
+  let cmFavs = cmLoadFavs();
+  let cmActiveCat = 'all';
+  let cmQuery = '';
+  let cmEditingId = null;
+  let cmPendingPhoto = null;
+
+  const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 6.9L12 17.8 5.2 21l1.5-6.9L1.5 9.3l7-.8z"/></svg>';
+  const STAR_FILL = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 6.9L12 17.8 5.2 21l1.5-6.9L1.5 9.3l7-.8z"/></svg>';
+  const EDIT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+
+  const cmViews = {
+    list: document.getElementById('cmViewList'),
+    detail: document.getElementById('cmViewDetail'),
+    write: document.getElementById('cmViewWrite')
+  };
+  function cmShow(view){
+    Object.keys(cmViews).forEach(k=>{ cmViews[k].hidden = (k !== view); });
+    window.scrollTo(0,0);
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function cmAgo(ts){
+    const diff = Date.now()-ts, m=60000, h=3600000, d=86400000;
+    if(diff<m) return '방금 전';
+    if(diff<h) return Math.floor(diff/m)+'분 전';
+    if(diff<d) return Math.floor(diff/h)+'시간 전';
+    if(diff<7*d) return Math.floor(diff/d)+'일 전';
+    const dt = new Date(ts); return (dt.getMonth()+1)+'/'+dt.getDate();
+  }
+  function cmSkinTags(arr){
+    if(!arr || !arr.length) return '';
+    return '<div class="cm-skintags">' + arr.map(function(t){ return '<span class="cm-skintag">#'+(CM_SKIN_LABEL[t]||t)+'</span>'; }).join('') + '</div>';
+  }
+  function cmToggleFav(id){ if(cmFavs.has(id)) cmFavs.delete(id); else cmFavs.add(id); cmSaveFavs(cmFavs); }
+
+  const cmToast = document.getElementById('toast');
+  function cmShowToast(msg){ cmToast.textContent = msg; cmToast.classList.add('show'); setTimeout(function(){ cmToast.classList.remove('show'); }, 2000); }
+
+  /* ----- categories ----- */
+  function cmRenderCats(){
+    const el = document.getElementById('cmCats');
+    const favCount = cmPosts.filter(function(p){ return cmFavs.has(p.id); }).length;
+    let html = CM_CATS.map(function(c){
+      const dot = c.color ? '<span class="cm-cat-dot" style="background:'+c.color+'"></span>' : '';
+      return '<button type="button" class="cm-cat'+(cmActiveCat===c.key?' active':'')+'" data-cat="'+c.key+'">'+dot+c.label+'</button>';
+    }).join('');
+    html += '<button type="button" class="cm-cat fav'+(cmActiveCat==='__fav'?' active':'')+'" data-cat="__fav">★ 즐겨찾기'+(favCount?' '+favCount:'')+'</button>';
+    el.innerHTML = html;
+  }
+
+  /* ----- list ----- */
+  function cmFilter(){
+    let list = cmPosts.slice();
+    if(cmActiveCat==='__fav'){ list = list.filter(function(p){ return cmFavs.has(p.id); }); }
+    else if(cmActiveCat!=='all'){ list = list.filter(function(p){ return p.cat===cmActiveCat; }); }
+    if(cmQuery){ const q = cmQuery.toLowerCase(); list = list.filter(function(p){ return (p.title+' '+p.body).toLowerCase().indexOf(q)>=0; }); }
+    list.sort(function(a,b){ return b.createdAt - a.createdAt; });
+    return list;
+  }
+  function cmRenderList(){
+    const listEl = document.getElementById('cmList');
+    const emptyEl = document.getElementById('cmEmpty');
+    const list = cmFilter();
+    emptyEl.hidden = list.length > 0;
+    listEl.innerHTML = list.map(function(p){
+      const fav = cmFavs.has(p.id);
+      return '<article class="cm-card" data-id="'+p.id+'">'+
+        '<div class="cm-card-top">'+
+          '<span class="cm-cat-chip">'+esc(CM_CAT_LABEL[p.cat]||p.cat)+'</span>'+
+          '<button type="button" class="cm-fav'+(fav?' on':'')+'" data-fav="'+p.id+'" aria-label="즐겨찾기">'+(fav?STAR_FILL:STAR_OUTLINE)+'</button>'+
+        '</div>'+
+        '<div class="cm-card-title">'+esc(p.title)+'</div>'+
+        cmSkinTags(p.skin)+
+        (p.photo ? '<img class="cm-card-thumb" src="'+p.photo+'" alt="" />' : '')+
+        '<div class="cm-card-body">'+esc(p.body)+'</div>'+
+        '<div class="cm-card-foot">'+
+          '<div class="avatar">'+esc((p.author||'익')[0])+'</div>'+
+          '<div><div class="cm-author">'+esc(p.author||'익명')+'</div><div class="cm-time">'+cmAgo(p.createdAt)+'</div></div>'+
+          '<div class="cm-card-stats"><span>'+CHAT_SVG+(p.comments?p.comments.length:0)+'</span></div>'+
+        '</div>'+
+      '</article>';
+    }).join('');
+  }
+
+  /* ----- detail ----- */
+  function cmRenderComments(p){
+    if(!p.comments || !p.comments.length) return '<div class="cm-time" style="padding:8px 0;">아직 댓글이 없어요. 첫 댓글을 남겨보세요.</div>';
+    return p.comments.map(function(c){
+      return '<div class="cm-comment"><div class="avatar">'+esc((c.author||'익')[0])+'</div>'+
+        '<div class="cm-comment-main"><b>'+esc(c.author||'익명')+'</b><span class="cm-time">'+cmAgo(c.createdAt)+'</span>'+
+        '<p>'+esc(c.body)+'</p></div></div>';
+    }).join('');
+  }
+  function cmAddComment(id){
+    const input = document.getElementById('cmCommentInput');
+    const val = input.value.trim();
+    if(!val) return;
+    const p = cmPosts.find(function(x){ return x.id===id; });
+    if(!p.comments) p.comments = [];
+    p.comments.push({ id:'c'+Date.now(), author:(window.appState.nickname||'익명'), body:val, createdAt:Date.now() });
+    cmSave(cmPosts);
+    cmRenderDetail(id);
+  }
+  function cmRenderDetail(id){
+    const p = cmPosts.find(function(x){ return x.id===id; });
+    if(!p) return;
+    const fav = cmFavs.has(p.id);
+    document.getElementById('cmDetailCard').innerHTML =
+      '<div class="cm-detail-head">'+
+        '<span class="cm-cat-chip">'+esc(CM_CAT_LABEL[p.cat]||p.cat)+'</span>'+
+        '<div class="cm-detail-actions">'+
+          '<button type="button" class="cm-icon-btn'+(fav?' on':'')+'" id="cmDetailFav">'+(fav?STAR_FILL:STAR_OUTLINE)+(fav?'저장됨':'즐겨찾기')+'</button>'+
+          '<button type="button" class="cm-icon-btn" id="cmDetailEdit">'+EDIT_SVG+'수정</button>'+
+        '</div>'+
+      '</div>'+
+      '<h2 class="cm-detail-title">'+esc(p.title)+'</h2>'+
+      '<div class="cm-detail-meta"><div class="avatar">'+esc((p.author||'익')[0])+'</div>'+
+        '<div><div class="cm-author">'+esc(p.author||'익명')+'</div><div class="cm-time">'+cmAgo(p.createdAt)+'</div></div></div>'+
+      cmSkinTags(p.skin)+
+      (p.photo ? '<img class="cm-detail-photo" src="'+p.photo+'" alt="첨부 사진" />' : '')+
+      '<div class="cm-detail-body">'+esc(p.body)+'</div>'+
+      '<div class="cm-comments">'+
+        '<div class="cm-comments-title">댓글 '+(p.comments?p.comments.length:0)+'</div>'+
+        '<div id="cmCommentList">'+cmRenderComments(p)+'</div>'+
+        '<div class="cm-comment-form">'+
+          '<input type="text" id="cmCommentInput" placeholder="댓글을 남겨보세요" maxlength="300" />'+
+          '<button type="button" class="btn btn-dark btn-sm" id="cmCommentSubmit">등록</button>'+
+        '</div>'+
+      '</div>';
+    document.getElementById('cmDetailFav').addEventListener('click', function(){ cmToggleFav(p.id); cmRenderDetail(p.id); cmRenderCats(); });
+    document.getElementById('cmDetailEdit').addEventListener('click', function(){ cmOpenWrite(p.id); });
+    document.getElementById('cmCommentSubmit').addEventListener('click', function(){ cmAddComment(p.id); });
+    document.getElementById('cmCommentInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){ cmAddComment(p.id); } });
+  }
+  function cmOpenDetail(id){ cmRenderDetail(id); cmShow('detail'); }
+
+  /* ----- write / edit ----- */
+  function cmPopulateCatSelect(){
+    document.getElementById('cmFormCat').innerHTML = CM_CATS.filter(function(c){ return c.key!=='all'; })
+      .map(function(c){ return '<option value="'+c.key+'">'+c.label+'</option>'; }).join('');
+  }
+  function cmOpenWrite(id){
+    cmEditingId = id || null;
+    cmPendingPhoto = null;
+    document.getElementById('cmFormHint').textContent = '';
+    const catSel = document.getElementById('cmFormCat');
+    const titleInput = document.getElementById('cmFormTitleInput');
+    const bodyInput = document.getElementById('cmFormBody');
+    const preview = document.getElementById('cmPhotoPreview');
+    const pimg = document.getElementById('cmPhotoImg');
+    if(id){
+      const p = cmPosts.find(function(x){ return x.id===id; });
+      document.getElementById('cmFormTitle').textContent = '글 수정';
+      catSel.value = p.cat; titleInput.value = p.title; bodyInput.value = p.body;
+      cmPendingPhoto = p.photo || null;
+      document.getElementById('cmFormSubmit').textContent = '수정 완료';
+    } else {
+      document.getElementById('cmFormTitle').textContent = '새 글 남기기';
+      catSel.value = (cmActiveCat!=='all' && cmActiveCat!=='__fav') ? cmActiveCat : CM_CATS[1].key;
+      titleInput.value = ''; bodyInput.value = '';
+      document.getElementById('cmFormSubmit').textContent = '등록하기';
+    }
+    if(cmPendingPhoto){ pimg.src = cmPendingPhoto; preview.classList.add('show'); }
+    else { preview.classList.remove('show'); pimg.removeAttribute('src'); }
+    document.getElementById('cmFormPhoto').value = '';
+    cmShow('write');
+  }
+  function cmSubmitForm(){
+    const cat = document.getElementById('cmFormCat').value;
+    const title = document.getElementById('cmFormTitleInput').value.trim();
+    const body = document.getElementById('cmFormBody').value.trim();
+    const hint = document.getElementById('cmFormHint');
+    if(!title || !body){ hint.textContent = '제목과 내용을 모두 입력해주세요.'; return; }
+    if(cmEditingId){
+      const p = cmPosts.find(function(x){ return x.id===cmEditingId; });
+      p.cat = cat; p.title = title; p.body = body; p.photo = cmPendingPhoto;
+      cmSave(cmPosts);
+      cmShowToast('글이 수정되었어요.');
+      cmOpenDetail(cmEditingId);
+    } else {
+      cmPosts.unshift({ id:'p'+Date.now(), cat:cat, title:title, body:body, photo:cmPendingPhoto,
+        author:(window.appState.nickname||'익명'),
+        skin:Array.from(window.appState.concerns||[]),
+        createdAt:Date.now(), comments:[] });
+      cmSave(cmPosts);
+      cmShowToast('글이 등록되었어요.');
+      cmActiveCat = 'all'; cmQuery = ''; document.getElementById('cmSearch').value = '';
+      cmRenderCats(); cmRenderList(); cmShow('list');
+    }
+  }
+  function cmHandlePhoto(file){
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        const max = 900; let w = img.width, h = img.height;
+        if(w>max || h>max){ const r = Math.min(max/w, max/h); w = Math.round(w*r); h = Math.round(h*r); }
+        const canvas = document.createElement('canvas'); canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        cmPendingPhoto = canvas.toDataURL('image/jpeg', 0.72);
+        document.getElementById('cmPhotoImg').src = cmPendingPhoto;
+        document.getElementById('cmPhotoPreview').classList.add('show');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /* ----- wire up ----- */
+  cmPopulateCatSelect();
+  cmRenderCats();
+  cmRenderList();
+
+  document.getElementById('cmCats').addEventListener('click', function(e){
+    const btn = e.target.closest('.cm-cat'); if(!btn) return;
+    cmActiveCat = btn.dataset.cat; cmRenderCats(); cmRenderList();
   });
-
-  const toast = document.getElementById('toast');
-  document.getElementById('writeBtn').addEventListener('click', ()=>{
-    toast.textContent = '데모 버전에서는 글쓰기가 비활성화되어 있어요.';
-    toast.classList.add('show');
-    setTimeout(()=>toast.classList.remove('show'), 2200);
+  document.getElementById('cmSearch').addEventListener('input', function(e){ cmQuery = e.target.value.trim(); cmRenderList(); });
+  document.getElementById('cmList').addEventListener('click', function(e){
+    const fav = e.target.closest('.cm-fav');
+    if(fav){ e.stopPropagation(); cmToggleFav(fav.dataset.fav); cmRenderCats(); cmRenderList(); return; }
+    const card = e.target.closest('.cm-card'); if(card){ cmOpenDetail(card.dataset.id); }
+  });
+  document.getElementById('cmWriteBtn').addEventListener('click', function(){ cmOpenWrite(null); });
+  document.getElementById('cmDetailBack').addEventListener('click', function(){ cmRenderList(); cmShow('list'); });
+  document.getElementById('cmWriteBack').addEventListener('click', function(){ cmShow('list'); });
+  document.getElementById('cmFormCancel').addEventListener('click', function(){ cmShow('list'); });
+  document.getElementById('cmFormSubmit').addEventListener('click', cmSubmitForm);
+  document.getElementById('cmFormPhoto').addEventListener('change', function(e){ cmHandlePhoto(e.target.files[0]); });
+  document.getElementById('cmPhotoRemove').addEventListener('click', function(){
+    cmPendingPhoto = null;
+    document.getElementById('cmPhotoPreview').classList.remove('show');
+    document.getElementById('cmFormPhoto').value = '';
   });
 
 })();
@@ -1780,6 +2204,21 @@ DEMO_HTML = """
 </html>
 """
 
+def _secret(key: str, default: str = "") -> str:
+    """Read a value from st.secrets, tolerating a missing secrets file."""
+    try:
+        return str(st.secrets.get(key, default))
+    except Exception:
+        return default
+
+
+# Optional Supabase config. When absent, the frontend falls back to its
+# built-in product catalog, so the demo keeps working with no secrets set.
+supabase_url = _secret("SUPABASE_URL")
+supabase_key = _secret("SUPABASE_ANON_KEY")
+
 DEMO_HTML = DEMO_HTML.replace("__LOGO_SRC__", logo_data_uri)
+DEMO_HTML = DEMO_HTML.replace("__SUPABASE_URL__", supabase_url)
+DEMO_HTML = DEMO_HTML.replace("__SUPABASE_KEY__", supabase_key)
 
 st.iframe(DEMO_HTML, height="content", width="stretch")
