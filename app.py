@@ -1498,7 +1498,6 @@ DEMO_HTML = """
   let pendingMarketing = false;
   let linkedAccount = null;
   let mpTab = 'analyses';
-  let realAuthActive = false;  /* true while a real Google session drives the flow */
 
   /* Start/stop the real Google OAuth. OAuth can't run inside the sandboxed
      iframe, so we navigate the top window back to the app with a flag that the
@@ -1521,7 +1520,12 @@ DEMO_HTML = """
       catch(e){ try{ window.open(url, '_blank'); }catch(e2){} }
     }, 150);
   }
-  function startGoogleLogin(){ topGo('login=google'); }
+  function startGoogleLogin(){
+    /* Mark that signup was just initiated so the post-splash router continues to
+       consent after the OAuth redirect (survives the cross-origin round-trip). */
+    try{ sessionStorage.setItem('forhim_signup_pending', '1'); }catch(e){}
+    topGo('login=google');
+  }
   function startGoogleLogout(){ topGo('logout=1'); }
 
   function loadMember(){ try{ return JSON.parse(localStorage.getItem(MEMBER_KEY) || 'null'); }catch(e){ return null; } }
@@ -1703,20 +1707,33 @@ DEMO_HTML = """
       saveMember(null); refreshRecordsForMember(); updateMemberUI();
     }
   }
-  /* Real Google session returned from Streamlit st.login. Returning members go
-     straight to My Page (their records load); new ones continue the signup
-     naturally: agree to terms → set profile → My Page. */
-  function initRealAuth(){
-    if(window.USER_LOGGED_IN !== '1') return;
-    realAuthActive = true;
-    const email = (window.USER_EMAIL||'');
-    if(isMember() && member.provider === 'google' && (member.email||'') === email){
-      refreshRecordsForMember(); updateMemberUI(); showMyPage(); return;
+  const SIGNUP_PENDING_KEY = 'forhim_signup_pending';
+  function signupPending(){ try{ return sessionStorage.getItem(SIGNUP_PENDING_KEY) === '1'; }catch(e){ return false; } }
+  function clearSignupPending(){ try{ sessionStorage.removeItem(SIGNUP_PENDING_KEY); }catch(e){} }
+
+  /* Decide where to land after the splash. The logo always plays first; we only
+     jump into the Google signup (consent) when the user just clicked the login
+     button (a pending flag survives the OAuth redirect). A lingering Google
+     session on a plain reload falls through to the membership entry screen. */
+  function routeAfterSplash(){
+    splash.classList.add('hidden');
+    if(window.USER_LOGGED_IN === '1'){
+      const email = (window.USER_EMAIL||'');
+      const pending = signupPending();
+      if(isMember() && member.provider === 'google' && (member.email||'') === email){
+        clearSignupPending();
+        refreshRecordsForMember(); updateMemberUI(); showMyPage(); return;
+      }
+      if(pending){
+        clearSignupPending();
+        pendingProvider = 'google';
+        pendingMarketing = false;
+        linkedAccount = { provider:'google', email:email, name:(window.USER_NAME||''), age:'' };
+        showConsent(); return;
+      }
+      /* logged in but not mid-signup → show membership entry as usual */
     }
-    pendingProvider = 'google';
-    pendingMarketing = false;
-    linkedAccount = { provider:'google', email:email, name:(window.USER_NAME||''), age:'' };
-    showConsent();
+    showAuth('intro');
   }
 
   function showMyPage(){ renderMyPage(); showMemberScreen(screenMyPage); }
@@ -1791,22 +1808,13 @@ DEMO_HTML = """
   }));
   syncRealSession();
   updateMemberUI();
-  initRealAuth();
 
   /* ---------------- 1) splash ---------------- */
+  /* The logo always plays; routeAfterSplash decides the first screen. */
   setTimeout(()=> splashLogo.classList.add('sharp'), 150);
   setTimeout(()=> splashLogo.classList.remove('sharp'), 2400);
   setTimeout(()=> splash.classList.add('fade-out'), 2900);
-  setTimeout(()=>{
-    splash.classList.add('hidden');
-    /* A real Google session already drove us to a signup/mypage screen — don't
-       yank the user back when the splash timer fires. */
-    if(realAuthActive) return;
-    /* Membership is the primary entry: show it first. "회원가입 없이 둘러보기"
-       falls through to the intro (nickname/age) guest quick-start. No "뒤로"
-       on the entry screen. */
-    showAuth('intro');
-  }, 3700);
+  setTimeout(routeAfterSplash, 3700);
 
   /* ---------------- 2) intro form ---------------- */
   const nickInput = document.getElementById('nickInput');
