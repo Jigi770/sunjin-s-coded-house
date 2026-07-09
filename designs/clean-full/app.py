@@ -190,6 +190,26 @@ HTML = r"""
   .pager{display:flex;align-items:center;justify-content:center;gap:16px;font-size:12px;font-weight:700;color:var(--mute);}
   .pager button{color:var(--ink);font-weight:800;padding:6px 10px;} .pager button[disabled]{opacity:.3;}
 
+  /* segment toggle */
+  .seg{display:flex;background:#eceae4;border-radius:12px;padding:3px;flex-shrink:0;}
+  .segb{flex:1;font-size:13px;font-weight:700;color:var(--mute);padding:9px;border-radius:9px;transition:.15s;}
+  .segb.sel{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+
+  /* post feed row clickable + fav */
+  .post{cursor:pointer;} .post .ph .fav{margin-left:auto;font-size:16px;color:var(--line);} .post .ph .fav.on{color:var(--accent2);}
+  .post .ph time{margin-left:8px;}
+
+  /* comments */
+  .cmt{padding:11px 0;border-bottom:1px solid var(--line);} .cmt:last-child{border-bottom:none;}
+  .cmt .ch{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;} .cmt .ch time{margin-left:auto;font-size:10.5px;color:var(--mute);font-weight:500;}
+  .cmt p{font-size:12.5px;color:#4d473e;line-height:1.5;margin-top:5px;}
+  .cdt{font-size:18px;font-weight:800;margin-top:8px;} .cdb{font-size:13px;color:#4d473e;line-height:1.6;margin-top:8px;}
+
+  /* modal */
+  .modal{position:absolute;inset:0;z-index:80;background:rgba(20,16,12,.5);display:grid;place-items:center;padding:22px;}
+  .modal[hidden]{display:none;}
+  .sheet{width:100%;max-width:360px;background:var(--paper);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px;}
+
   /* stat line */
   .statline{display:flex;text-align:center;}
   .statline>div{flex:1;padding:6px 0;border-right:1px solid var(--line);} .statline>div:last-child{border-right:none;}
@@ -349,16 +369,34 @@ HTML = r"""
         <div class="ring"><svg width="118" height="118"><circle cx="59" cy="59" r="53" stroke="#e3ddd3" stroke-width="3" fill="none"/><circle id="rsArc" cx="59" cy="59" r="53" stroke="#2f5d4b" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="333" stroke-dashoffset="333"/></svg><div class="val"><b id="rsScore">–</b><span>SCORE</span></div></div>
         <div class="metrics" id="rsMetrics"></div>
       </div>
-      <div class="lead" id="rsSummary"></div>
-      <button class="btn bottomstick" data-tab="reco">맞춤 제품 추천 받기</button>
+      <div class="lead grow" id="rsSummary"></div>
+      <div class="bottomstick" style="display:flex;gap:10px;">
+        <button class="btn ghost" id="rsDetailBtn" style="flex:0 0 auto;padding:16px 18px;">상세 분석</button>
+        <button class="btn" data-tab="reco" style="flex:1;">맞춤 제품 추천</button>
+      </div>
+    </section>
+
+    <!-- DETAIL DIAGNOSIS (radar) -->
+    <section class="screen" data-s="detail">
+      <div class="back" data-tab="result">‹ 결과로</div>
+      <div style="margin-top:18px;"><div class="ey">Deep analysis</div><div class="h1" style="margin-top:6px;">항목별 <span class="thin">상세.</span></div></div>
+      <div style="display:flex;justify-content:center;"><svg id="radar" width="240" height="220" viewBox="0 0 240 220"></svg></div>
+      <div class="rows grow" id="detailRows"></div>
     </section>
 
     <!-- RECOMMEND -->
     <section class="screen" data-s="reco" data-nav>
       <div><div class="ey">Curated</div><div class="h1" style="margin-top:6px;">추천 <span class="thin">루틴.</span></div></div>
-      <div class="tabs" id="tierTabs"></div>
-      <div class="lead" id="tierDesc" style="min-height:34px;"></div>
-      <div class="rows grow" id="tierRows"></div>
+      <div class="seg" id="recoMode"><button class="segb sel" data-mode="tier">단계별</button><button class="segb" data-mode="extra">고민별</button></div>
+      <div id="tierWrap" style="display:flex;flex-direction:column;gap:12px;flex:1;min-height:0;">
+        <div class="tabs" id="tierTabs"></div>
+        <div class="lead" id="tierDesc" style="min-height:30px;"></div>
+        <div class="rows grow" id="tierRows"></div>
+      </div>
+      <div id="extraWrap" style="display:none;flex-direction:column;gap:12px;flex:1;min-height:0;">
+        <div class="tabs" id="extraTabs"></div>
+        <div class="rows grow" id="extraRows"></div>
+      </div>
     </section>
 
     <!-- COMMUNITY -->
@@ -379,6 +417,19 @@ HTML = r"""
       <button class="btn accent bottomstick" id="cwOk">등록하기</button>
     </section>
 
+    <!-- COMMUNITY DETAIL -->
+    <section class="screen" data-s="cdetail">
+      <div class="back" data-tab="comm">‹ 목록</div>
+      <div id="cdHead" style="margin-top:20px;"></div>
+      <div class="hr"></div>
+      <div style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--mute);text-transform:uppercase;" id="cdCount">댓글</div>
+      <div id="cdComments" style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
+      <div class="bottomstick" style="display:flex;gap:8px;">
+        <input type="text" id="cdInput" placeholder="댓글 입력…" style="flex:1;font-family:inherit;font-size:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);"/>
+        <button class="btn accent" id="cdSend" style="width:auto;padding:12px 16px;">등록</button>
+      </div>
+    </section>
+
     <!-- MY -->
     <section class="screen" data-s="my" data-nav>
       <div class="ey">Profile</div>
@@ -393,6 +444,18 @@ HTML = r"""
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- community email-login modal (Supabase fallback) -->
+  <div class="modal" id="cmAuth" hidden>
+    <div class="sheet">
+      <div style="display:flex;align-items:center;"><b style="font-size:17px;">커뮤니티 로그인</b><button id="cmAuthX" style="margin-left:auto;font-size:20px;color:var(--mute);">×</button></div>
+      <div class="lead" style="margin:6px 0 4px;">글·댓글을 남기려면 로그인이 필요해요.</div>
+      <div class="field"><label>이메일</label><input type="email" id="cmEmail" placeholder="you@example.com"/></div>
+      <div class="field"><label>비밀번호</label><input type="password" id="cmPw" placeholder="6자 이상"/></div>
+      <div class="lead" id="cmAuthHint" style="color:#b0453c;min-height:14px;"></div>
+      <button class="btn accent" id="cmAuthOk">로그인 / 회원가입</button>
+    </div>
+  </div>
 
   <nav class="nav" id="nav">
     <button class="nb" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>Home</button>
@@ -542,10 +605,10 @@ HTML = r"""
   document.querySelectorAll('[data-tab]').forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.tab); }); });
   document.querySelectorAll('[data-go]').forEach(function(b){ b.addEventListener('click', function(){ show(b.dataset.go); }); });
   function go(name){ // tab entries with side effects
-    if(name==='reco'){ recordRecommend(); renderTiers(); }
+    if(name==='reco'){ recordRecommend(); renderReco(); }
     if(name==='home') renderHome();
     if(name==='my') renderMy();
-    if(name==='comm') renderFeed();
+    if(name==='comm'){ renderFeed(); if(SB_ON){ cmBridge().then(function(){ cmRefresh(); }); } }
     show(name);
   }
 
@@ -600,13 +663,18 @@ HTML = r"""
     }
   }
   function stopCam(){ if(camStream){ camStream.getTracks().forEach(function(t){t.stop();}); camStream=null; } }
+  var DIRECTIONS=['정면을 바라봐주세요','고개를 오른쪽으로 천천히','고개를 왼쪽으로 천천히','고개를 위로','고개를 아래로'];
   document.getElementById('camStart').addEventListener('click', function(){
     var sc=document.getElementById('camScreen'); sc.classList.add('scanning');
-    document.getElementById('camMsg').textContent='피부 상태를 분석하고 있어요…';
-    var f=document.getElementById('camFill'), p=0;
-    var iv=setInterval(function(){ p+=10; f.style.width=p+'%'; if(p>=100){ clearInterval(iv); sc.classList.remove('scanning'); stopCam();
-      if(state.concerns.size===0){ ['scar','pore','oil','acne'].forEach(function(k){ state.concerns.add(k); }); syncChips(); }
-      runAnalysis(); } }, 200);
+    var msg=document.getElementById('camMsg'), f=document.getElementById('camFill'), p=0;
+    msg.textContent=DIRECTIONS[0];
+    var iv=setInterval(function(){ p+=5; f.style.width=p+'%';
+      var idx=Math.min(DIRECTIONS.length-1, Math.floor(p/20));
+      msg.textContent = p>=100 ? '피부 상태를 분석하고 있어요…' : DIRECTIONS[idx];
+      if(p>=100){ clearInterval(iv); setTimeout(function(){ sc.classList.remove('scanning'); stopCam();
+        if(state.concerns.size===0){ ['scar','pore','oil','acne'].forEach(function(k){ state.concerns.add(k); }); syncChips(); }
+        runAnalysis(); }, 500); }
+    }, 120);
   });
   function syncChips(){ document.querySelectorAll('#chips .chip').forEach(function(c){ c.classList.toggle('sel', state.concerns.has(c.dataset.k)); }); }
 
@@ -621,15 +689,31 @@ HTML = r"""
     show('result');
   }
 
-  /* ---------- recommend ---------- */
-  var activeTier='t1';
-  function renderTiers(){
-    document.getElementById('tierTabs').innerHTML=TIERS.map(function(t){ return '<button class="tab'+(t.key===activeTier?' sel':'')+'" data-tier="'+t.key+'">'+t.label+'</button>'; }).join('');
-    document.querySelectorAll('#tierTabs .tab').forEach(function(b){ b.addEventListener('click', function(){ activeTier=b.dataset.tier; renderTiers(); }); });
-    var tier=TIERS.filter(function(t){return t.key===activeTier;})[0];
-    document.getElementById('tierDesc').textContent=tier.desc;
-    var list=recommendForCat(tier.cat,3);
-    document.getElementById('tierRows').innerHTML=list.map(function(p){
+  /* ---------- detailed diagnosis (radar) ---------- */
+  var METRIC_KEYS=['수분','유분조절','모공','트러블','탄력'];
+  function renderDetail(){
+    var m=computeMetrics(), cx=120, cy=100, R=72, N=5, svg='';
+    [0.25,0.5,0.75,1].forEach(function(f){ var pts=''; for(var i=0;i<N;i++){ var a=(-90+i*72)*Math.PI/180; pts+=(cx+R*f*Math.cos(a)).toFixed(1)+','+(cy+R*f*Math.sin(a)).toFixed(1)+' '; } svg+='<polygon points="'+pts+'" fill="none" stroke="#e3ddd3" stroke-width="1"/>'; });
+    var data='';
+    for(var i=0;i<N;i++){ var a=(-90+i*72)*Math.PI/180, lx=cx+R*Math.cos(a), ly=cy+R*Math.sin(a), v=m[METRIC_KEYS[i]]/100;
+      svg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+lx.toFixed(1)+'" y2="'+ly.toFixed(1)+'" stroke="#e3ddd3" stroke-width="1"/>';
+      data+=(cx+R*v*Math.cos(a)).toFixed(1)+','+(cy+R*v*Math.sin(a)).toFixed(1)+' ';
+      var tx=cx+(R+18)*Math.cos(a), ty=cy+(R+18)*Math.sin(a);
+      svg+='<text x="'+tx.toFixed(1)+'" y="'+ty.toFixed(1)+'" font-size="10.5" font-weight="700" fill="#9a9186" text-anchor="middle" dominant-baseline="middle">'+METRIC_KEYS[i]+'</text>';
+    }
+    svg+='<polygon points="'+data+'" fill="rgba(47,93,75,.16)" stroke="#2f5d4b" stroke-width="2"/>';
+    document.getElementById('radar').innerHTML=svg;
+    var arr=METRIC_KEYS.map(function(k){ return {k:k,v:m[k]}; }).sort(function(a,b){ return a.v-b.v; });
+    document.getElementById('detailRows').innerHTML=arr.map(function(x){ var band=x.v>=70?'양호':x.v>=50?'보통':'우선 관리'; return '<div class="lrow"><div class="body"><b>'+x.k+'</b><small>'+band+'</small></div><div class="pmatch">'+x.v+'</div></div>'; }).join('');
+  }
+  document.getElementById('rsDetailBtn').addEventListener('click', function(){ renderDetail(); show('detail'); });
+
+  /* ---------- recommend (단계별 tier + 고민별 extra) ---------- */
+  function recommendForConcern(tag,N){ return recommendFrom(PRODUCTS.filter(function(p){ return (p.aff[tag]||0)>0; }),N,tag); }
+  var EXTRA=[{k:'elastic',l:'탄력 저하'},{k:'texture',l:'피부결'},{k:'spot',l:'기미'},{k:'blemish',l:'잡티'},{k:'tone',l:'톤 불균일'},{k:'blackhead',l:'블랙헤드'},{k:'darkcircle',l:'다크서클'},{k:'shave',l:'면도 트러블'},{k:'ingrown',l:'인그로운'},{k:'dull',l:'칙칙함'},{k:'dryness',l:'건조함'},{k:'redness',l:'홍조'},{k:'pigment',l:'색소침착'},{k:'flake',l:'각질'}];
+  var activeTier='t1', activeExtra='elastic', recoMode='tier';
+  function prodRows(list){
+    return list.map(function(p){
       var q=encodeURIComponent(p.brand+' '+p.name);
       var thumb=p.img?('<img class="pth" src="'+p.img+'" onerror="this.style.background=\''+p.color+'\';this.removeAttribute(\'src\')"/>'):('<div class="pth" style="background:'+p.color+'"></div>');
       return '<a class="prow" target="_blank" rel="noopener" href="https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query='+q+'">'+
@@ -637,43 +721,145 @@ HTML = r"""
         (p.match?'<span class="pmatch">'+p.match+'%</span>':'')+'</a>';
     }).join('');
   }
+  function renderTiers(){
+    document.getElementById('tierTabs').innerHTML=TIERS.map(function(t){ return '<button class="tab'+(t.key===activeTier?' sel':'')+'" data-tier="'+t.key+'">'+t.label+'</button>'; }).join('');
+    document.querySelectorAll('#tierTabs .tab').forEach(function(b){ b.addEventListener('click', function(){ activeTier=b.dataset.tier; renderTiers(); }); });
+    var tier=TIERS.filter(function(t){return t.key===activeTier;})[0];
+    document.getElementById('tierDesc').textContent=tier.desc;
+    document.getElementById('tierRows').innerHTML=prodRows(recommendForCat(tier.cat,3));
+  }
+  function renderExtra(){
+    document.getElementById('extraTabs').innerHTML=EXTRA.map(function(c){ return '<button class="tab'+(c.k===activeExtra?' sel':'')+'" data-ex="'+c.k+'">'+c.l+'</button>'; }).join('');
+    document.querySelectorAll('#extraTabs .tab').forEach(function(b){ b.addEventListener('click', function(){ activeExtra=b.dataset.ex; renderExtra(); }); });
+    document.getElementById('extraRows').innerHTML=prodRows(recommendForConcern(activeExtra,3));
+  }
+  function renderReco(){
+    document.getElementById('tierWrap').style.display = recoMode==='tier'?'flex':'none';
+    document.getElementById('extraWrap').style.display = recoMode==='extra'?'flex':'none';
+    document.querySelectorAll('#recoMode .segb').forEach(function(b){ b.classList.toggle('sel', b.dataset.mode===recoMode); });
+    if(recoMode==='tier') renderTiers(); else renderExtra();
+  }
+  document.querySelectorAll('#recoMode .segb').forEach(function(b){ b.addEventListener('click', function(){ recoMode=b.dataset.mode; renderReco(); }); });
 
-  /* ---------- community (localStorage; Supabase sync planned next) ---------- */
-  var CM_CATS=[{k:'all',l:'전체'},{k:'pore',l:'모공'},{k:'oil',l:'유분'},{k:'acne',l:'트러블'},{k:'scar',l:'흉터'},{k:'sensitive',l:'민감성'}];
-  var CM_KEY='forhimc_posts', cmCat='all', cmPage=0, PER=4;
-  function cmSeed(){ var n=Date.now(),D=3600000; return [
-    {id:'p1',cat:'pore',author:'준코',title:'모공 토너 3주 후기',body:'결이 확실히 정돈됐어요. 같은 고민 있으신 분들과 기록 공유하고 싶어요.',date:n-2*60000,likes:24,comments:8},
-    {id:'p2',cat:'acne',author:'수현',title:'턱 트러블 진정 루틴',body:'스캔 점수 62 → 74 로 올랐어요. 진정+유분 관리 위주로 했습니다.',date:n-15*60000,likes:51,comments:19},
-    {id:'p3',cat:'oil',author:'민지',title:'선세럼 매치율 91%',body:'추천 매치율 보고 구매했는데 발림성 좋네요.',date:n-D,likes:12,comments:3},
-    {id:'p4',cat:'scar',author:'도윤',title:'흉터 자국 PDRN 세럼',body:'재생 세럼 두 달째. 붉은 자국이 옅어지는 느낌이에요.',date:n-2*D,likes:33,comments:6},
-    {id:'p5',cat:'sensitive',author:'하준',title:'면도 후 진정 팁',body:'면도 직후 시카 크림 얇게. 트러블이 확 줄었어요.',date:n-5*D,likes:18,comments:4}
-  ]; }
-  function cmLoad(){ try{ var r=JSON.parse(localStorage.getItem(CM_KEY)||'null'); if(r) return r; }catch(e){} var s=cmSeed(); cmSave(s); return s; }
-  function cmSave(list){ try{ localStorage.setItem(CM_KEY,JSON.stringify(list)); }catch(e){} }
-  var cmPosts=cmLoad();
+  /* ---------- community (Supabase when configured, else localStorage) ---------- */
+  var SB_ON = !!(W.SB_URL && W.SB_KEY && String(W.SB_URL).indexOf('http')===0);
+  var CM_CATS=[{k:'all',l:'전체'},{k:'__fav',l:'★ 즐겨찾기'},{k:'pore',l:'모공'},{k:'oil',l:'유분'},{k:'acne',l:'트러블'},{k:'scar',l:'흉터'},{k:'sensitive',l:'민감성'}];
+  var CM_KEY='forhimc_posts', CM_SESS='forhimc_sb_session', CM_FAV='forhimc_favs';
+  var cmCat='all', cmPage=0, PER=4, cmCurrent=null, cmSession=null;
+  try{ cmSession=JSON.parse(localStorage.getItem(CM_SESS)||'null'); }catch(e){}
+  var cmFavs=new Set(); try{ cmFavs=new Set(JSON.parse(localStorage.getItem(CM_FAV)||'[]')); }catch(e){}
+  function cmSaveFav(){ try{ localStorage.setItem(CM_FAV,JSON.stringify(Array.from(cmFavs))); }catch(e){} }
   function cmAgo(ts){ var d=Date.now()-ts,m=60000,h=3600000,dd=86400000; if(d<m)return '방금 전'; if(d<h)return Math.floor(d/m)+'분 전'; if(d<dd)return Math.floor(d/h)+'시간 전'; return Math.floor(d/dd)+'일 전'; }
-  function renderFeed(){
+
+  function cmSeed(){ var n=Date.now(),D=3600000; return [
+    {id:'p1',cat:'pore',author:'준코',title:'모공 토너 3주 후기',body:'결이 확실히 정돈됐어요. 같은 고민 있으신 분들과 기록 공유하고 싶어요.',date:n-2*60000,comments:[{id:'c1',author:'민지',body:'저도 써볼래요!',date:n-60000}]},
+    {id:'p2',cat:'acne',author:'수현',title:'턱 트러블 진정 루틴',body:'스캔 점수 62 → 74 로 올랐어요. 진정+유분 관리 위주로 했습니다.',date:n-15*60000,comments:[{id:'c2',author:'도윤',body:'루틴 자세히 알려주세요',date:n-12*60000},{id:'c3',author:'하준',body:'저장했어요 🙏',date:n-10*60000}]},
+    {id:'p3',cat:'oil',author:'민지',title:'선세럼 매치율 91%',body:'추천 매치율 보고 구매했는데 발림성 좋네요.',date:n-D,comments:[]},
+    {id:'p4',cat:'scar',author:'도윤',title:'흉터 자국 PDRN 세럼',body:'재생 세럼 두 달째. 붉은 자국이 옅어지는 느낌이에요.',date:n-2*D,comments:[]},
+    {id:'p5',cat:'sensitive',author:'하준',title:'면도 후 진정 팁',body:'면도 직후 시카 크림 얇게. 트러블이 확 줄었어요.',date:n-5*D,comments:[]}
+  ]; }
+  function cmLoadLocal(){ try{ var r=JSON.parse(localStorage.getItem(CM_KEY)||'null'); if(r) return r; }catch(e){} var s=cmSeed(); cmSaveLocal(s); return s; }
+  function cmSaveLocal(list){ try{ localStorage.setItem(CM_KEY,JSON.stringify(list)); }catch(e){} }
+  var cmPosts = SB_ON ? [] : cmLoadLocal();
+
+  /* --- Supabase auth + REST --- */
+  function cmLoggedIn(){ return !!(cmSession && cmSession.access_token); }
+  function cmUserName(){ return (member&&member.nickname)||state.nickname||(cmSession&&cmSession.user&&cmSession.user.email?cmSession.user.email.split('@')[0]:'익명'); }
+  function sbAuthHeaders(){ return {apikey:W.SB_KEY,'Content-Type':'application/json'}; }
+  function sbRestHeaders(useTok){ var h={apikey:W.SB_KEY,'Content-Type':'application/json'}; h.Authorization='Bearer '+((useTok&&cmLoggedIn())?cmSession.access_token:W.SB_KEY); return h; }
+  function cmSaveSession(s){ cmSession=s; try{ localStorage.setItem(CM_SESS,JSON.stringify(s)); }catch(e){} }
+  async function sbSignup(email,pw){ var r=await fetch(W.SB_URL+'/auth/v1/signup',{method:'POST',headers:sbAuthHeaders(),body:JSON.stringify({email:email,password:pw})}); return r.json(); }
+  async function sbSignin(email,pw){ var r=await fetch(W.SB_URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:sbAuthHeaders(),body:JSON.stringify({email:email,password:pw})}); return r.json(); }
+  async function cmRefreshToken(){ if(!(cmSession&&cmSession.refresh_token))return false; try{ var r=await fetch(W.SB_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:sbAuthHeaders(),body:JSON.stringify({refresh_token:cmSession.refresh_token})}); if(!r.ok)return false; var res=await r.json(); if(res&&res.access_token){ cmSaveSession(res); return true; } }catch(e){} return false; }
+  async function sbWrite(url,method,body){ var build=function(){return {method:method,headers:sbRestHeaders(true),body:JSON.stringify(body)};}; var r=await fetch(url,build()); if((r.status===401||r.status===403)&&await cmRefreshToken()){ r=await fetch(url,build()); } return r; }
+  function cmDerivePw(email){ var e=String(email||'').toLowerCase(),h=5381; for(var i=0;i<e.length;i++){ h=((h*33)^e.charCodeAt(i))>>>0; } return 'FORHIM-g-'+h.toString(36)+'-'+e.length+'x'; }
+  async function cmBridge(){ if(!SB_ON||cmLoggedIn())return cmLoggedIn(); if(W.USER_LOGGED_IN!=='1'||!W.USER_EMAIL)return false; var email=W.USER_EMAIL,pw=cmDerivePw(email); try{ var res=await sbSignin(email,pw); if(!(res&&res.access_token)){ await sbSignup(email,pw); res=await sbSignin(email,pw); } if(res&&res.access_token){ cmSaveSession(res); return true; } }catch(e){} return false; }
+  async function cmEnsureLogin(){ if(cmLoggedIn())return true; if(await cmBridge())return true; openCmAuth(); return false; }
+  function cmMapRow(p){ return {id:String(p.id),cat:p.category,title:p.title,body:p.body,author:p.author||'익명',date:p.created_at?new Date(p.created_at).getTime():Date.now(),comments:(p.comments||[]).map(function(c){ return {id:String(c.id),author:c.author||'익명',body:c.body,date:c.created_at?new Date(c.created_at).getTime():Date.now()}; }).sort(function(a,b){ return a.date-b.date; })}; }
+  async function cmFetchRemote(){ var q='/rest/v1/posts?select=id,category,title,body,author,created_at,comments(id,author,body,created_at)&order=created_at.desc'; var r=await fetch(W.SB_URL+q,{headers:sbRestHeaders(false)}); if(!r.ok)throw new Error('HTTP '+r.status); return (await r.json()).map(cmMapRow); }
+  async function cmRefresh(){ if(!SB_ON)return; try{ cmPosts=await cmFetchRemote(); if(document.querySelector('.screen[data-s=comm]').classList.contains('on')) renderFeed(); }catch(e){} }
+
+  function cmFind(id){ for(var i=0;i<cmPosts.length;i++){ if(cmPosts[i].id===id) return cmPosts[i]; } return null; }
+  function renderCats(){
     document.getElementById('cmCats').innerHTML=CM_CATS.map(function(c){ return '<button class="tab'+(c.k===cmCat?' sel':'')+'" data-cat="'+c.k+'">'+c.l+'</button>'; }).join('');
     document.querySelectorAll('#cmCats .tab').forEach(function(b){ b.addEventListener('click', function(){ cmCat=b.dataset.cat; cmPage=0; renderFeed(); }); });
-    var list=cmPosts.filter(function(p){ return cmCat==='all'||p.cat===cmCat; }).sort(function(a,b){ return b.date-a.date; });
+  }
+  function renderFeed(){
+    renderCats();
+    var list=cmPosts.filter(function(p){ return cmCat==='all'?true: cmCat==='__fav'?cmFavs.has(p.id): p.cat===cmCat; }).sort(function(a,b){ return b.date-a.date; });
     var pages=Math.max(1,Math.ceil(list.length/PER)); if(cmPage>=pages) cmPage=0;
     var slice=list.slice(cmPage*PER,cmPage*PER+PER);
     document.getElementById('cmFeed').innerHTML=slice.length?slice.map(function(p){
-      return '<div class="post"><div class="ph"><div class="ava">'+esc(p.author.charAt(0))+'</div><b>'+esc(p.author)+'</b><time>'+cmAgo(p.date)+'</time></div>'+
-        '<div class="tt">'+esc(p.title)+'</div><p>'+esc(p.body)+'</p><div class="rx"><span>♡ '+p.likes+'</span><span>댓글 '+p.comments+'</span></div></div>';
+      var fav=cmFavs.has(p.id);
+      return '<div class="post" data-id="'+p.id+'"><div class="ph"><div class="ava">'+esc(p.author.charAt(0))+'</div><b>'+esc(p.author)+'</b><time>'+cmAgo(p.date)+'</time><span class="fav'+(fav?' on':'')+'" data-fav="'+p.id+'">'+(fav?'★':'☆')+'</span></div>'+
+        '<div class="tt">'+esc(p.title)+'</div><p>'+esc(p.body)+'</p><div class="rx"><span>댓글 '+(p.comments?p.comments.length:0)+'</span></div></div>';
     }).join(''):'<div class="lead" style="text-align:center;padding:30px 0;">아직 글이 없어요.</div>';
+    document.querySelectorAll('#cmFeed .post').forEach(function(el){ el.addEventListener('click', function(){ openDetail(el.dataset.id); }); });
+    document.querySelectorAll('#cmFeed .fav').forEach(function(el){ el.addEventListener('click', function(ev){ ev.stopPropagation(); var id=el.dataset.fav; if(cmFavs.has(id)) cmFavs.delete(id); else cmFavs.add(id); cmSaveFav(); renderFeed(); }); });
     document.getElementById('cmPager').innerHTML= pages>1 ?
       '<button id="cmPrev"'+(cmPage===0?' disabled':'')+'>‹ 이전</button><span>'+(cmPage+1)+' / '+pages+'</span><button id="cmNext"'+(cmPage>=pages-1?' disabled':'')+'>다음 ›</button>' : '';
     var pv=document.getElementById('cmPrev'), nx=document.getElementById('cmNext');
     if(pv) pv.addEventListener('click', function(){ if(cmPage>0){ cmPage--; renderFeed(); } });
     if(nx) nx.addEventListener('click', function(){ if(cmPage<pages-1){ cmPage++; renderFeed(); } });
   }
+  function openDetail(id){
+    var p=cmFind(id); if(!p) return; cmCurrent=id;
+    document.getElementById('cdHead').innerHTML='<div class="ph" style="display:flex;align-items:center;gap:9px;"><div class="ava">'+esc(p.author.charAt(0))+'</div><b style="font-size:12.5px;">'+esc(p.author)+'</b><time style="margin-left:auto;font-size:11px;color:var(--mute);">'+cmAgo(p.date)+'</time></div><div class="cdt">'+esc(p.title)+'</div><div class="cdb">'+esc(p.body)+'</div>';
+    renderComments(p);
+    document.getElementById('cdInput').value='';
+    show('cdetail');
+  }
+  function renderComments(p){
+    var cs=p.comments||[];
+    document.getElementById('cdCount').textContent='댓글 '+cs.length;
+    document.getElementById('cdComments').innerHTML=cs.length?cs.map(function(c){
+      return '<div class="cmt"><div class="ch"><div class="ava" style="width:22px;height:22px;font-size:10px;">'+esc(c.author.charAt(0))+'</div>'+esc(c.author)+'<time>'+cmAgo(c.date)+'</time></div><p>'+esc(c.body)+'</p></div>';
+    }).join(''):'<div class="lead" style="padding:20px 0;text-align:center;">첫 댓글을 남겨보세요.</div>';
+  }
+  document.getElementById('cdSend').addEventListener('click', async function(){
+    var val=document.getElementById('cdInput').value.trim(); if(!val) return;
+    var p=cmFind(cmCurrent); if(!p) return;
+    if(SB_ON){
+      if(!(await cmEnsureLogin())) return;
+      try{ var r=await sbWrite(W.SB_URL+'/rest/v1/comments','POST',{post_id:p.id,user_id:cmSession.user.id,author:cmUserName(),body:val});
+        if(r.status===401||r.status===403){ cmSession=null; try{localStorage.removeItem(CM_SESS);}catch(e){} openCmAuth(); return; }
+        if(!r.ok) throw new Error(); await cmRefresh(); var np=cmFind(cmCurrent); if(np){ openDetail(cmCurrent); } pop('댓글이 등록되었어요.');
+      }catch(e){ pop('댓글 등록에 실패했어요.'); }
+    } else {
+      if(!p.comments) p.comments=[];
+      p.comments.push({id:'c'+Date.now(),author:cmUserName(),body:val,date:Date.now()});
+      cmSaveLocal(cmPosts); document.getElementById('cdInput').value=''; renderComments(p);
+    }
+  });
+
   document.getElementById('cmWrite').addEventListener('click', function(){ document.getElementById('cwTitle').value=''; document.getElementById('cwBody').value=''; show('cwrite'); });
-  document.getElementById('cwOk').addEventListener('click', function(){
+  document.getElementById('cwOk').addEventListener('click', async function(){
     var t=document.getElementById('cwTitle').value.trim(), b=document.getElementById('cwBody').value.trim();
     if(!t||!b){ pop('제목과 내용을 입력해주세요.'); return; }
-    cmPosts.unshift({id:'p'+Date.now(),cat:(cmCat==='all'?'pore':cmCat),author:(member&&member.nickname)||state.nickname||'익명',title:t,body:b,date:Date.now(),likes:0,comments:0});
-    cmSave(cmPosts); cmCat='all'; cmPage=0; pop('글이 등록되었어요.'); go('comm');
+    var cat=(cmCat==='all'||cmCat==='__fav')?'pore':cmCat;
+    if(SB_ON){
+      if(!(await cmEnsureLogin())) return;
+      try{ var r=await sbWrite(W.SB_URL+'/rest/v1/posts','POST',{user_id:cmSession.user.id,author:cmUserName(),category:cat,title:t,body:b});
+        if(r.status===401||r.status===403){ cmSession=null; try{localStorage.removeItem(CM_SESS);}catch(e){} openCmAuth(); return; }
+        if(!r.ok) throw new Error(); cmCat='all'; cmPage=0; await cmRefresh(); pop('글이 등록되었어요.'); show('comm');
+      }catch(e){ pop('저장에 실패했어요. 잠시 후 다시 시도해주세요.'); }
+    } else {
+      cmPosts.unshift({id:'p'+Date.now(),cat:cat,author:cmUserName(),title:t,body:b,date:Date.now(),comments:[]});
+      cmSaveLocal(cmPosts); cmCat='all'; cmPage=0; pop('글이 등록되었어요.'); go('comm');
+    }
+  });
+
+  /* community email-login modal (Supabase fallback) */
+  function openCmAuth(){ if(!SB_ON){ pop('로그인은 서버 연동 후 사용할 수 있어요.'); return; } var e=document.getElementById('cmEmail'); if(e&&!e.value&&W.USER_EMAIL) e.value=W.USER_EMAIL; document.getElementById('cmAuthHint').textContent=''; document.getElementById('cmAuth').hidden=false; }
+  document.getElementById('cmAuthX').addEventListener('click', function(){ document.getElementById('cmAuth').hidden=true; });
+  document.getElementById('cmAuthOk').addEventListener('click', async function(){
+    var email=document.getElementById('cmEmail').value.trim(), pw=document.getElementById('cmPw').value, hint=document.getElementById('cmAuthHint');
+    if(!email||pw.length<6){ hint.textContent='이메일과 6자 이상 비밀번호를 입력해주세요.'; return; }
+    hint.textContent='처리 중…';
+    try{ var res=await sbSignin(email,pw); if(!(res&&res.access_token)){ await sbSignup(email,pw); res=await sbSignin(email,pw); }
+      if(res&&res.access_token){ cmSaveSession(res); document.getElementById('cmAuth').hidden=true; pop('로그인되었어요.'); }
+      else { hint.textContent=(res&&(res.msg||res.error_description))||'실패했어요. 이메일 인증이 필요할 수 있어요.'; }
+    }catch(e){ hint.textContent='네트워크 오류가 발생했어요.'; }
   });
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
