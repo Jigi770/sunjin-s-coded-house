@@ -16,7 +16,7 @@ DEMO_HTML = """
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FOR HIM — Men's Beauty AI Demo</title>
-<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;</script>
+<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;</script>
 <style>
   :root{
     --bg:#f6f5f2;
@@ -1444,7 +1444,11 @@ DEMO_HTML = """
 
   /* ---------------- membership + records (dummy social login) ---------------- */
   const MEMBER_KEY = 'forhim_member';
-  const RECORDS_KEY = 'forhim_records';
+  /* Records are stored per-account so a new member starts empty and their own
+     history keeps accumulating. Guests write to a shared bucket that is merged
+     into the account on sign-up, so a just-finished analysis carries over. */
+  const RECORDS_PREFIX = 'forhim_records_v2_';
+  const GUEST_RECORDS_KEY = 'forhim_records_guest';
   const screenAuth = document.getElementById('screenAuth');
   const screenConsent = document.getElementById('screenConsent');
   const screenProfile = document.getElementById('screenProfile');
@@ -1462,29 +1466,57 @@ DEMO_HTML = """
   let pendingMarketing = false;
   let linkedAccount = null;
   let mpTab = 'analyses';
+  let realAuthActive = false;  /* true while a real Google session drives the flow */
+
+  /* Start/stop the real Google OAuth. OAuth can't run inside the sandboxed
+     iframe, so we navigate the top window back to the app with a flag that the
+     Python layer reads (?login=google / ?logout=1). */
+  function topGo(flag){
+    const base = window.APP_URL || '';
+    if(!base){ memberToast('로그인 설정을 확인해주세요.'); return; }
+    const url = base + (base.indexOf('?')>=0?'&':'?') + flag;
+    /* Navigate the whole tab (not the iframe) so OAuth runs at the top level.
+       Requires the component iframe to allow top navigation, which Streamlit
+       grants for user-initiated clicks. */
+    try{ window.top.location.href = url; }
+    catch(e){ try{ window.open(url, '_top'); }catch(e2){} }
+  }
+  function startGoogleLogin(){ topGo('login=google'); }
+  function startGoogleLogout(){ topGo('logout=1'); }
 
   function loadMember(){ try{ return JSON.parse(localStorage.getItem(MEMBER_KEY) || 'null'); }catch(e){ return null; } }
   function saveMember(m){ member = m; try{ if(m) localStorage.setItem(MEMBER_KEY, JSON.stringify(m)); else localStorage.removeItem(MEMBER_KEY); }catch(e){} }
   function isMember(){ return !!(member && member.loggedIn); }
   let member = loadMember();
 
-  function seedRecords(){
-    const now = Date.now(), D = 86400000;
-    return {
-      analyses:[
-        { id:'a1', date:now-14*D, score:62, type:'복합성', top:'모공', summary:'모공·유분 중심 분석, 종합 62점' },
-        { id:'a2', date:now-3*D,  score:71, type:'지성',   top:'트러블', summary:'유분·트러블 개선 추세, 종합 71점' }
-      ],
-      recommends:[
-        { id:'r1', date:now-3*D, title:'유분·트러블 맞춤 루틴', summary:'AI 매칭 기반 단계별 추천', items:['닥터지 레드 블레미쉬 토너','메디힐 마데카소사이드 선세럼','코스알엑스 6펩타이드 세럼'] }
-      ],
-      consults:[
-        { id:'s1', date:now-10*D, title:'화농성 여드름 상담', summary:'턱 트러블 반복 → 진정+유분 관리 제안', status:'답변완료' }
-      ]
-    };
+  function emptyRecords(){ return { analyses:[], recommends:[], consults:[] }; }
+  /* Stable per-account id: email when available, else provider+nickname. */
+  function memberId(m){
+    m = m || member;
+    if(!m) return '';
+    return (m.email ? String(m.email).toLowerCase() : (m.provider||'') + ':' + (m.nickname||'')) || 'member';
   }
-  function loadRecords(){ try{ const r = JSON.parse(localStorage.getItem(RECORDS_KEY) || 'null'); if(r) return r; }catch(e){} const s = seedRecords(); saveRecords(s); return s; }
-  function saveRecords(r){ records = r; try{ localStorage.setItem(RECORDS_KEY, JSON.stringify(r)); }catch(e){} }
+  function currentRecordsKey(){ return isMember() ? (RECORDS_PREFIX + memberId()) : GUEST_RECORDS_KEY; }
+  function readRecords(key){ try{ const r = JSON.parse(localStorage.getItem(key) || 'null'); if(r) return r; }catch(e){} return null; }
+  function loadRecords(){ return readRecords(currentRecordsKey()) || emptyRecords(); }
+  function saveRecords(r){ records = r; try{ localStorage.setItem(currentRecordsKey(), JSON.stringify(r)); }catch(e){} }
+  /* Point `records` at the active bucket (account when logged in, else guest). */
+  function refreshRecordsForMember(){ records = loadRecords(); }
+  /* On sign-up, fold any guest-session history into the account and clear it. */
+  function mergeGuestIntoMember(){
+    const guest = readRecords(GUEST_RECORDS_KEY);
+    const acct = readRecords(RECORDS_PREFIX + memberId()) || emptyRecords();
+    if(guest){
+      ['analyses','recommends','consults'].forEach(function(cat){
+        const have = new Set((acct[cat]||[]).map(function(x){ return x.id; }));
+        (guest[cat]||[]).forEach(function(x){ if(!have.has(x.id)){ acct[cat].push(x); } });
+        acct[cat].sort(function(a,b){ return b.date - a.date; });
+      });
+      try{ localStorage.removeItem(GUEST_RECORDS_KEY); }catch(e){}
+    }
+    records = acct;
+    try{ localStorage.setItem(RECORDS_PREFIX + memberId(), JSON.stringify(acct)); }catch(e){}
+  }
   let records = null;
   records = loadRecords();
 
@@ -1539,6 +1571,11 @@ DEMO_HTML = """
   function doSocial(provider){
     pendingProvider = provider;
     linkedAccount = Object.assign({ provider:provider }, PROVIDER_SAMPLE[provider] || PROVIDER_SAMPLE.kakao);
+    showConsent();
+  }
+  function showConsent(){
+    setAllConsent(false);
+    const hint = document.getElementById('consentHint'); if(hint) hint.textContent = '';
     showMemberScreen(screenConsent);
   }
 
@@ -1582,24 +1619,40 @@ DEMO_HTML = """
     nickname = nick; enteredAge = age; state.nickname = nick; state.age = age;
     saveMember({ loggedIn:true, provider:pendingProvider||'kakao', nickname:nick, email:email, age:age,
       joinedAt:Date.now(), agreements:{ required:true, marketing:!!pendingMarketing } });
+    /* Load this account's history and fold in anything done as a guest, so the
+       flow continues seamlessly and future records keep accumulating here. */
+    mergeGuestIntoMember();
     updateMemberUI();
     showMyPage();
   }
 
   function memberToast(msg){ const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2400); }
   function logout(){
-    if(window.USER_LOGGED_IN==='1'){ memberToast('화면 상단의 로그아웃 버튼을 이용해주세요.'); return; }
-    saveMember(null); updateMemberUI(); showMemberScreen(intro);
+    if(window.USER_LOGGED_IN==='1'){ memberToast('로그아웃 중이에요…'); startGoogleLogout(); return; }
+    saveMember(null); refreshRecordsForMember(); updateMemberUI(); showMemberScreen(intro);
   }
   function updateMemberUI(){ const nav = document.getElementById('navMember'); if(nav){ nav.textContent = isMember() ? '마이페이지' : '로그인'; } }
-  /* real Google session (from Streamlit st.login) → continue to profile setup */
+  /* Keep the stored member in sync with the real Google session: if Google
+     logged out (session gone) but we still have a saved google member, drop it. */
+  function syncRealSession(){
+    if(window.AUTH_ON==='1' && window.USER_LOGGED_IN!=='1' && isMember() && member.provider==='google'){
+      saveMember(null); refreshRecordsForMember(); updateMemberUI();
+    }
+  }
+  /* Real Google session returned from Streamlit st.login. Returning members go
+     straight to My Page (their records load); new ones continue the signup
+     naturally: agree to terms → set profile → My Page. */
   function initRealAuth(){
     if(window.USER_LOGGED_IN !== '1') return;
-    if(isMember() && member.provider === 'google') return;
+    realAuthActive = true;
+    const email = (window.USER_EMAIL||'');
+    if(isMember() && member.provider === 'google' && (member.email||'') === email){
+      refreshRecordsForMember(); updateMemberUI(); showMyPage(); return;
+    }
     pendingProvider = 'google';
     pendingMarketing = false;
-    linkedAccount = { provider:'google', email:(window.USER_EMAIL||''), name:(window.USER_NAME||''), age:'' };
-    showProfile();
+    linkedAccount = { provider:'google', email:email, name:(window.USER_NAME||''), age:'' };
+    showConsent();
   }
 
   function showMyPage(){ renderMyPage(); showMemberScreen(screenMyPage); }
@@ -1644,7 +1697,8 @@ DEMO_HTML = """
   document.getElementById('authSkip').addEventListener('click', ()=>{ if(authOrigin==='app') backToApp(); else showMemberScreen(intro); });
   document.querySelectorAll('#screenAuth .social-btn').forEach(b=> b.addEventListener('click', ()=>{
     if(b.dataset.provider==='google' && window.AUTH_ON==='1'){
-      memberToast('화면 상단의 [Google 계정으로 로그인] 버튼을 눌러주세요.');
+      memberToast('구글 로그인으로 이동할게요…');
+      startGoogleLogin();
       return;
     }
     doSocial(b.dataset.provider);
@@ -1668,6 +1722,7 @@ DEMO_HTML = """
     document.querySelectorAll('#screenMyPage .mp-tab').forEach(x=> x.classList.remove('active'));
     t.classList.add('active'); mpTab = t.dataset.mp; renderMyPanels();
   }));
+  syncRealSession();
   updateMemberUI();
   initRealAuth();
 
@@ -1677,6 +1732,9 @@ DEMO_HTML = """
   setTimeout(()=> splash.classList.add('fade-out'), 2900);
   setTimeout(()=>{
     splash.classList.add('hidden');
+    /* A real Google session already drove us to a signup/mypage screen — don't
+       yank the user back to the intro when the splash timer fires. */
+    if(realAuthActive) return;
     intro.classList.remove('hidden');
     requestAnimationFrame(()=> intro.classList.add('visible'));
   }, 3700);
@@ -2901,7 +2959,19 @@ auth_on = _auth_configured()
 logged_in = False
 user_email = ""
 user_name = ""
+app_url = ""
 if auth_on:
+    # Derive the app's own URL from the configured redirect_uri so the demo
+    # (inside the iframe) can navigate the top window back here to start/stop
+    # login. redirect_uri looks like "https://…/oauth2callback".
+    try:
+        app_url = str(st.secrets["auth"].get("redirect_uri", ""))
+        if app_url.endswith("/oauth2callback"):
+            app_url = app_url[: -len("/oauth2callback")]
+        app_url = app_url.rstrip("/")
+    except Exception:
+        app_url = ""
+
     try:
         if st.user.is_logged_in:
             logged_in = True
@@ -2910,19 +2980,23 @@ if auth_on:
     except Exception:
         pass
 
-    if logged_in:
-        _c1, _c2 = st.columns([5, 1])
-        _c1.caption(f"구글 계정으로 로그인됨 · {user_email}")
-        if _c2.button("로그아웃", use_container_width=True):
+    # No standalone button at the top: login/logout are initiated from within
+    # the membership flow, which navigates the top window to ?login=google or
+    # ?logout=1. OAuth still runs here because it can't complete in the iframe.
+    try:
+        qp = st.query_params
+    except Exception:
+        qp = {}
+    try:
+        if not logged_in and qp.get("login") == "google":
+            st.login()
+        elif logged_in and qp.get("logout") == "1":
             st.logout()
-    else:
-        if st.button("Google 계정으로 로그인", type="primary"):
-            try:
-                st.login()
-            except Exception:
-                st.error("구글 로그인 설정을 확인해주세요. secrets의 [auth] 블록에 "
-                         "client_id / client_secret / redirect_uri / cookie_secret / "
-                         "server_metadata_url 이 모두 있어야 합니다.")
+        elif logged_in and "login" in qp:
+            # Clean the URL so a later refresh doesn't look like a re-login.
+            del st.query_params["login"]
+    except Exception:
+        pass
 
 # Optional Supabase config. When absent, the frontend falls back to its
 # built-in product catalog, so the demo keeps working with no secrets set.
@@ -2936,5 +3010,6 @@ DEMO_HTML = DEMO_HTML.replace("__AUTH_ON__", json.dumps("1" if auth_on else ""))
 DEMO_HTML = DEMO_HTML.replace("__USER_LOGGED_IN__", json.dumps("1" if logged_in else ""))
 DEMO_HTML = DEMO_HTML.replace("__USER_EMAIL__", json.dumps(user_email))
 DEMO_HTML = DEMO_HTML.replace("__USER_NAME__", json.dumps(user_name))
+DEMO_HTML = DEMO_HTML.replace("__APP_URL__", json.dumps(app_url))
 
 st.iframe(DEMO_HTML, height="content", width="stretch")
