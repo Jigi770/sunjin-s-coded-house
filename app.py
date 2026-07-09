@@ -202,17 +202,21 @@ DEMO_HTML = """
     transition:transform .15s ease,box-shadow .15s ease;cursor:pointer;
   }
   .prod-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(20,20,18,.08);}
-  .prod-card.rank-1{border-color:var(--gold);background:linear-gradient(180deg,#fdf8ee,var(--bg));}
+  .prod-card.reco{border-color:var(--gold);background:linear-gradient(180deg,#fdf8ee,var(--bg));}
   .prod-cart-btn{
     margin-top:14px;padding:9px 0;border-radius:999px;background:var(--dark);color:#fff;
     font-size:11.5px;font-weight:700;
   }
-  .prod-card.rank-1 .prod-cart-btn{background:var(--gold);color:#1a1a18;}
+  .prod-card.reco .prod-cart-btn{background:var(--gold);color:#1a1a18;}
+  /* 배지: 왼쪽 상단 '1위'(인기 구매순) · 오른쪽 상단 '추천'(내 피부 매칭) */
   .prod-rank{
     position:absolute;top:12px;left:12px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
     background:var(--dark);color:#fff;z-index:1;
   }
-  .prod-card.rank-1 .prod-rank{background:var(--gold);color:#1a1a18;}
+  .prod-reco{
+    position:absolute;top:12px;right:12px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
+    background:var(--gold);color:#1a1a18;z-index:1;
+  }
   .prod-icon{width:58px;height:72px;border-radius:11px 11px 5px 5px;margin:14px auto 12px;position:relative;}
   .prod-icon::before{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:24px;height:10px;border-radius:3px;background:rgba(0,0,0,.28);}
   .prod-photo{
@@ -226,7 +230,17 @@ DEMO_HTML = """
   .prod-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin-top:8px;}
   .prod-tags .prod-tag{margin-top:0;}
   .prod-match{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:#eef1e7;color:#54634a;}
-  .prod-card.rank-1 .prod-match{background:#f6ecd6;color:#9a7b3f;}
+  .prod-card.reco .prod-match{background:#f6ecd6;color:#9a7b3f;}
+  /* 단계 안의 라인별(토너/앰플/로션/크림 등) 구분 */
+  .tier-lines{margin-top:6px;}
+  .tier-line{margin-top:22px;}
+  .tier-line:first-child{margin-top:14px;}
+  .tier-line-label{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:800;color:var(--ink);
+    margin-bottom:10px;
+  }
+  .tier-line-label::before{content:'';width:4px;height:14px;border-radius:2px;background:var(--accent);flex:none;}
+  .tier-line-sub{font-size:11px;font-weight:700;color:var(--ink-soft);}
 
   /* ---------- EXTRA CONCERNS ---------- */
   .extra-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-top:20px;}
@@ -567,6 +581,13 @@ DEMO_HTML = """
   .sv-opts.grid .sv-opt{flex:1 1 calc(50% - 5px);justify-content:center;text-align:center;padding:15px 12px;}
   .sv-opts.grid .sv-opt-txt b{font-size:14.5px;}
   .sv-opts.grid .sv-opt-check{display:none;}
+  .sv-next{
+    width:100%;margin-top:6px;padding:14px;border-radius:14px;border:none;background:var(--gold);
+    color:#1a1a18;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .15s ease;
+  }
+  .sv-next:hover{opacity:.9;}
+  .sv-next[disabled]{opacity:.4;cursor:not-allowed;}
+  .sv-opts.grid .sv-next{flex:1 1 100%;}
 
   /* ---------- DIAGNOSIS RESULT (report dashboard) ---------- */
   .diagnosis{
@@ -1404,12 +1425,11 @@ DEMO_HTML = """
   <div class="wrap">
     <div class="eyebrow">PRODUCT RECOMMEND AI</div>
     <h2>제품 추천 AI</h2>
-    <p class="sub">원하는 관리 단계를 선택하면, 선택하신 고민과 나이에 맞춰 AI가 매칭한 TOP 3 제품을 보여드려요.</p>
+    <p class="sub">관리 단계를 선택하면, 단계 안에서 라인·카테고리별로 AI가 매칭한 추천 제품을 보여드려요.</p>
 
     <div class="tier-tabs" id="tierTabs"></div>
     <div class="tier-desc" id="tierDesc"></div>
-    <div class="tier-cat-label" id="tierCatLabel"></div>
-    <div class="prod-row" id="tierProdRow"></div>
+    <div class="tier-lines" id="tierProdRow"></div>
 
     <div class="step-nav">
       <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
@@ -1717,7 +1737,7 @@ DEMO_HTML = """
   function recordRecommend(){
     const cs = Array.from(state.concerns);
     const rec = { id:'r'+Date.now(), date:Date.now(), title:(cs.map(concernLabel).join('·')||'맞춤') + ' 루틴 추천',
-      summary:'AI 매칭 기반 단계별 추천', items:['1단계 세럼','2단계 선케어','3단계 커버'] };
+      summary:'AI 매칭 기반 단계별 추천', items:['1단계 스킨케어','2단계 선케어','3단계 베이스 메이크업','4단계 아이 메이크업','5단계 퍼퓸&바디'] };
     if(records.recommends[0] && Date.now()-records.recommends[0].date < 60000){ records.recommends[0] = rec; }
     else { records.recommends.unshift(rec); }
     saveRecords(records);
@@ -2151,7 +2171,7 @@ DEMO_HTML = """
         {v:'pigment', t:'색소·잡티'},
         {v:'aging', t:'주름·탄력'},
         {v:'dry', t:'건조·거칢'} ]},
-    { key:'goal', q:'원하는 관리 방식은?', opts:[
+    { key:'goal', q:'원하는 관리 방식은? (복수 선택)', multi:true, opts:[
         {v:'soothe', t:'진정·저자극'},
         {v:'hydrate', t:'수분·보습'},
         {v:'bright', t:'미백·톤업'},
@@ -2188,22 +2208,45 @@ DEMO_HTML = """
     svBackBtn.disabled = svIndex === 0;
     svQEl.textContent = item.q;
     const isGrid = item.opts.every(o=> !o.s);
+    const multi = !!item.multi;
+    const selected = multi
+      ? (Array.isArray(state.survey[item.key]) ? state.survey[item.key] : [])
+      : state.survey[item.key];
     svOptsEl.className = 'sv-opts' + (isGrid ? ' grid' : '');
-    svOptsEl.innerHTML = item.opts.map(o=>{
-      const chosen = state.survey[item.key] === o.v;
+    const optsHtml = item.opts.map(o=>{
+      const chosen = multi ? (selected.indexOf(o.v) >= 0) : (selected === o.v);
       return '<button type="button" class="sv-opt' + (chosen?' on':'') + '" data-v="' + o.v + '">' +
         '<span class="sv-opt-txt"><b>' + o.t + '</b>' + (o.s ? '<span>'+o.s+'</span>' : '') + '</span>' +
         '<span class="sv-opt-check"></span>' +
       '</button>';
     }).join('');
+    /* 복수 선택 문항은 자동 넘김 대신 '다음' 버튼으로 진행 */
+    const nextBtn = multi
+      ? '<button type="button" class="sv-next" id="svNext"' + (selected.length ? '' : ' disabled') + '>다음</button>'
+      : '';
+    svOptsEl.innerHTML = optsHtml + nextBtn;
+
     svOptsEl.querySelectorAll('.sv-opt').forEach(btn=>{
       btn.addEventListener('click', ()=>{
-        state.survey[item.key] = btn.dataset.v;
-        svOptsEl.querySelectorAll('.sv-opt').forEach(b=> b.classList.remove('on'));
-        btn.classList.add('on');
-        setTimeout(nextSurvey, 240);
+        if(multi){
+          const arr = Array.isArray(state.survey[item.key]) ? state.survey[item.key] : [];
+          const v = btn.dataset.v;
+          const i = arr.indexOf(v);
+          if(i >= 0){ arr.splice(i,1); btn.classList.remove('on'); }
+          else { arr.push(v); btn.classList.add('on'); }
+          state.survey[item.key] = arr;
+          const nb = document.getElementById('svNext');
+          if(nb) nb.disabled = arr.length === 0;
+        } else {
+          state.survey[item.key] = btn.dataset.v;
+          svOptsEl.querySelectorAll('.sv-opt').forEach(b=> b.classList.remove('on'));
+          btn.classList.add('on');
+          setTimeout(nextSurvey, 240);
+        }
       });
     });
+    const nb = document.getElementById('svNext');
+    if(nb) nb.addEventListener('click', ()=>{ if(!nb.disabled) nextSurvey(); });
   }
 
   function nextSurvey(){
@@ -2241,9 +2284,11 @@ DEMO_HTML = """
     if(sv.trouble === 'high') pts.push('잦은 트러블 보정');
     return pts;
   }
+  /* goal은 단일 문자열 또는 복수 선택 배열일 수 있음 */
+  function goalHas(sv, v){ const g = sv && sv.goal; return Array.isArray(g) ? g.indexOf(v) >= 0 : g === v; }
   function isSoothingMode(){
     const sv = state.survey || {};
-    return sv.sensitive === 'high' || sv.atopy === 'yes' || sv.redness === 'high' || sv.goal === 'soothe';
+    return sv.sensitive === 'high' || sv.atopy === 'yes' || sv.redness === 'high' || goalHas(sv, 'soothe');
   }
   window.isSoothingMode = isSoothingMode;
 
@@ -2363,7 +2408,7 @@ DEMO_HTML = """
     const sv = state.survey || {};
     const sens = (sv.sensitive === 'high') || (sv.atopy === 'yes');
     return [
-      { key:'wrinkle', label:'주름', score: clamp10(8.2 - Math.max(0, enteredAge-25)*0.12 - ((sv.focus==='aging'||sv.goal==='firm')?0.6:0)) },
+      { key:'wrinkle', label:'주름', score: clamp10(8.2 - Math.max(0, enteredAge-25)*0.12 - ((sv.focus==='aging'||goalHas(sv,'firm'))?0.6:0)) },
       { key:'pigment', label:'색소침착', score: clamp10(7.6 - (c.has('scar')?3.4:0) - (sv.focus==='pigment'?0.8:0)) },
       { key:'redness', label:'붉은기', score: clamp10(8.6 - (c.has('acne')?2.2:0) - (c.has('oil')?0.8:0) - (sens?1.8:0) - (sv.redness==='high'?1.2:0)) },
       { key:'pore', label:'모공', score: clamp10(8.0 - (c.has('pore')?5.2:0) - (sv.oil==='high'?0.8:0)) },
@@ -2783,11 +2828,17 @@ DEMO_HTML = """
 
   /* ---------------- product card helper ---------------- */
   function renderProductCards(list){
+    /* 인기 1위(구매량=pop 최고)와 추천(내 피부 매칭 1순위)을 배지로 구분 표기 */
+    let topPop = -1, bestSellerId = null;
+    list.forEach(p=>{ if((p.pop || 0) > topPop){ topPop = p.pop || 0; bestSellerId = p.id; } });
     return list.map(p=>{
       const query = encodeURIComponent(p.brand + ' ' + p.name);
       const url = 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=' + query;
-      return '<a class="prod-card rank-' + p.rank + '" href="' + url + '" target="_blank" rel="noopener noreferrer">' +
-        '<div class="prod-rank">' + p.rank + '위</div>' +
+      const isBestSeller = p.id === bestSellerId;   /* 많이 구매하는 제품 → '1위' */
+      const isReco = p.rank === 1;                    /* 내 피부 매칭 최상 → '추천' */
+      return '<a class="prod-card' + (isReco ? ' reco' : '') + '" href="' + url + '" target="_blank" rel="noopener noreferrer">' +
+        (isBestSeller ? '<div class="prod-rank">1위</div>' : '') +
+        (isReco ? '<div class="prod-reco">추천</div>' : '') +
         (p.img
           ? '<div class="prod-photo"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" /></div>'
           : '<div class="prod-icon" style="background:' + p.color + '"></div>') +
@@ -2856,7 +2907,29 @@ DEMO_HTML = """
     {id:'innisfree', brand:'이니스프리', name:'그린티 클렌징폼', color:'#5c8b6f', cats:['cleanser'], pop:75, tag:'산뜻한 세안', aff:{blackhead:2,oil:2}},
     {id:'estraCleanser', brand:'에스트라', name:'아토베리어365 클렌징폼', color:'#6b7a8b', cats:['cleanser'], pop:76, tag:'저자극 클렌징', aff:{dryness:2,redness:1}},
     {id:'roundlabBirch', brand:'라운드랩', name:'자작나무 수분크림', color:'#5c8b6f', cats:['cream'], pop:80, tag:'수분 진정', aff:{dryness:2,ingrown:1,redness:1}},
-    {id:'physiogel', brand:'피지오겔', name:'데일리 모이스쳐 테라피 에센스 인 토너', img:PIMG.physiogel, color:'#a86f6f', cats:['toner'], pop:78, tag:'저자극 수분 토너', aff:{dryness:2,redness:2,shave:2,darkcircle:1,flake:2}}
+    {id:'physiogel', brand:'피지오겔', name:'데일리 모이스쳐 테라피 에센스 인 토너', img:PIMG.physiogel, color:'#a86f6f', cats:['toner'], pop:78, tag:'저자극 수분 토너', aff:{dryness:2,redness:2,shave:2,darkcircle:1,flake:2}},
+    /* --- 스킨케어 로션 라인 --- */
+    {id:'illiyoonLotion', brand:'일리윤', name:'세라마이드 아토 로션', color:'#8ba0b0', cats:['lotion'], pop:83, tag:'세라마이드 보습', aff:{dryness:3,flake:2,redness:1}},
+    {id:'cnpLotion', brand:'CNP', name:'프로폴리스 에너지 앰플 로션', color:'#c9a86a', cats:['lotion'], pop:78, tag:'영양 보습 로션', aff:{dryness:2,dull:2,elastic:1}},
+    {id:'roundlabLotion', brand:'라운드랩', name:'1025 독도 로션', color:'#5c7a8b', cats:['lotion'], pop:84, tag:'약산성 수분 로션', aff:{dryness:2,redness:1,flake:1}},
+    /* --- 아이 메이크업: 아이브로우 --- */
+    {id:'clioBrow', brand:'클리오', name:'킬브로우 오토 하드 브로우 펜슬', color:'#6b5744', cats:['brow'], pop:88, tag:'자연스러운 눈썹', aff:{}},
+    {id:'etudeBrow', brand:'에뛰드', name:'드로잉 아이브로우', color:'#7a6248', cats:['brow'], pop:82, tag:'입문용 브로우', aff:{}},
+    {id:'ridleBrow', brand:'롬앤', name:'한스텝 브로우 펜슬', color:'#5c4a38', cats:['brow'], pop:75, tag:'디테일 표현', aff:{}},
+    /* --- 퍼퓸 & 바디: 향수 --- */
+    {id:'foretPerfume', brand:'포레', name:'우디 머스크 오 드 퍼퓸', color:'#5c5c7a', cats:['perfume'], pop:86, tag:'포근한 우디', aff:{}},
+    {id:'tamburinsPerfume', brand:'탬버린즈', name:'베르가못 시트러스 오 드 퍼퓸', color:'#7a8b5c', cats:['perfume'], pop:84, tag:'상쾌한 시트러스', aff:{}},
+    {id:'granhandPerfume', brand:'그랑핸드', name:'뉴트럴 오 드 퍼퓸', color:'#8b7a5c', cats:['perfume'], pop:79, tag:'데일리 은은함', aff:{}},
+    /* --- 퍼퓸 & 바디: 바디 로션 --- */
+    {id:'aveenoBody', brand:'아비노', name:'데일리 모이스처라이징 바디로션', color:'#6b8b8b', cats:['bodylotion'], pop:85, tag:'귀리 보습', aff:{dryness:3,flake:2}},
+    {id:'ceraveBody', brand:'세라비', name:'모이스처라이징 바디 크림', color:'#5c7a8b', cats:['bodylotion'], pop:88, tag:'세라마이드 장벽', aff:{dryness:3,redness:1}},
+    {id:'sensodyneBody', brand:'존슨즈', name:'베이비 로션 바디', color:'#9b8b7a', cats:['bodylotion'], pop:74, tag:'순한 데일리 보습', aff:{dryness:2}},
+    /* --- 퍼퓸 & 바디: 풋케어 --- */
+    {id:'jejuFoot', brand:'제주마유', name:'풋 밸런스 크림', color:'#6b8b6f', cats:['foot'], pop:72, tag:'각질·건조 케어', aff:{dryness:2,flake:2}},
+    {id:'scholFoot', brand:'닥터숄', name:'벨벳 스무스 풋 크림', color:'#8b6f5c', cats:['foot'], pop:76, tag:'매끈한 발뒤꿈치', aff:{flake:2,dryness:2}},
+    /* --- 퍼퓸 & 바디: 데오라인 --- */
+    {id:'niveaDeo', brand:'니베아', name:'프레시 액티브 데오 롤온', color:'#5c6f8b', cats:['deo'], pop:84, tag:'48시간 데오', aff:{}},
+    {id:'domeDeo', brand:'돔', name:'데오드란트 스틱 무향', color:'#7a7a8b', cats:['deo'], pop:78, tag:'무향 데오 스틱', aff:{}}
   ];
   window.PRODUCTS = PRODUCTS;
 
@@ -2876,7 +2949,9 @@ DEMO_HTML = """
 
     /* 추가 설문(체감 상태)을 프로파일에 반영 → 영상 분석 + 설문 통합 추천 */
     const sv = (window.appState && window.appState.survey) || {};
-    const soothing = sv.sensitive==='high' || sv.atopy==='yes' || sv.redness==='high' || sv.goal==='soothe';
+    /* goal은 복수 선택 배열일 수 있으므로 배열로 정규화 */
+    const goals = Array.isArray(sv.goal) ? sv.goal : (sv.goal ? [sv.goal] : []);
+    const soothing = sv.sensitive==='high' || sv.atopy==='yes' || sv.redness==='high' || goals.indexOf('soothe')>=0;
     if(soothing){ bump('redness',.92); bump('dryness',.75); }
     if(sv.atopy==='yes'){ bump('dryness',.85); bump('flake',.62); bump('redness',.8); }
     if(sv.redness==='high'){ bump('redness',.9); }
@@ -2888,10 +2963,10 @@ DEMO_HTML = """
     else if(sv.focus==='pigment'){ bump('pigment',.85); bump('spot',.7); bump('tone',.6); }
     else if(sv.focus==='aging'){ bump('elastic',.85); bump('wrinkle',.75); }
     else if(sv.focus==='dry'){ bump('dryness',.9); bump('flake',.6); }
-    if(sv.goal==='hydrate'){ bump('dryness',.85); }
-    else if(sv.goal==='bright'){ bump('spot',.8); bump('tone',.7); }
-    else if(sv.goal==='pore'){ bump('pore',.8); bump('blackhead',.6); }
-    else if(sv.goal==='firm'){ bump('elastic',.8); bump('wrinkle',.7); }
+    if(goals.indexOf('hydrate')>=0){ bump('dryness',.85); }
+    if(goals.indexOf('bright')>=0){ bump('spot',.8); bump('tone',.7); }
+    if(goals.indexOf('pore')>=0){ bump('pore',.8); bump('blackhead',.6); }
+    if(goals.indexOf('firm')>=0){ bump('elastic',.8); bump('wrinkle',.7); }
 
     return { sev:sev, age:age, soothing:soothing };
   }
@@ -2963,17 +3038,36 @@ DEMO_HTML = """
   }
   loadCatalogFromSupabase();
 
+  /* 단계(step) → 그 안의 라인/세부 카테고리(lines). 각 라인은 카탈로그 cat으로 매칭. */
   const TIERS = [
-    { key:'t1', label:'1단계', category:'세럼', cat:'serum',
-      desc:'클렌징·스킨·로션·세럼·크림으로 여드름을 억제하고 전반적인 피부 컨디션을 개선해요.' },
-    { key:'t2', label:'2단계', category:'선크림', cat:'sun',
-      desc:'기초 제품에 이어 피부 타입에 맞는 선케어로 노화·주름까지 예방해요.' },
-    { key:'t3', label:'3단계', category:'쿠션', cat:'cushion',
-      desc:'기초·선케어에 이어 간단한 색조 화장으로 피부 보정 효과까지 더해요.' },
-    { key:'t4', label:'4단계', category:'아이 메이크업', cat:'eye',
-      desc:'색조 화장에 이어 퍼스널 컬러에 맞는 쉐도우 제품으로 나만의 개성을 표현해요.' },
-    { key:'t5', label:'5단계', category:'뷰티 디바이스', cat:'device',
-      desc:'클렌징·기초·색조 3요소를 갖춘 뒤, 뷰티 디바이스로 얼굴형과 붓기까지 관리해요.' }
+    { key:'t1', label:'1단계', category:'스킨케어',
+      desc:'클렌징 후 토너 → 앰플 → 로션 → 크림 순서로 피부 결과 컨디션을 정돈해요.',
+      lines:[
+        { label:'토너 라인', sub:'결 정돈·수분', cat:'toner' },
+        { label:'앰플 라인', sub:'집중 케어', cat:'serum' },
+        { label:'로션 라인', sub:'가벼운 보습', cat:'lotion' },
+        { label:'크림 라인', sub:'마무리 보습·장벽', cat:'cream' }
+      ] },
+    { key:'t2', label:'2단계', category:'선케어',
+      desc:'기초 위에 피부 타입에 맞는 선케어로 노화·색소 자국을 예방해요.',
+      lines:[ { label:'선케어 라인', sub:'자외선 차단', cat:'sun' } ] },
+    { key:'t3', label:'3단계', category:'베이스 메이크업',
+      desc:'선케어에 이어 자연스러운 베이스로 피부 톤·결을 정리해요.',
+      lines:[ { label:'베이스 라인', sub:'톤·커버', cat:'cushion' } ] },
+    { key:'t4', label:'4단계', category:'아이 메이크업',
+      desc:'아이브로우로 인상을 잡고, 아이섀도우로 분위기를 완성해요.',
+      lines:[
+        { label:'아이브로우', sub:'눈썹 정리', cat:'brow' },
+        { label:'아이섀도우', sub:'분위기 연출', cat:'eye' }
+      ] },
+    { key:'t5', label:'5단계', category:'퍼퓸 & 바디',
+      desc:'향과 바디케어로 하루의 마무리까지 완성해요.',
+      lines:[
+        { label:'향수', sub:'시그니처 향', cat:'perfume' },
+        { label:'바디 로션', sub:'전신 보습', cat:'bodylotion' },
+        { label:'풋케어', sub:'발 각질·건조', cat:'foot' },
+        { label:'데오라인', sub:'냄새·땀 케어', cat:'deo' }
+      ] }
   ];
   let tierInitialized = false;
 
@@ -2999,8 +3093,17 @@ DEMO_HTML = """
   function renderTier(key){
     const tier = TIERS.find(t=>t.key===key);
     document.getElementById('tierDesc').textContent = tier.desc;
-    document.getElementById('tierCatLabel').textContent = tier.label + ' 추천 · ' + tier.category + ' TOP 3 (내 피부 맞춤순)';
-    document.getElementById('tierProdRow').innerHTML = renderProductCards(recommendForCat(tier.cat, 3));
+    const rows = tier.lines.map(line=>{
+      const products = recommendForCat(line.cat, 3);
+      if(!products.length) return '';
+      return '<div class="tier-line">' +
+        '<div class="tier-line-label">' + line.label +
+          (line.sub ? ' <span class="tier-line-sub">· ' + line.sub + '</span>' : '') + '</div>' +
+        '<div class="prod-row">' + renderProductCards(products) + '</div>' +
+      '</div>';
+    }).join('');
+    document.getElementById('tierProdRow').innerHTML = rows ||
+      '<div class="tier-line"><div class="tier-line-sub">추천 제품을 준비 중이에요.</div></div>';
   }
 
   /* ---------------- extra concerns ---------------- */
