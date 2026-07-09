@@ -1521,12 +1521,16 @@ DEMO_HTML = """
     }, 150);
   }
   function startGoogleLogin(){
-    /* Mark that signup was just initiated so the post-splash router continues to
-       consent after the OAuth redirect (survives the cross-origin round-trip). */
-    try{ sessionStorage.setItem('forhim_signup_pending', '1'); }catch(e){}
+    /* Already authenticated with Google (session lingers across reloads): no
+       OAuth needed — continue the signup right here in the iframe. */
+    if(window.USER_LOGGED_IN === '1'){ beginGoogleSignup(); return; }
+    /* Not logged in: real OAuth needs top-level navigation, which the Streamlit
+       component iframe blocks — so it falls back to opening a new tab. Use
+       localStorage (shared across tabs) so the login tab continues to consent. */
+    try{ localStorage.setItem('forhim_signup_pending', '1'); }catch(e){}
+    memberToast('구글 로그인 창을 여는 중이에요…');
     topGo('login=google');
   }
-  function startGoogleLogout(){ topGo('logout=1'); }
 
   function loadMember(){ try{ return JSON.parse(localStorage.getItem(MEMBER_KEY) || 'null'); }catch(e){ return null; } }
   function saveMember(m){ member = m; try{ if(m) localStorage.setItem(MEMBER_KEY, JSON.stringify(m)); else localStorage.removeItem(MEMBER_KEY); }catch(e){} }
@@ -1695,9 +1699,20 @@ DEMO_HTML = """
   }
 
   function memberToast(msg){ const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2400); }
+  function beginGoogleSignup(){
+    pendingProvider = 'google';
+    pendingMarketing = false;
+    linkedAccount = { provider:'google', email:(window.USER_EMAIL||''), name:(window.USER_NAME||''), age:'' };
+    showConsent();
+  }
   function logout(){
-    if(window.USER_LOGGED_IN==='1'){ memberToast('로그아웃 중이에요…'); startGoogleLogout(); return; }
-    saveMember(null); refreshRecordsForMember(); updateMemberUI(); showMemberScreen(intro);
+    /* Log out of the app locally. (The underlying Streamlit Google session can't
+       be cleared from the sandboxed iframe; it simply appears logged out here,
+       and the membership screen lets the user start again.) */
+    saveMember(null); refreshRecordsForMember(); updateMemberUI();
+    try{ localStorage.removeItem('forhim_signup_pending'); }catch(e){}
+    memberToast('로그아웃했어요.');
+    showAuth('intro');
   }
   function updateMemberUI(){ const nav = document.getElementById('navMember'); if(nav){ nav.textContent = isMember() ? '마이페이지' : '로그인'; } }
   /* Keep the stored member in sync with the real Google session: if Google
@@ -1708,8 +1723,11 @@ DEMO_HTML = """
     }
   }
   const SIGNUP_PENDING_KEY = 'forhim_signup_pending';
-  function signupPending(){ try{ return sessionStorage.getItem(SIGNUP_PENDING_KEY) === '1'; }catch(e){ return false; } }
-  function clearSignupPending(){ try{ sessionStorage.removeItem(SIGNUP_PENDING_KEY); }catch(e){} }
+  /* localStorage (not sessionStorage) so a login that completes in a new tab —
+     the only way through the iframe's top-navigation block — still continues
+     the signup, since sessionStorage is per-tab but localStorage is per-origin. */
+  function signupPending(){ try{ return localStorage.getItem(SIGNUP_PENDING_KEY) === '1'; }catch(e){ return false; } }
+  function clearSignupPending(){ try{ localStorage.removeItem(SIGNUP_PENDING_KEY); }catch(e){} }
 
   /* Decide where to land after the splash. The logo always plays first; we only
      jump into the Google signup (consent) when the user just clicked the login
@@ -1726,10 +1744,7 @@ DEMO_HTML = """
       }
       if(pending){
         clearSignupPending();
-        pendingProvider = 'google';
-        pendingMarketing = false;
-        linkedAccount = { provider:'google', email:email, name:(window.USER_NAME||''), age:'' };
-        showConsent(); return;
+        beginGoogleSignup(); return;
       }
       /* logged in but not mid-signup → show membership entry as usual */
     }
@@ -1778,7 +1793,6 @@ DEMO_HTML = """
   document.getElementById('authSkip').addEventListener('click', ()=>{ if(authOrigin==='app') backToApp(); else showMemberScreen(intro); });
   document.querySelectorAll('#screenAuth .social-btn').forEach(b=> b.addEventListener('click', ()=>{
     if(b.dataset.provider==='google' && window.AUTH_ON==='1'){
-      memberToast('구글 로그인으로 이동할게요…');
       startGoogleLogin();
       return;
     }
