@@ -5,56 +5,58 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>얼굴 하이라이트 정렬 미리보기</title>
 <style>
-  :root{ --db-line:#e6dccd; --db-brown:#8a6a52; --bg:#f6f5f2; --line:#e6e4de; --accent:#54634a; --accent-soft:#e7ecdf; }
+  :root{ --db-line:#e6dccd; --db-brown:#8a6a52; --bg:#f6f5f2; --line:#e6e4de; }
   *{box-sizing:border-box;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI","Noto Sans KR",sans-serif;
-    margin:0;padding:36px 20px;background:linear-gradient(180deg,#fbf8f4,#f3ede4);color:#2b241d;}
-  h1{font-size:21px;text-align:center;margin:0 0 6px;}
-  .sub{text-align:center;color:#8a8072;font-size:13px;margin:0 0 26px;}
-  .row{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;}
-  .panel{background:#fffdfa;border:1px solid var(--db-line);border-radius:22px;padding:24px;
+    margin:0;padding:32px 20px 60px;background:linear-gradient(180deg,#fbf8f4,#f3ede4);color:#2b241d;}
+  h1{font-size:20px;text-align:center;margin:0 0 6px;}
+  .sub{text-align:center;color:#8a8072;font-size:12.5px;margin:0 0 24px;line-height:1.6;}
+  .row{display:flex;gap:26px;justify-content:center;flex-wrap:wrap;}
+  .panel{background:#fffdfa;border:1px solid var(--db-line);border-radius:20px;padding:20px;
     box-shadow:0 10px 28px rgba(120,96,68,.06);text-align:center;}
-  .panel h2{font-size:13px;font-weight:800;color:var(--db-brown);margin:0 0 14px;letter-spacing:.03em;}
+  .panel h2{font-size:12.5px;font-weight:800;color:var(--db-brown);margin:0 0 12px;}
 
-  /* app.py와 동일한 좌표 */
-  .face-map{position:relative;width:320px;aspect-ratio:1/1;margin:0 auto;}
-  .face-model{position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;background:#f2e8d9;
-    box-shadow:inset 0 0 0 1px #ece2d2;}
+  /* app.py와 동일 좌표 (남성=기본, 여성=.gf 보정) */
+  .face-map{position:relative;width:300px;aspect-ratio:1/1;margin:0 auto;}
+  .face-model{position:absolute;inset:0;z-index:0;border-radius:20px;overflow:hidden;background:#f2e8d9;box-shadow:inset 0 0 0 1px #ece2d2;}
   .face-model img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
-  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);transition:opacity .4s ease;z-index:2;mix-blend-mode:multiply;}
+  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);z-index:2;mix-blend-mode:multiply;}
   .face-zone[data-zone="tzone"]{
-    top:34%;left:50%;width:15%;height:24%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
+    top:34%;left:50%;width:12%;height:20%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
     background:repeating-linear-gradient(115deg, rgba(201,138,60,.6) 0 3px, rgba(201,138,60,0) 3px 7px);}
   .face-zone[data-zone="cheek-l"],.face-zone[data-zone="cheek-r"]{
-    top:46%;width:15%;height:12%;
+    top:42%;width:13%;height:10%;
     background-image:radial-gradient(circle, rgba(200,110,70,.9) 0 6%, transparent 7%);
-    background-size:9px 9px;background-position:center;background-color:rgba(200,110,70,.14);}
-  .face-zone[data-zone="cheek-l"]{left:39%;}
-  .face-zone[data-zone="cheek-r"]{left:61%;}
+    background-size:8px 8px;background-position:center;background-color:rgba(200,110,70,.14);}
+  .face-zone[data-zone="cheek-l"]{left:37%;}
+  .face-zone[data-zone="cheek-r"]{left:63%;}
   .face-zone[data-zone="scar-mark"]{
-    top:47%;left:62%;width:11%;height:10%;
+    top:43%;left:63%;width:9%;height:8%;
     background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.9) 0 2px, transparent 2px 9px);}
   .face-zone[data-zone="chin"]{
-    top:55%;left:50%;width:14%;height:9%;
+    top:56%;left:50%;width:12%;height:7%;
     background-image:
       radial-gradient(circle at 30% 35%, rgba(193,60,60,.95) 0 9%, transparent 10%),
       radial-gradient(circle at 65% 55%, rgba(193,60,60,.95) 0 8%, transparent 9%),
       radial-gradient(circle at 45% 75%, rgba(193,60,60,.95) 0 7%, transparent 8%);
     background-color:rgba(193,60,60,.12);}
+  .face-map.gf .face-zone[data-zone="tzone"]{top:31%;}
+  .face-map.gf .face-zone[data-zone="cheek-l"],.face-map.gf .face-zone[data-zone="cheek-r"]{top:39%;}
+  .face-map.gf .face-zone[data-zone="scar-mark"]{top:40%;}
+  .face-map.gf .face-zone[data-zone="chin"]{top:52%;}
+
   .legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;}
-  .legend span{font-size:11px;font-weight:700;color:#8a8072;background:var(--bg);border:1px solid var(--line);
-    padding:4px 9px;border-radius:999px;}
-  .toggle{display:block;margin:26px auto 0;padding:9px 18px;border-radius:999px;border:1.5px solid var(--db-brown);
+  .legend span{font-size:11px;font-weight:700;color:#8a8072;background:var(--bg);border:1px solid var(--line);padding:4px 9px;border-radius:999px;}
+  .toggle{display:block;margin:24px auto 0;padding:9px 18px;border-radius:999px;border:1.5px solid var(--db-brown);
     background:#fff;color:var(--db-brown);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
 </style>
 </head>
 <body>
   <h1>얼굴 하이라이트 정렬 미리보기</h1>
-  <p class="sub">app.py와 동일한 좌표로 실제 사진 위에 문제 부위를 표시합니다. (버튼으로 켜고 끄기)</p>
+  <p class="sub">app.py와 동일한 좌표. 여성 사진은 얼굴이 위쪽이라 별도 보정(.gf) 적용.</p>
   <div class="row">
-    <div class="panel">
-      <h2>남성 (face_male.png)</h2>
-      <div class="face-map">
+    <div class="panel"><h2>남성 (face_male.png)</h2>
+      <div class="face-map" data-face="m">
         <div class="face-model"><img src="face_male.png" alt="남성" /></div>
         <div class="face-zone" data-zone="tzone"></div>
         <div class="face-zone" data-zone="cheek-l"></div>
@@ -64,9 +66,8 @@
       </div>
       <div class="legend"><span>유분·T존</span><span>모공·볼</span><span>흉터·볼</span><span>여드름·턱</span></div>
     </div>
-    <div class="panel">
-      <h2>여성 (face_female.png)</h2>
-      <div class="face-map">
+    <div class="panel"><h2>여성 (face_female.png)</h2>
+      <div class="face-map gf" data-face="f">
         <div class="face-model"><img src="face_female.png" alt="여성" /></div>
         <div class="face-zone" data-zone="tzone"></div>
         <div class="face-zone" data-zone="cheek-l"></div>
@@ -79,7 +80,7 @@
   </div>
   <button class="toggle" id="toggle">하이라이트 끄기</button>
 <script>
-  let on = true;
+  var on = true;
   document.getElementById('toggle').addEventListener('click', function(){
     on = !on;
     document.querySelectorAll('.face-zone').forEach(function(z){ z.style.opacity = on ? '1' : '0'; });

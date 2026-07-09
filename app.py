@@ -121,6 +121,36 @@ DEMO_HTML = """
   .trust-row{display:flex;gap:18px;margin-top:34px;flex-wrap:wrap;font-size:13px;color:#c9c8c1;}
   .trust-row span{display:flex;align-items:center;gap:6px;}
   .dot{width:4px;height:4px;border-radius:50%;background:var(--gold);}
+
+  /* ---------- REWARD MISSIONS ---------- */
+  .reward-card{background:var(--dark-soft);border:1px solid #3a3934;border-radius:var(--radius-lg);padding:20px 22px;margin-top:28px;}
+  .reward-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .reward-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:#f6f5f2;}
+  .reward-title .rw-ic{width:18px;height:18px;color:var(--gold);}
+  .reward-balance{font-size:13px;color:#c9c8c1;font-weight:700;}
+  .reward-balance b{color:var(--gold);font-size:17px;margin:0 2px;}
+  .reward-missions{display:flex;gap:12px;flex-wrap:wrap;}
+  .reward-mission{position:relative;flex:1 1 220px;min-width:200px;}
+  .rw-btn{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;
+    padding:14px 16px;border-radius:14px;border:1.5px solid #3a3934;background:#201f1c;color:#f6f5f2;
+    font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;text-align:left;
+    transition:border-color .15s ease,transform .12s ease;
+  }
+  .rw-btn:hover{border-color:var(--gold);}
+  .rw-btn:active{transform:scale(.99);}
+  .rw-btn .rw-p{flex:none;color:var(--gold);font-weight:800;font-size:13.5px;}
+  .rw-btn.done{background:#26251f;border-color:#33322d;color:#8f8e86;cursor:default;}
+  .rw-btn.done .rw-p{color:#8f8e86;}
+  .rw-tip{
+    position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);white-space:nowrap;
+    background:#1a1a18;color:#f6f5f2;font-size:11.5px;font-weight:600;padding:7px 11px;border-radius:9px;
+    opacity:0;pointer-events:none;transition:opacity .15s ease;box-shadow:0 8px 20px rgba(0,0,0,.4);z-index:8;
+  }
+  .rw-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1a1a18;}
+  .reward-mission:hover .rw-tip{opacity:1;}
+  @media (max-width:860px){ .reward-missions{flex-direction:column;} .reward-mission{flex:1 1 auto;} }
+
   .hero-visual{
     position:relative;background:var(--dark-soft);border:1px solid #3a3934;
     border-radius:var(--radius-lg);padding:26px;
@@ -670,29 +700,35 @@ DEMO_HTML = """
   .face-model svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
   /* 실제 사진 위에 문제 부위를 겹쳐 표시(멀티플라이로 피부에 자연스럽게 얹힘) */
   .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;z-index:2;mix-blend-mode:multiply;}
+  /* 기본 좌표는 남성 사진 기준. 여성 사진은 얼굴이 더 위쪽이라 .gf 로 보정. */
   .face-zone[data-zone="tzone"]{
-    top:34%;left:50%;width:15%;height:24%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
+    top:34%;left:50%;width:12%;height:20%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
     background:repeating-linear-gradient(115deg, rgba(201,138,60,.6) 0 3px, rgba(201,138,60,0) 3px 7px);
   }
   .face-zone[data-zone="cheek-l"],.face-zone[data-zone="cheek-r"]{
-    top:46%;width:15%;height:12%;
+    top:42%;width:13%;height:10%;
     background-image:radial-gradient(circle, rgba(200,110,70,.9) 0 6%, transparent 7%);
-    background-size:9px 9px;background-position:center;background-color:rgba(200,110,70,.14);
+    background-size:8px 8px;background-position:center;background-color:rgba(200,110,70,.14);
   }
-  .face-zone[data-zone="cheek-l"]{left:39%;}
-  .face-zone[data-zone="cheek-r"]{left:61%;}
+  .face-zone[data-zone="cheek-l"]{left:37%;}
+  .face-zone[data-zone="cheek-r"]{left:63%;}
   .face-zone[data-zone="scar-mark"]{
-    top:47%;left:62%;width:11%;height:10%;
+    top:43%;left:63%;width:9%;height:8%;
     background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.9) 0 2px, transparent 2px 9px);
   }
   .face-zone[data-zone="chin"]{
-    top:55%;left:50%;width:14%;height:9%;
+    top:56%;left:50%;width:12%;height:7%;
     background-image:
       radial-gradient(circle at 30% 35%, rgba(193,60,60,.95) 0 9%, transparent 10%),
       radial-gradient(circle at 65% 55%, rgba(193,60,60,.95) 0 8%, transparent 9%),
       radial-gradient(circle at 45% 75%, rgba(193,60,60,.95) 0 7%, transparent 8%);
     background-color:rgba(193,60,60,.12);
   }
+  /* 여성 사진 보정: T존·볼·흉터·턱을 위로 */
+  .face-map.gf .face-zone[data-zone="tzone"]{top:31%;}
+  .face-map.gf .face-zone[data-zone="cheek-l"],.face-map.gf .face-zone[data-zone="cheek-r"]{top:39%;}
+  .face-map.gf .face-zone[data-zone="scar-mark"]{top:40%;}
+  .face-map.gf .face-zone[data-zone="chin"]{top:52%;}
   .face-zone.on{opacity:1;}
   .face-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;}
   .legend-item{
@@ -1387,6 +1423,16 @@ DEMO_HTML = """
       <div class="face">영상 분석 화면 (데모)</div>
       <div class="cap">실제 서비스에서는 이 영역에서 카메라 분석이 진행돼요</div>
     </div>
+    <div class="reward-card" style="grid-column:1/-1;">
+      <div class="reward-head">
+        <div class="reward-title">
+          <svg class="rw-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7C12 7 12 2 8.5 2 5 2 5 7 12 7zM12 7s0-5 3.5-5S19 7 12 7z"/></svg>
+          리워드 미션
+        </div>
+        <div class="reward-balance">내 포인트 <b id="rewardTotal">0</b>P</div>
+      </div>
+      <div class="reward-missions" id="rewardMissions"></div>
+    </div>
     <div class="step-nav on-dark" style="grid-column:1/-1;">
       <button type="button" class="btn btn-outline btn-sm step-nav-btn" disabled>이전</button>
       <div class="step-progress" data-step-dots></div>
@@ -1874,8 +1920,12 @@ DEMO_HTML = """
        flow continues seamlessly and future records keep accumulating here. */
     mergeGuestIntoMember();
     updateMemberUI();
+    if(window.awardPoints){ window.awardPoints('signup'); }   /* 회원가입 500P */
     showStartChoice();
   }
+
+  /* 리워드 '회원가입' 미션 진입점: 이미 회원이면 마이페이지, 아니면 로그인 */
+  window.rewardGoSignup = function(){ showAuth('intro'); };
 
   function memberToast(msg){ const t = document.getElementById('toast'); if(!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2400); }
   function beginGoogleSignup(){
@@ -2281,6 +2331,7 @@ DEMO_HTML = """
     /* 영상 분석 + 설문을 함께 반영한 결과를 저장/기록 */
     saveLastResult();
     recordAnalysis();
+    if(window.awardPoints){ window.awardPoints('scan'); }   /* 피부 검사 1500P */
     surveyScreen.classList.remove('visible');
     setTimeout(()=>{
       surveyScreen.classList.add('hidden');
@@ -2321,10 +2372,12 @@ DEMO_HTML = """
   document.getElementById('goSimple').addEventListener('click', ()=>{
     renderSimpleResult();
     switchScreen(choice, simpleResult);
+    if(window.awardPoints){ window.awardPoints('result'); }   /* 결과 확인 300P */
   });
   document.getElementById('goDetailed').addEventListener('click', ()=>{
     renderDiagnosis();
     switchScreen(choice, diagnosis);
+    if(window.awardPoints){ window.awardPoints('result'); }   /* 결과 확인 300P */
   });
   document.getElementById('simpleBack').addEventListener('click', ()=>{
     switchScreen(simpleResult, choice);
@@ -2420,6 +2473,9 @@ DEMO_HTML = """
     const female = window.FACE_FEMALE || '';
     /* 성별에 맞는 실제 분석 사진 사용. 여성=여자.png, 그 외(남성·미선택)=남자.png */
     const src = g === 'female' ? (female || male) : (male || female);
+    /* 여성 사진은 얼굴 위치가 달라 하이라이트 좌표를 .gf 로 보정 */
+    const map = el.closest('.face-map') || el.parentElement;
+    if(map) map.classList.toggle('gf', g === 'female');
     if(src){
       el.innerHTML = '<img src="' + src + '" alt="AI 피부 분석 얼굴" />';
     } else {
@@ -2772,6 +2828,7 @@ DEMO_HTML = """
       state.analyzed = true;
       renderRoutine();
       if(window.persistAnalysis){ window.persistAnalysis(); }
+      if(window.awardPoints){ window.awardPoints('scan'); window.awardPoints('result'); }  /* 검사·결과 확인 포인트 */
     }, 1400);
   });
 
@@ -2850,6 +2907,61 @@ DEMO_HTML = """
     el.addEventListener('click', ()=> showAppStep('hero'));
   });
   showAppStep('hero');
+
+  /* ---------------- reward missions (포인트 적립) ---------------- */
+  const REWARD_MISSIONS = [
+    { key:'signup', label:'회원가입하고', short:'회원가입', amount:500,  tip:'가입 후 바로 포인트가 지급됩니다' },
+    { key:'scan',   label:'피부 검사하고', short:'피부 검사', amount:1500, tip:'피부 상태를 분석하면 포인트를 받을 수 있습니다' },
+    { key:'result', label:'결과 확인하고', short:'결과 확인', amount:300,  tip:'진단 결과 확인 후 포인트가 적립됩니다' }
+  ];
+  const REWARD_KEY = 'forhim_rewards';
+  function loadRewards(){ try{ return JSON.parse(localStorage.getItem(REWARD_KEY) || '{"total":0,"done":{}}'); }catch(e){ return {total:0, done:{}}; } }
+  let rewards = loadRewards();
+  function saveRewards(){ try{ localStorage.setItem(REWARD_KEY, JSON.stringify(rewards)); }catch(e){} }
+  function rewardToast(msg){
+    const t = document.getElementById('toast'); if(!t) return;
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 2200);
+  }
+  function renderRewards(){
+    const totalEl = document.getElementById('rewardTotal');
+    if(totalEl) totalEl.textContent = (rewards.total || 0).toLocaleString();
+    const wrap = document.getElementById('rewardMissions');
+    if(!wrap) return;
+    wrap.innerHTML = REWARD_MISSIONS.map(m=>{
+      const done = !!(rewards.done && rewards.done[m.key]);
+      const inner = done
+        ? m.short + ' <span class="rw-p">' + m.amount + 'P</span> 적립 완료 ✓'
+        : m.label + ' <span class="rw-p">' + m.amount + 'P</span> 받기';
+      return '<div class="reward-mission">' +
+        '<div class="rw-tip">' + m.tip + '</div>' +
+        '<button type="button" class="rw-btn' + (done?' done':'') + '" data-mission="' + m.key + '"' + (done?' disabled':'') + '>' +
+          '<span>' + inner + '</span>' +
+        '</button>' +
+      '</div>';
+    }).join('');
+    wrap.querySelectorAll('.rw-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> missionClick(btn.dataset.mission));
+    });
+  }
+  function awardPoints(key){
+    const m = REWARD_MISSIONS.find(x=> x.key === key);
+    if(!m) return;
+    if(!rewards.done) rewards.done = {};
+    if(rewards.done[key]) return;              /* 이미 적립됨 → 중복 지급 방지 */
+    rewards.done[key] = true;
+    rewards.total = (rewards.total || 0) + m.amount;
+    saveRewards();
+    renderRewards();
+    rewardToast(m.amount + 'P 적립 완료');
+  }
+  function missionClick(key){
+    if(rewards.done && rewards.done[key]) return;
+    if(key === 'signup'){ if(window.rewardGoSignup){ window.rewardGoSignup(); } }
+    else { showAppStep('analysis'); }          /* 피부 검사·결과 확인 → 분석 단계로 유도 */
+  }
+  window.awardPoints = awardPoints;
+  renderRewards();
 
   /* ---------------- product card helper ---------------- */
   function renderProductCards(list){
