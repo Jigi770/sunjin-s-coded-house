@@ -1622,7 +1622,15 @@ DEMO_HTML = """
     startCamera();
   }
 
-  function showAuth(origin){ authOrigin = origin || 'intro'; if(isMember()){ showMyPage(); return; } showMemberScreen(screenAuth); }
+  function showAuth(origin){
+    authOrigin = origin || 'intro';
+    if(isMember()){ showMyPage(); return; }
+    /* "뒤로" only makes sense when we opened auth from inside the app; on the
+       entry screen (after splash) there is nothing to go back to. */
+    const back = document.getElementById('authBack');
+    if(back) back.style.display = (authOrigin === 'app') ? '' : 'none';
+    showMemberScreen(screenAuth);
+  }
   function backFromAuth(){ if(authOrigin==='app'){ backToApp(); } else { showMemberScreen(intro); } }
   function doSocial(provider){
     pendingProvider = provider;
@@ -1795,9 +1803,9 @@ DEMO_HTML = """
        yank the user back when the splash timer fires. */
     if(realAuthActive) return;
     /* Membership is the primary entry: show it first. "회원가입 없이 둘러보기"
-       and "뒤로" fall through to the intro (nickname/age) guest quick-start. */
-    authOrigin = 'intro';
-    showMemberScreen(screenAuth);
+       falls through to the intro (nickname/age) guest quick-start. No "뒤로"
+       on the entry screen. */
+    showAuth('intro');
   }, 3700);
 
   /* ---------------- 2) intro form ---------------- */
@@ -2681,6 +2689,42 @@ DEMO_HTML = """
     if(hintEl) hintEl.textContent = msg || '세션이 만료됐어요. 다시 로그인 후 등록해주세요.';
     cmOpenAuth();
   }
+
+  /* ---- bridge the Google login into a Supabase community session ---- */
+  /* The community stores posts in Supabase with RLS, so it needs a Supabase
+     session — separate from the Google OIDC login. To avoid asking the user to
+     log in twice, we derive a stable credential from their Google email and
+     silently sign in/up. NOTE: demo-grade — the derived password is computable
+     from the email, so it is not secure for production. Requires the Supabase
+     project's email provider to NOT require email confirmation. */
+  function cmDerivePw(email){
+    const e = String(email || '').toLowerCase();
+    let hash = 5381;
+    for(let i=0;i<e.length;i++){ hash = ((hash*33) ^ e.charCodeAt(i)) >>> 0; }
+    return 'FORHIM-g-' + hash.toString(36) + '-' + e.length + 'x';
+  }
+  async function cmBridgeFromGoogle(){
+    if(!SB_ON || cmLoggedIn()) return cmLoggedIn();
+    if(window.USER_LOGGED_IN !== '1' || !window.USER_EMAIL) return false;
+    const email = window.USER_EMAIL, pw = cmDerivePw(email);
+    try{
+      let res = await sbSignin(email, pw);
+      if(!(res && res.access_token)){
+        await sbSignup(email, pw);
+        res = await sbSignin(email, pw);
+      }
+      if(res && res.access_token){ cmSaveSession(res); return true; }
+    }catch(e){}
+    return false;
+  }
+  /* Ensure a community session before a write: reuse it, else bridge from
+     Google, else fall back to the email login modal. */
+  async function cmEnsureLogin(){
+    if(cmLoggedIn()) return true;
+    if(await cmBridgeFromGoogle()) return true;
+    cmOpenAuth();
+    return false;
+  }
   function cmMapRow(p){
     return { id:String(p.id), cat:p.category, title:p.title, body:p.body, photo:p.photo_url||null,
       author:p.author||'익명', skin:p.skin_tags||[], createdAt:p.created_at?new Date(p.created_at).getTime():Date.now(),
@@ -2725,6 +2769,9 @@ DEMO_HTML = """
   function cmOpenAuth(){
     if(!SB_ON){ cmShowToast('로그인은 Supabase 연동 후 사용할 수 있어요.'); return; }
     document.getElementById('cmAuthHint').textContent = '';
+    /* Prefill the Google email so a fallback login is one step. */
+    const emailInput = document.getElementById('cmAuthEmail');
+    if(emailInput && !emailInput.value && window.USER_EMAIL){ emailInput.value = window.USER_EMAIL; }
     document.getElementById('cmAuthModal').hidden = false;
   }
   function cmCloseAuth(){ document.getElementById('cmAuthModal').hidden = true; }
@@ -2841,7 +2888,7 @@ DEMO_HTML = """
     const val = input.value.trim();
     if(!val) return;
     if(SB_ON){
-      if(cmNeedLogin()) return;
+      if(!(await cmEnsureLogin())) return;
       try{
         const r = await sbWrite(window.SB_URL + '/rest/v1/comments', 'POST',
           { post_id:id, user_id:cmSession.user.id, author:cmUserName(), body:val });
@@ -2929,7 +2976,7 @@ DEMO_HTML = """
     if(!title || !body){ hint.textContent = '제목과 내용을 모두 입력해주세요.'; return; }
 
     if(SB_ON){
-      if(cmNeedLogin()) return;
+      if(!(await cmEnsureLogin())) return;
       hint.textContent = '';
       try{
         if(cmEditingId){
@@ -2994,7 +3041,12 @@ DEMO_HTML = """
   cmRenderCats();
   cmRenderList();
   cmRenderAuth();
-  if(SB_ON){ cmRefresh(); }
+  if(SB_ON){
+    cmRefresh();
+    /* If already signed in with Google, bridge into a Supabase session now so
+       the community shows as logged in and writes work without a 2nd login. */
+    if(!cmLoggedIn() && window.USER_LOGGED_IN === '1'){ cmBridgeFromGoogle(); }
+  }
 
   document.getElementById('cmCats').addEventListener('click', function(e){
     const btn = e.target.closest('.cm-cat'); if(!btn) return;
