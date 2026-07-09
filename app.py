@@ -78,6 +78,13 @@ DEMO_HTML = """
   h1,h2,h3{margin:0;font-weight:700;letter-spacing:-0.02em;}
   h2{font-size:clamp(24px,3.4vw,34px);}
   .sub{color:var(--ink-soft);font-size:16px;margin-top:10px;max-width:560px;}
+  /* 화면 너비와 상관없이 한 줄 유지(줄바꿈 방지). 좁으면 폰트 축소 후 가로 스크롤로 대응. */
+  .single-line-text{
+    white-space:nowrap;max-width:100%;overflow-x:auto;
+    font-size:clamp(12px,1.5vw,16px);
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  .single-line-text::-webkit-scrollbar{display:none;}
   .sub.on-dark{color:#c9c8c1;}
 
   /* ---------- NAV ---------- */
@@ -149,7 +156,30 @@ DEMO_HTML = """
   }
   .rw-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1a1a18;}
   .reward-mission:hover .rw-tip{opacity:1;}
-  @media (max-width:860px){ .reward-missions{flex-direction:column;} .reward-mission{flex:1 1 auto;} }
+
+  /* 리워드 미션(좌) + 사용처 패널(우) */
+  .reward-body{display:grid;grid-template-columns:1.5fr 1fr;gap:22px;align-items:start;}
+  .reward-col{min-width:0;}
+  .reward-use{border-left:1px solid #3a3934;padding-left:22px;}
+  .reward-use-head{font-size:13px;font-weight:800;color:#f6f5f2;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .reward-use-head span{font-size:11px;font-weight:700;color:var(--gold);background:var(--gold-soft);padding:3px 9px;border-radius:999px;}
+  .use-card{
+    display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;border:1.5px solid #3a3934;
+    background:#201f1c;margin-bottom:10px;transition:border-color .15s ease,transform .12s ease;position:relative;
+  }
+  .use-card:last-child{margin-bottom:0;}
+  .use-card:hover{border-color:var(--gold);transform:translateY(-1px);}
+  .use-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;}
+  .use-txt{flex:1;min-width:0;}
+  .use-txt b{display:block;font-size:14px;font-weight:700;color:#f6f5f2;}
+  .use-txt span{display:block;font-size:11px;color:#a9a89f;margin-top:2px;}
+  .use-go{font-size:11px;font-weight:700;color:#8f8e86;flex:none;transition:color .15s ease;}
+  .use-card:hover .use-go{color:var(--gold);}
+  @media (max-width:860px){
+    .reward-missions{flex-direction:column;} .reward-mission{flex:1 1 auto;}
+    .reward-body{grid-template-columns:1fr;}
+    .reward-use{border-left:none;padding-left:0;border-top:1px solid #3a3934;padding-top:18px;}
+  }
 
   .hero-visual{
     position:relative;background:var(--dark-soft);border:1px solid #3a3934;
@@ -451,6 +481,54 @@ DEMO_HTML = """
   .cm-skintags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
   .cm-skintag{font-size:9.5px;font-weight:700;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);padding:2px 8px;border-radius:999px;}
   .cm-empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:44px 0;}
+
+  /* 콘텐츠 유형 배지 */
+  .cm-type-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;color:#fff;}
+  .cm-type-badge.vote{background:#c15c8a;}
+  .cm-type-badge.ba{background:#5c7a9b;}
+
+  /* 투표(남좋메/여좋메) */
+  .cm-vote{display:flex;flex-direction:column;gap:8px;margin:6px 0 12px;}
+  .cm-vote-opt{
+    position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;
+    width:100%;padding:11px 14px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);
+    font-family:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;overflow:hidden;transition:border-color .15s ease;
+  }
+  .cm-vote-opt:not([disabled]):hover{border-color:var(--accent);}
+  .cm-vote-opt[disabled]{cursor:default;}
+  .cm-vote-fill{position:absolute;left:0;top:0;bottom:0;background:var(--accent-soft);transition:width .5s cubic-bezier(.2,.8,.2,1);z-index:0;}
+  .cm-vote-opt.mine .cm-vote-fill{background:#dbe6cf;}
+  .cm-vote-opt.mine{border-color:var(--accent);}
+  .cm-vote-label,.cm-vote-pct{position:relative;z-index:1;}
+  .cm-vote-pct{color:var(--accent);font-weight:800;}
+  .cm-vote-total{font-size:11.5px;color:var(--ink-soft);font-weight:600;text-align:right;}
+
+  /* 비포·애프터 */
+  .cm-ba{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 12px;}
+  .cm-ba-col{position:relative;border-radius:11px;overflow:hidden;background:#ece8e0;aspect-ratio:4/5;}
+  .cm-ba.big .cm-ba-col{aspect-ratio:1/1;}
+  .cm-ba-img{width:100%;height:100%;object-fit:cover;display:block;}
+  .cm-ba-img.before{filter:grayscale(0.85) brightness(0.92) contrast(0.95);}
+  .cm-ba-tag{position:absolute;top:8px;left:8px;z-index:2;font-size:10px;font-weight:800;letter-spacing:.05em;padding:3px 8px;border-radius:999px;background:rgba(26,26,24,.72);color:#fff;}
+  .cm-ba-tag.after{background:var(--accent);}
+  .cm-ba-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:12px;}
+
+  /* 사용 제품 · 변화 포인트 */
+  .cm-extra{margin:14px 0 0;padding-top:14px;border-top:1px solid var(--line);}
+  .cm-extra-label{font-size:11.5px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px;}
+  .cm-prod-list{display:flex;flex-direction:column;gap:7px;}
+  .cm-prod-item{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:var(--ink);}
+  .cm-prod-no{width:20px;height:20px;border-radius:50%;background:var(--dark);color:#fff;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;}
+  .cm-change{font-size:13.5px;color:#4a4944;line-height:1.65;background:var(--accent-soft);padding:12px 14px;border-radius:11px;}
+
+  /* 작성 폼: 콘텐츠 유형 선택 */
+  .cm-type-seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .cm-type-btn{
+    flex:1 1 auto;padding:10px 12px;border-radius:11px;border:1.5px solid var(--line);background:var(--bg);
+    color:var(--ink-soft);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;white-space:nowrap;
+  }
+  .cm-type-btn:hover{border-color:#c8c6bd;}
+  .cm-type-btn.on{background:var(--dark);border-color:var(--dark);color:#fff;}
 
   /* detail view */
   .cm-back{
@@ -787,7 +865,7 @@ DEMO_HTML = """
   #diagCta{margin-top:14px;width:100%;padding:13px;font-size:15px;background:var(--db-brown);}
   #diagCta:hover{opacity:.9;}
 
-  .face-map{position:relative;width:100%;max-width:194px;aspect-ratio:1/1;margin:6px auto 0;}
+  .face-map{position:relative;width:100%;max-width:290px;aspect-ratio:1/1;margin:8px auto 0;}
   .face-model{
     position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;background:#f2e8d9;
     box-shadow:inset 0 0 0 1px #ece2d2, 0 8px 20px rgba(120,96,68,.10);
@@ -1521,14 +1599,36 @@ DEMO_HTML = """
       <div class="cap">실제 서비스에서는 이 영역에서 카메라 분석이 진행돼요</div>
     </div>
     <div class="reward-card" style="grid-column:1/-1;">
-      <div class="reward-head">
-        <div class="reward-title">
-          <svg class="rw-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7C12 7 12 2 8.5 2 5 2 5 7 12 7zM12 7s0-5 3.5-5S19 7 12 7z"/></svg>
-          리워드 미션
+      <div class="reward-body">
+        <div class="reward-col">
+          <div class="reward-head">
+            <div class="reward-title">
+              <svg class="rw-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7C12 7 12 2 8.5 2 5 2 5 7 12 7zM12 7s0-5 3.5-5S19 7 12 7z"/></svg>
+              리워드 미션
+            </div>
+            <div class="reward-balance">내 포인트 <b id="rewardTotal">0</b>P</div>
+          </div>
+          <div class="reward-missions" id="rewardMissions"></div>
         </div>
-        <div class="reward-balance">내 포인트 <b id="rewardTotal">0</b>P</div>
+        <div class="reward-use">
+          <div class="reward-use-head">리워드 사용처 <span>여기서 바로 사용 가능</span></div>
+          <a class="use-card" href="https://tinder.com" target="_blank" rel="noopener noreferrer">
+            <div class="use-ic" style="background:#3a2530;color:#fe3c72;">🔥</div>
+            <div class="use-txt"><b>틴더</b><span>포인트 사용 가능</span></div>
+            <div class="use-go">사이트로 이동 →</div>
+          </a>
+          <a class="use-card" href="https://map.naver.com/p/search/%ED%98%BC%EC%88%A0%EC%A7%91" target="_blank" rel="noopener noreferrer">
+            <div class="use-ic" style="background:#233022;color:#5ac467;">🍶</div>
+            <div class="use-txt"><b>혼술집</b><span>제휴 혜택 확인</span></div>
+            <div class="use-go">네이버 맵에서 보기 →</div>
+          </a>
+          <a class="use-card" href="https://www.oliveyoung.co.kr" target="_blank" rel="noopener noreferrer">
+            <div class="use-ic" style="background:#2f2a20;color:#f5c04a;">🛍️</div>
+            <div class="use-txt"><b>올리브영</b><span>적립 포인트로 이용</span></div>
+            <div class="use-go">추천 상품 보러가기 →</div>
+          </a>
+        </div>
       </div>
-      <div class="reward-missions" id="rewardMissions"></div>
     </div>
     <div class="step-nav on-dark" style="grid-column:1/-1;">
       <button type="button" class="btn btn-outline btn-sm step-nav-btn" disabled>이전</button>
@@ -1542,7 +1642,7 @@ DEMO_HTML = """
   <div class="wrap">
     <div class="eyebrow">SKIN ANALYSIS AI</div>
     <h2>피부 영상 분석 AI</h2>
-    <p class="sub">카메라 앞에 서지 않아도 괜찮아요. 이 데모에서는 지금 느끼는 고민을 선택하면 실제 분석처럼 결과를 보여드려요.</p>
+    <p class="sub single-line-text">카메라 앞에 서지 않아도 괜찮아요. 이 데모에서는 지금 느끼는 고민을 선택하면 실제 분석처럼 결과를 보여드려요.</p>
 
     <div class="analysis-card">
       <div class="picker-label">지금 가장 신경 쓰이는 부분을 선택해주세요 (복수 선택 가능)</div>
@@ -1585,7 +1685,7 @@ DEMO_HTML = """
   <div class="wrap">
     <div class="eyebrow">PRODUCT RECOMMEND AI</div>
     <h2>제품 추천 AI</h2>
-    <p class="sub">관리 단계를 선택하면, 단계 안에서 라인·카테고리별로 AI가 매칭한 추천 제품을 보여드려요.</p>
+    <p class="sub single-line-text">관리 단계를 선택하면, 단계 안에서 라인·카테고리별로 AI가 매칭한 추천 제품을 보여드려요.</p>
 
     <div class="tier-tabs" id="tierTabs"></div>
     <div class="tier-desc" id="tierDesc"></div>
@@ -1685,6 +1785,14 @@ DEMO_HTML = """
       <div class="cm-form">
         <div class="cm-form-title" id="cmFormTitle">새 글 남기기</div>
         <div class="cm-field">
+          <label>콘텐츠 유형</label>
+          <div class="cm-type-seg" id="cmFormType">
+            <button type="button" class="cm-type-btn on" data-type="normal">일반 글</button>
+            <button type="button" class="cm-type-btn" data-type="vote">투표형 (남좋메/여좋메)</button>
+            <button type="button" class="cm-type-btn" data-type="ba">비포·애프터</button>
+          </div>
+        </div>
+        <div class="cm-field">
           <label>카테고리</label>
           <select id="cmFormCat"></select>
         </div>
@@ -1692,9 +1800,20 @@ DEMO_HTML = """
           <label>제목</label>
           <input type="text" id="cmFormTitleInput" maxlength="60" placeholder="제목을 입력해주세요" />
         </div>
+        <div class="cm-field" id="cmFormVoteFields" hidden>
+          <label>투표 선택지 (2개)</label>
+          <input type="text" id="cmFormOpt1" maxlength="30" placeholder="선택지 1 (예: 가볍게 톤업만)" style="margin-bottom:8px;" />
+          <input type="text" id="cmFormOpt2" maxlength="30" placeholder="선택지 2 (예: 확실하게 커버)" />
+        </div>
         <div class="cm-field">
           <label>내용</label>
           <textarea id="cmFormBody" placeholder="같은 고민을 가진 분들에게 편하게 이야기해보세요"></textarea>
+        </div>
+        <div class="cm-field" id="cmFormBaFields" hidden>
+          <label>사용 제품 (줄바꿈으로 구분)</label>
+          <textarea id="cmFormProducts" placeholder="예)&#10;닥터지 레드 블레미쉬 토너&#10;라운드랩 마데카 크림" style="min-height:80px;margin-bottom:12px;"></textarea>
+          <label>변화 포인트</label>
+          <input type="text" id="cmFormChange" maxlength="80" placeholder="예: 붉은기가 가라앉고 톤이 밝아졌어요" />
         </div>
         <div class="cm-field">
           <label>사진 첨부 (선택)</label>
@@ -1762,7 +1881,7 @@ DEMO_HTML = """
   let enteredAge = 29;
 
   /* ---------------- 0) last-result recall ---------------- */
-  const RECALL_KEY = 'forhim_last_result';
+  const RECALL_KEY = 'forhim_last_result_v3';
 
   function saveLastResult(){
     try {
@@ -1812,8 +1931,9 @@ DEMO_HTML = """
   /* Records are stored per-account so a new member starts empty and their own
      history keeps accumulating. Guests write to a shared bucket that is merged
      into the account on sign-up, so a just-finished analysis carries over. */
-  const RECORDS_PREFIX = 'forhim_records_v2_';
-  const GUEST_RECORDS_KEY = 'forhim_records_guest';
+  /* v3: 이전 버전에 쌓인 더미/샘플·중복 기록을 무시하고 새 버킷부터 실제 기록만 저장 */
+  const RECORDS_PREFIX = 'forhim_records_v3_';
+  const GUEST_RECORDS_KEY = 'forhim_records_guest_v3';
   const screenAuth = document.getElementById('screenAuth');
   const screenConsent = document.getElementById('screenConsent');
   const screenProfile = document.getElementById('screenProfile');
@@ -1904,6 +2024,18 @@ DEMO_HTML = """
     records = acct;
     try{ localStorage.setItem(RECORDS_PREFIX + memberId(), JSON.stringify(acct)); }catch(e){}
   }
+  /* 이전 버전(v2 등)에 쌓인 더미/중복 기록을 localStorage에서 실제로 제거 */
+  (function purgeLegacyRecords(){
+    try{
+      const kill = [];
+      for(let i=0;i<localStorage.length;i++){
+        const k = localStorage.key(i);
+        if(!k) continue;
+        if(k.indexOf('forhim_records_v2_')===0 || k==='forhim_records_guest' || k==='forhim_last_result'){ kill.push(k); }
+      }
+      kill.forEach(function(k){ localStorage.removeItem(k); });
+    }catch(e){}
+  })();
   let records = null;
   records = loadRecords();
 
@@ -1917,10 +2049,14 @@ DEMO_HTML = """
     const overall = Math.round(metrics.reduce((a,m)=>a+m.score,0)/metrics.length*10);
     const worst = metrics.reduce((a,b)=> a.score<b.score?a:b);
     const type = state.concerns.has('oil') ? '지성' : (state.concerns.has('pore')||state.concerns.has('scar')) ? '복합성' : '중성';
-    const cs = Array.from(state.concerns);
-    const rec = { id:'a'+Date.now(), date:Date.now(), score:overall, type:type, top:worst.label,
+    const cs = Array.from(state.concerns).sort();
+    const sig = type + '|' + overall + '|' + cs.join(',');   /* 동일 분석 판별용 서명 */
+    const rec = { id:'a'+Date.now(), date:Date.now(), score:overall, type:type, top:worst.label, sig:sig,
       summary:(cs.map(concernLabel).join('·')||'전반') + ' 중심 분석, 종합 ' + overall + '점' };
-    if(records.analyses[0] && Date.now()-records.analyses[0].date < 60000){ records.analyses[0] = rec; }
+    /* 같은 결과를 반복 완료하거나 짧은 시간 내 재저장되면 새 기록을 쌓지 않고 최신 것만 갱신
+       → 탭 이동/새로고침/최근 결과 다시 보기 등으로 중복 누적되지 않음 */
+    const latest = records.analyses[0];
+    if(latest && (latest.sig === sig || Date.now() - latest.date < 60000)){ records.analyses[0] = rec; }
     else { records.analyses.unshift(rec); }
     saveRecords(records);
   }
@@ -3576,36 +3712,55 @@ DEMO_HTML = """
   /* ---------------- community (localStorage + dummy data) ---------------- */
   const CM_CATS = [
     {key:'all', label:'전체'},
+    {key:'vote', label:'남좋메/여좋메 투표', color:'#c15c8a'},
+    {key:'ba', label:'비포·애프터', color:'#5c7a9b'},
+    {key:'mkup_basic', label:'메이크업 입문', color:'#b58b5c'},
+    {key:'natural', label:'자연스러운 피부 표현', color:'#7a9b6f'},
+    {key:'date_makeup', label:'소개팅 메이크업', color:'#d9564f'},
+    {key:'work_makeup', label:'면접/출근 메이크업', color:'#5c6f8b'},
+    {key:'cover', label:'트러블 커버 팁', color:'#c98a3c'},
+    {key:'review', label:'제품 후기', color:'#8b6f47'},
     {key:'pore', label:'모공', color:'#c86e46'},
     {key:'oil', label:'유분/피지', color:'#c98a3c'},
     {key:'acne', label:'여드름/트러블', color:'#c13c3c'},
     {key:'scar', label:'흉터/자국', color:'#965a96'},
     {key:'sensitive', label:'민감성', color:'#c1666b'},
-    {key:'dry', label:'건조', color:'#5c8b9b'},
-    {key:'elastic', label:'탄력/주름', color:'#8b6f47'},
-    {key:'shave', label:'면도 자극', color:'#6b8b6f'},
-    {key:'allinone', label:'올인원 추천', color:'#7a8b5c'},
-    {key:'beginner', label:'초보자 루틴', color:'#54634a'},
-    {key:'product', label:'제품 추천', color:'#b58b5c'}
+    {key:'shave', label:'면도 자극', color:'#6b8b6f'}
   ];
   const CM_CAT_LABEL = {};
   CM_CATS.forEach(c=>{ CM_CAT_LABEL[c.key] = c.label; });
   const CM_SKIN_LABEL = {scar:'흉터',pore:'모공',oil:'유분',acne:'여드름',sensitive:'민감성',dry:'건조',elastic:'탄력'};
 
-  const CM_STORE = 'forhim_community_posts';
+  const CM_STORE = 'forhim_community_posts_v2';
   const CM_FAV = 'forhim_community_favs';
+  const CM_VOTE = 'forhim_community_votes';   /* 사용자가 투표한 항목 {postId: optionKey} */
 
   function cmSeed(){
     const now = Date.now(); const H = 3600000, D = 86400000;
+    const FM = (window.FACE_MALE || null), FF = (window.FACE_FEMALE || null);
     return [
-      {id:'seed2', cat:'acne', title:'턱에 화농성 여드름이 계속 올라와요', body:'턱 주변으로 크고 아픈 여드름이 반복돼요. 뭐부터 시작하면 좋을까요? 진정 위주로 가는 게 맞나요?', author:'야근장인', skin:['acne','oil'], photo:null, createdAt:now-5*H, comments:[{id:'c2',author:'초보탈출',body:'저도 비슷했는데 유분 잡고 진정 토너 쓰니 확실히 덜 나요.',createdAt:now-4*H},{id:'c3',author:'피부과다녀옴',body:'심하면 피부과 병행도 추천이요!',createdAt:now-3*H}]},
-      {id:'seed1', cat:'pore', title:'모공 넓은데 클렌징만 잘해도 나아질까요?', body:'파운데이션도 안 바르는데 코 옆 모공이 너무 신경 쓰여요. 세안만 신경 써도 좀 나아질까요? 이중세안 꼭 해야 하나요?', author:'코딩하는곰', skin:['pore','oil'], photo:null, createdAt:now-3*H, comments:[{id:'c1',author:'루틴관리중',body:'저는 미온수 세안 + 주2회 각질케어로 확실히 줄었어요!',createdAt:now-2*H}]},
-      {id:'seed3', cat:'beginner', title:'스킨케어 완전 초보인데 뭐부터 사야 하나요?', body:'화장품 한 번도 안 써봤어요. 올인원 하나로 시작해도 괜찮을까요? 순서도 잘 모르겠어요.', author:'초보루틴', skin:['acne'], photo:null, createdAt:now-1*D, comments:[]},
-      {id:'seed4', cat:'oil', title:'T존만 번들거리는 복합성 관리 팁', body:'T존은 기름지고 볼은 당기는데 다들 어떻게 관리하세요? 제품을 부위별로 다르게 써야 하나요?', author:'T존건조', skin:['oil','dry'], photo:null, createdAt:now-1*D-2*H, comments:[]},
-      {id:'seed5', cat:'shave', title:'면도 후 따갑고 붉어지는 거 어떻게 잡죠?', body:'매일 면도하는데 턱 라인이 늘 붉고 따가워요. 면도 후에 뭘 발라야 진정이 될까요?', author:'아침면도', skin:['sensitive','acne'], photo:null, createdAt:now-2*D, comments:[{id:'c4',author:'수염관리',body:'면도 후 진정크림 필수예요. 알콜 든 애프터쉐이브는 피하세요!',createdAt:now-1*D}]},
-      {id:'seed6', cat:'product', title:'입문용 선크림 추천 좀 해주세요', body:'백탁 없고 산뜻한 남성용 선크림 찾고 있어요. 데일리로 부담 없이 쓸만한 거 있을까요?', author:'출근전5분', skin:['oil'], photo:null, createdAt:now-3*D, comments:[]},
-      {id:'seed7', cat:'dry', title:'세안 후 당김이 너무 심해요', body:'세안하고 나면 얼굴이 쫙 당겨요. 보습을 어떻게 쌓아야 촉촉함이 오래 갈까요?', author:'건조주의보', skin:['dry','sensitive'], photo:null, createdAt:now-4*D, comments:[]},
-      {id:'seed8', cat:'allinone', title:'귀찮은 사람용 올인원 루틴 공유', body:'아침에 시간 없어서 올인원 + 선크림만 발라요. 이 정도만 해도 충분할까요? 다들 최소 루틴 뭐 쓰세요?', author:'미니멀케어', skin:['oil'], photo:null, createdAt:now-5*D, comments:[{id:'c5',author:'바쁨',body:'저도 딱 그 루틴인데 안 하는 것보단 훨씬 나아요.',createdAt:now-4*D}]}
+      {id:'v1', cat:'vote', type:'vote', title:'남좋메 vs 여좋메 — 데일리 톤업 어디까지?', body:'출근·소개팅 때 톤업 어디까지 하세요? 투표 부탁드려요 🙏', author:'톤업고민', skin:['oil'], createdAt:now-2*H,
+        options:[{key:'natural',label:'가볍게 톤업만 (남좋메)',votes:186},{key:'cover',label:'확실하게 커버 (여좋메)',votes:124}],
+        comments:[{id:'cv1',author:'자연파',body:'저는 무조건 가볍게요. 과하면 부담스러워요.',createdAt:now-1*H}]},
+      {id:'b1', cat:'ba', type:'ba', title:'화농성 트러블 → 3개월 진정 루틴 비포·애프터', body:'3개월 기록 공유해요. 유분 잡고 진정 위주로 갔어요.', author:'3개월기록', skin:['acne','oil'], createdAt:now-4*H,
+        beforePhoto:FM, afterPhoto:FM,
+        products:['닥터지 레드 블레미쉬 클리어 수딩 토너','라운드랩 마데카 크림','메디힐 마데카소사이드 선세럼'],
+        change:'붉은기와 유분이 눈에 띄게 가라앉고 피부 톤이 밝아졌어요. 트러블 빈도도 확 줄었습니다.',
+        comments:[{id:'cb1',author:'트러블탈출',body:'와 진짜 달라지셨네요. 토너 바로 사러 갑니다!',createdAt:now-3*H},{id:'cb2',author:'진정중',body:'선세럼 저도 쓰는데 자극 없어서 좋아요.',createdAt:now-2*H}]},
+      {id:'v2', cat:'vote', type:'vote', title:'소개팅 날, 아이브로우 꼭 해야 할까?', body:'눈썹만 정리해도 인상이 산다는데… 다들 어떻게 생각하세요?', author:'소개팅D-1', skin:['pore'], createdAt:now-7*H,
+        options:[{key:'yes',label:'해야 인상이 산다',votes:212},{key:'no',label:'자연스러운 게 낫다',votes:97}],
+        comments:[]},
+      {id:'b2', cat:'ba', type:'ba', title:'면접룩 메이크업 비포·애프터', body:'면접 전날 이렇게 준비했습니다. 과하지 않게 신뢰감 위주로.', author:'취준막바지', skin:['pore'], createdAt:now-1*D,
+        beforePhoto:FM, afterPhoto:FM,
+        products:['에스트라 아토베리어365 크림','헤라 블랙 쿠션','클리오 킬브로우 펜슬'],
+        change:'톤 정리 + 자연스러운 커버로 또렷하고 단정한 인상이 됐어요.',
+        comments:[{id:'cb3',author:'인사담당',body:'딱 좋네요. 깔끔한 인상이 제일 중요해요.',createdAt:now-20*H}]},
+      {id:'m1', cat:'mkup_basic', type:'normal', title:'남자 메이크업 입문 — 딱 3종만', body:'처음이면 이거 3개로 충분해요. 얇게만 바르세요!', author:'입문가이드', skin:['oil'], createdAt:now-1*D-3*H,
+        products:['산뜻한 선크림','내추럴 톤 쿠션','아이브로우 펜슬'], change:null, comments:[]},
+      {id:'m2', cat:'date_makeup', type:'normal', title:'소개팅 메이크업, 과하지 않게 하는 법', body:'톤업 위주로 가볍게. 입술만 살짝 생기 주면 끝이에요.', author:'연애고수', skin:['oil'], createdAt:now-2*D,
+        products:['정샘물 쿠션','페리페라 틴트'], change:null, comments:[{id:'cm2',author:'첫소개팅',body:'틴트 팁 감사해요! 바로 적용해볼게요.',createdAt:now-1*D-4*H}]},
+      {id:'m3', cat:'natural', type:'normal', title:'자연스러운 피부 표현 핵심 팁', body:'한 번에 두껍게 X. 얇게 여러 번 올리는 게 자연스러움의 핵심이에요.', author:'피부표현러', skin:['pore'], createdAt:now-3*D, comments:[]},
+      {id:'m4', cat:'cover', type:'normal', title:'트러블 자국 커버 어떻게 하세요?', body:'붉은 자국 위에 뭘 먼저 올려야 티가 안 날까요? 컨실러 순서 궁금해요.', author:'커버초보', skin:['acne'], createdAt:now-4*D, comments:[]}
     ];
   }
   function cmSave(list){ try{ localStorage.setItem(CM_STORE, JSON.stringify(list)); }catch(e){} }
@@ -3616,12 +3771,25 @@ DEMO_HTML = """
   function cmSaveFavs(set){ try{ localStorage.setItem(CM_FAV, JSON.stringify(Array.from(set))); }catch(e){} }
   function cmLoadFavs(){ try{ return new Set(JSON.parse(localStorage.getItem(CM_FAV) || '[]')); }catch(e){ return new Set(); } }
 
+  function cmLoadVotes(){ try{ return JSON.parse(localStorage.getItem(CM_VOTE) || '{}'); }catch(e){ return {}; } }
+  function cmSaveVotes(v){ try{ localStorage.setItem(CM_VOTE, JSON.stringify(v)); }catch(e){} }
+
   let cmPosts = cmLoad();
   let cmFavs = cmLoadFavs();
+  let cmVotes = cmLoadVotes();
   let cmActiveCat = 'all';
   let cmQuery = '';
   let cmEditingId = null;
   let cmPendingPhoto = null;
+  let cmFormType = 'normal';
+  function cmSetFormType(t){
+    cmFormType = t;
+    document.querySelectorAll('#cmFormType .cm-type-btn').forEach(function(b){ b.classList.toggle('on', b.dataset.type===t); });
+    const vf = document.getElementById('cmFormVoteFields');
+    const bf = document.getElementById('cmFormBaFields');
+    if(vf) vf.hidden = (t!=='vote');
+    if(bf) bf.hidden = (t!=='ba');
+  }
 
   /* ---- optional Supabase backend + email auth (falls back to localStorage) ---- */
   const SB_ON = !!(window.SB_URL && window.SB_KEY && String(window.SB_URL).indexOf('http') === 0);
@@ -3816,6 +3984,67 @@ DEMO_HTML = """
   }
   function cmToggleFav(id){ if(cmFavs.has(id)) cmFavs.delete(id); else cmFavs.add(id); cmSaveFavs(cmFavs); }
 
+  /* ----- 투표(남좋메/여좋메) ----- */
+  function cmVoteTotal(p){ return (p.options||[]).reduce(function(a,o){ return a + (o.votes||0); }, 0); }
+  function cmVote(id, optKey){
+    const p = cmPosts.find(function(x){ return x.id===id; });
+    if(!p || !p.options) return;
+    if(cmVotes[id]) return;                 /* 이미 투표함 → 1인 1표 */
+    const opt = p.options.find(function(o){ return o.key===optKey; });
+    if(!opt) return;
+    opt.votes = (opt.votes||0) + 1;
+    cmVotes[id] = optKey; cmSaveVotes(cmVotes);
+    cmSave(cmPosts);
+    cmShowToast('투표 완료! 결과를 확인하세요.');
+  }
+  function cmRenderVote(p, interactive){
+    const total = cmVoteTotal(p) || 1;
+    const myVote = cmVotes[p.id];
+    const voted = !!myVote;
+    return '<div class="cm-vote'+(voted?' voted':'')+'" data-vote-post="'+p.id+'">' +
+      (p.options||[]).map(function(o){
+        const pct = Math.round((o.votes||0)/total*100);
+        const mine = myVote===o.key;
+        return '<button type="button" class="cm-vote-opt'+(mine?' mine':'')+'" '+
+          (interactive && !voted ? 'data-vote-opt="'+o.key+'"' : 'disabled')+'>' +
+          '<div class="cm-vote-fill" style="width:'+(voted?pct:0)+'%"></div>' +
+          '<span class="cm-vote-label">'+esc(o.label)+(mine?' ✓':'')+'</span>' +
+          (voted?'<span class="cm-vote-pct">'+pct+'%</span>':'') +
+        '</button>';
+      }).join('') +
+      '<div class="cm-vote-total">'+(voted? (total + '명 참여') : '탭해서 투표하고 결과 보기')+'</div>' +
+    '</div>';
+  }
+  function cmBindVote(scope, id){
+    scope.querySelectorAll('[data-vote-opt]').forEach(function(b){
+      b.addEventListener('click', function(e){ e.stopPropagation(); cmVote(id, b.dataset.voteOpt); cmRenderList(); if(document.getElementById('cmViewDetail') && !document.getElementById('cmViewDetail').hidden){ cmRenderDetail(id); } });
+    });
+  }
+
+  /* ----- 비포·애프터 ----- */
+  function cmRenderBA(p, big){
+    const cls = big ? ' big' : '';
+    const b = p.beforePhoto, a = p.afterPhoto;
+    return '<div class="cm-ba'+cls+'">' +
+      '<div class="cm-ba-col"><div class="cm-ba-tag before">BEFORE</div>' +
+        (b?'<img class="cm-ba-img before" src="'+b+'" alt="before" />':'<div class="cm-ba-ph">사진 없음</div>') + '</div>' +
+      '<div class="cm-ba-col"><div class="cm-ba-tag after">AFTER</div>' +
+        (a?'<img class="cm-ba-img" src="'+a+'" alt="after" />':'<div class="cm-ba-ph">사진 없음</div>') + '</div>' +
+    '</div>';
+  }
+  function cmRenderProducts(p){
+    if(!p.products || !p.products.length) return '';
+    return '<div class="cm-extra"><div class="cm-extra-label">사용 제품</div>' +
+      '<div class="cm-prod-list">' + p.products.map(function(pr,i){
+        return '<div class="cm-prod-item"><span class="cm-prod-no">'+(i+1)+'</span>'+esc(pr)+'</div>';
+      }).join('') + '</div></div>';
+  }
+  function cmRenderChange(p){
+    if(!p.change) return '';
+    return '<div class="cm-extra"><div class="cm-extra-label">변화 포인트</div>' +
+      '<div class="cm-change">'+esc(p.change)+'</div></div>';
+  }
+
   const cmToast = document.getElementById('toast');
   function cmShowToast(msg){ cmToast.textContent = msg; cmToast.classList.add('show'); setTimeout(function(){ cmToast.classList.remove('show'); }, 2000); }
 
@@ -3847,15 +4076,20 @@ DEMO_HTML = """
     emptyEl.hidden = list.length > 0;
     listEl.innerHTML = list.map(function(p){
       const fav = cmFavs.has(p.id);
+      const typeBadge = p.type==='vote' ? '<span class="cm-type-badge vote">투표</span>'
+        : p.type==='ba' ? '<span class="cm-type-badge ba">비포·애프터</span>' : '';
+      let mid;
+      if(p.type==='vote'){ mid = cmRenderVote(p, true); }
+      else if(p.type==='ba'){ mid = cmRenderBA(p, false) + (p.change ? '<div class="cm-card-body">'+esc(p.change)+'</div>' : ''); }
+      else { mid = (p.photo ? '<img class="cm-card-thumb" src="'+p.photo+'" alt="" />' : '') + '<div class="cm-card-body">'+esc(p.body)+'</div>'; }
       return '<article class="cm-card" data-id="'+p.id+'">'+
         '<div class="cm-card-top">'+
-          '<span class="cm-cat-chip">'+esc(CM_CAT_LABEL[p.cat]||p.cat)+'</span>'+
+          '<span class="cm-cat-chip">'+esc(CM_CAT_LABEL[p.cat]||p.cat)+'</span>'+ typeBadge +
           '<button type="button" class="cm-fav'+(fav?' on':'')+'" data-fav="'+p.id+'" aria-label="즐겨찾기">'+(fav?STAR_FILL:STAR_OUTLINE)+'</button>'+
         '</div>'+
         '<div class="cm-card-title">'+esc(p.title)+'</div>'+
         cmSkinTags(p.skin)+
-        (p.photo ? '<img class="cm-card-thumb" src="'+p.photo+'" alt="" />' : '')+
-        '<div class="cm-card-body">'+esc(p.body)+'</div>'+
+        mid+
         '<div class="cm-card-foot">'+
           '<div class="avatar">'+esc((p.author||'익')[0])+'</div>'+
           '<div><div class="cm-author">'+esc(p.author||'익명')+'</div><div class="cm-time">'+cmAgo(p.createdAt)+'</div></div>'+
@@ -3911,8 +4145,12 @@ DEMO_HTML = """
       '<div class="cm-detail-meta"><div class="avatar">'+esc((p.author||'익')[0])+'</div>'+
         '<div><div class="cm-author">'+esc(p.author||'익명')+'</div><div class="cm-time">'+cmAgo(p.createdAt)+'</div></div></div>'+
       cmSkinTags(p.skin)+
-      (p.photo ? '<img class="cm-detail-photo" src="'+p.photo+'" alt="첨부 사진" />' : '')+
-      '<div class="cm-detail-body">'+esc(p.body)+'</div>'+
+      (p.type==='vote'
+        ? cmRenderVote(p, true) + (p.body?'<div class="cm-detail-body">'+esc(p.body)+'</div>':'')
+        : p.type==='ba'
+          ? cmRenderBA(p, true) + (p.body?'<div class="cm-detail-body">'+esc(p.body)+'</div>':'') + cmRenderProducts(p) + cmRenderChange(p)
+          : (p.photo ? '<img class="cm-detail-photo" src="'+p.photo+'" alt="첨부 사진" />' : '') + '<div class="cm-detail-body">'+esc(p.body)+'</div>' + cmRenderProducts(p) + cmRenderChange(p)
+      )+
       '<div class="cm-comments">'+
         '<div class="cm-comments-title">댓글 '+(p.comments?p.comments.length:0)+'</div>'+
         '<div id="cmCommentList">'+cmRenderComments(p)+'</div>'+
@@ -3921,6 +4159,9 @@ DEMO_HTML = """
           '<button type="button" class="btn btn-dark btn-sm" id="cmCommentSubmit">등록</button>'+
         '</div>'+
       '</div>';
+    document.getElementById('cmDetailCard').querySelectorAll('[data-vote-opt]').forEach(function(b){
+      b.addEventListener('click', function(){ cmVote(p.id, b.dataset.voteOpt); cmRenderDetail(p.id); cmRenderList(); });
+    });
     document.getElementById('cmDetailFav').addEventListener('click', function(){ cmToggleFav(p.id); cmRenderDetail(p.id); cmRenderCats(); });
     document.getElementById('cmDetailEdit').addEventListener('click', function(){ cmOpenWrite(p.id); });
     document.getElementById('cmCommentSubmit').addEventListener('click', function(){ cmAddComment(p.id); });
@@ -3942,16 +4183,23 @@ DEMO_HTML = """
     const bodyInput = document.getElementById('cmFormBody');
     const preview = document.getElementById('cmPhotoPreview');
     const pimg = document.getElementById('cmPhotoImg');
+    const opt1 = document.getElementById('cmFormOpt1'), opt2 = document.getElementById('cmFormOpt2');
+    const prodInput = document.getElementById('cmFormProducts'), changeInput = document.getElementById('cmFormChange');
+    opt1.value = ''; opt2.value = ''; prodInput.value = ''; changeInput.value = '';
     if(id){
       const p = cmPosts.find(function(x){ return x.id===id; });
       document.getElementById('cmFormTitle').textContent = '글 수정';
-      catSel.value = p.cat; titleInput.value = p.title; bodyInput.value = p.body;
+      catSel.value = p.cat; titleInput.value = p.title; bodyInput.value = p.body || '';
       cmPendingPhoto = p.photo || null;
+      cmSetFormType(p.type || 'normal');
+      if(p.type==='vote' && p.options){ opt1.value = (p.options[0]||{}).label || ''; opt2.value = (p.options[1]||{}).label || ''; }
+      if(p.type==='ba'){ prodInput.value = (p.products||[]).join('\n'); changeInput.value = p.change || ''; }
       document.getElementById('cmFormSubmit').textContent = '수정 완료';
     } else {
       document.getElementById('cmFormTitle').textContent = '새 글 남기기';
       catSel.value = (cmActiveCat!=='all' && cmActiveCat!=='__fav') ? cmActiveCat : CM_CATS[1].key;
       titleInput.value = ''; bodyInput.value = '';
+      cmSetFormType('normal');
       document.getElementById('cmFormSubmit').textContent = '등록하기';
     }
     if(cmPendingPhoto){ pimg.src = cmPendingPhoto; preview.classList.add('show'); }
@@ -3964,7 +4212,21 @@ DEMO_HTML = """
     const title = document.getElementById('cmFormTitleInput').value.trim();
     const body = document.getElementById('cmFormBody').value.trim();
     const hint = document.getElementById('cmFormHint');
-    if(!title || !body){ hint.textContent = '제목과 내용을 모두 입력해주세요.'; return; }
+    const o1 = document.getElementById('cmFormOpt1').value.trim();
+    const o2 = document.getElementById('cmFormOpt2').value.trim();
+    const prods = document.getElementById('cmFormProducts').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    const change = document.getElementById('cmFormChange').value.trim();
+    if(!title){ hint.textContent = '제목을 입력해주세요.'; return; }
+    if(cmFormType==='vote'){ if(!o1 || !o2){ hint.textContent = '투표 선택지 2개를 입력해주세요.'; return; } }
+    else if(cmFormType!=='ba'){ if(!body){ hint.textContent = '내용을 입력해주세요.'; return; } }
+    /* 유형별 추가 필드 */
+    function applyTypeFields(obj){
+      obj.type = cmFormType;
+      if(cmFormType==='vote'){ obj.options = [{key:'a',label:o1,votes:0},{key:'b',label:o2,votes:0}]; }
+      else { obj.options = null; }
+      if(cmFormType==='ba'){ obj.products = prods; obj.change = change||null; obj.beforePhoto = obj.beforePhoto||null; obj.afterPhoto = cmPendingPhoto||null; }
+      else { obj.products = prods.length?prods:(obj.products||null); obj.change = change||(obj.change||null); }
+    }
 
     if(SB_ON){
       if(!(await cmEnsureLogin())) return;
@@ -3994,14 +4256,17 @@ DEMO_HTML = """
     if(cmEditingId){
       const p = cmPosts.find(function(x){ return x.id===cmEditingId; });
       p.cat = cat; p.title = title; p.body = body; p.photo = cmPendingPhoto;
+      applyTypeFields(p);
       cmSave(cmPosts);
       cmShowToast('글이 수정되었어요.');
       cmOpenDetail(cmEditingId);
     } else {
-      cmPosts.unshift({ id:'p'+Date.now(), cat:cat, title:title, body:body, photo:cmPendingPhoto,
+      const np = { id:'p'+Date.now(), cat:cat, title:title, body:body, photo:cmPendingPhoto,
         author:(window.appState.nickname||'익명'),
         skin:Array.from(window.appState.concerns||[]),
-        createdAt:Date.now(), comments:[] });
+        createdAt:Date.now(), comments:[] };
+      applyTypeFields(np);
+      cmPosts.unshift(np);
       cmSave(cmPosts);
       cmShowToast('글이 등록되었어요.');
       cmActiveCat = 'all'; cmQuery = ''; document.getElementById('cmSearch').value = '';
@@ -4045,6 +4310,8 @@ DEMO_HTML = """
   });
   document.getElementById('cmSearch').addEventListener('input', function(e){ cmQuery = e.target.value.trim(); cmRenderList(); });
   document.getElementById('cmList').addEventListener('click', function(e){
+    const vopt = e.target.closest('[data-vote-opt]');
+    if(vopt){ e.stopPropagation(); const vp = vopt.closest('[data-vote-post]'); if(vp){ cmVote(vp.dataset.votePost, vopt.dataset.voteOpt); cmRenderList(); } return; }
     const fav = e.target.closest('.cm-fav');
     if(fav){ e.stopPropagation(); cmToggleFav(fav.dataset.fav); cmRenderCats(); cmRenderList(); return; }
     const card = e.target.closest('.cm-card'); if(card){ cmOpenDetail(card.dataset.id); }
@@ -4054,6 +4321,9 @@ DEMO_HTML = """
   document.getElementById('cmWriteBack').addEventListener('click', function(){ cmShow('list'); });
   document.getElementById('cmFormCancel').addEventListener('click', function(){ cmShow('list'); });
   document.getElementById('cmFormSubmit').addEventListener('click', cmSubmitForm);
+  document.querySelectorAll('#cmFormType .cm-type-btn').forEach(function(b){
+    b.addEventListener('click', function(){ cmSetFormType(b.dataset.type); });
+  });
   document.getElementById('cmFormPhoto').addEventListener('change', function(e){ cmHandlePhoto(e.target.files[0]); });
   document.getElementById('cmPhotoRemove').addEventListener('click', function(){
     cmPendingPhoto = null;
