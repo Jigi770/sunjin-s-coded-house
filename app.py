@@ -1473,13 +1473,21 @@ DEMO_HTML = """
      Python layer reads (?login=google / ?logout=1). */
   function topGo(flag){
     const base = window.APP_URL || '';
-    if(!base){ memberToast('로그인 설정을 확인해주세요.'); return; }
+    if(!base){ memberToast('로그인 설정을 확인해주세요. (secrets [auth] 확인)'); return; }
     const url = base + (base.indexOf('?')>=0?'&':'?') + flag;
     /* Navigate the whole tab (not the iframe) so OAuth runs at the top level.
-       Requires the component iframe to allow top navigation, which Streamlit
-       grants for user-initiated clicks. */
-    try{ window.top.location.href = url; }
-    catch(e){ try{ window.open(url, '_top'); }catch(e2){} }
+       A real anchor click with target="_top" during a user gesture is the most
+       reliable way through the sandbox; scripted nav is a fallback that only
+       fires if the anchor click didn't already tear this page down. */
+    try{
+      const a = document.createElement('a');
+      a.href = url; a.target = '_top'; a.rel = 'opener';
+      document.body.appendChild(a); a.click(); a.remove();
+    }catch(e){}
+    setTimeout(function(){
+      try{ window.top.location.href = url; }
+      catch(e){ try{ window.open(url, '_blank'); }catch(e2){} }
+    }, 150);
   }
   function startGoogleLogin(){ topGo('login=google'); }
   function startGoogleLogout(){ topGo('logout=1'); }
@@ -1733,10 +1741,12 @@ DEMO_HTML = """
   setTimeout(()=>{
     splash.classList.add('hidden');
     /* A real Google session already drove us to a signup/mypage screen — don't
-       yank the user back to the intro when the splash timer fires. */
+       yank the user back when the splash timer fires. */
     if(realAuthActive) return;
-    intro.classList.remove('hidden');
-    requestAnimationFrame(()=> intro.classList.add('visible'));
+    /* Membership is the primary entry: show it first. "회원가입 없이 둘러보기"
+       and "뒤로" fall through to the intro (nickname/age) guest quick-start. */
+    authOrigin = 'intro';
+    showMemberScreen(screenAuth);
   }, 3700);
 
   /* ---------------- 2) intro form ---------------- */
