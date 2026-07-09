@@ -623,14 +623,15 @@ DEMO_HTML = """
 
   .diag-report{
     display:grid;grid-template-columns:1fr 1.25fr 1fr;grid-template-areas:"info face score";gap:16px;
-    align-items:start;
+    align-items:stretch;
   }
   .diag-info-panel,.diag-face-panel,.diag-scorelist{
     background:#fffdfa;border:1px solid var(--db-line);border-radius:20px;padding:18px;
     box-shadow:0 10px 28px rgba(120,96,68,.06);
   }
   .diag-info-panel{grid-area:info;}
-  .diag-face-panel{grid-area:face;text-align:center;}
+  /* 얼굴 칸은 세로 중앙 정렬 → 항목별 점수 칸과 아래 라인(카드 높이)이 맞도록 stretch */
+  .diag-face-panel{grid-area:face;text-align:center;display:flex;flex-direction:column;justify-content:center;}
   .diag-scorelist{grid-area:score;}
 
   .diag-score-hero{display:flex;align-items:baseline;gap:6px;margin-top:10px;}
@@ -670,22 +671,22 @@ DEMO_HTML = """
   /* 실제 사진 위에 문제 부위를 겹쳐 표시(멀티플라이로 피부에 자연스럽게 얹힘) */
   .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;z-index:2;mix-blend-mode:multiply;}
   .face-zone[data-zone="tzone"]{
-    top:33%;left:50%;width:20%;height:30%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
+    top:34%;left:50%;width:15%;height:24%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
     background:repeating-linear-gradient(115deg, rgba(201,138,60,.6) 0 3px, rgba(201,138,60,0) 3px 7px);
   }
   .face-zone[data-zone="cheek-l"],.face-zone[data-zone="cheek-r"]{
-    top:45%;width:17%;height:13%;
+    top:46%;width:15%;height:12%;
     background-image:radial-gradient(circle, rgba(200,110,70,.9) 0 6%, transparent 7%);
-    background-size:10px 10px;background-position:center;background-color:rgba(200,110,70,.14);
+    background-size:9px 9px;background-position:center;background-color:rgba(200,110,70,.14);
   }
-  .face-zone[data-zone="cheek-l"]{left:37%;}
-  .face-zone[data-zone="cheek-r"]{left:63%;}
+  .face-zone[data-zone="cheek-l"]{left:39%;}
+  .face-zone[data-zone="cheek-r"]{left:61%;}
   .face-zone[data-zone="scar-mark"]{
-    top:47%;left:64%;width:12%;height:11%;
+    top:47%;left:62%;width:11%;height:10%;
     background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.9) 0 2px, transparent 2px 9px);
   }
   .face-zone[data-zone="chin"]{
-    top:56%;left:50%;width:16%;height:10%;
+    top:55%;left:50%;width:14%;height:9%;
     background-image:
       radial-gradient(circle at 30% 35%, rgba(193,60,60,.95) 0 9%, transparent 10%),
       radial-gradient(circle at 65% 55%, rgba(193,60,60,.95) 0 8%, transparent 9%),
@@ -706,7 +707,7 @@ DEMO_HTML = """
   .legend-dot.acne{background:#c13c3c;}
 
   .score-row{
-    display:flex;align-items:center;justify-content:space-between;padding:12px 0;
+    display:flex;align-items:center;justify-content:space-between;padding:8.5px 0;
     border-bottom:1px solid var(--db-line);
   }
   .score-row:last-child{border-bottom:none;}
