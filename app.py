@@ -165,41 +165,77 @@ DEMO_HTML = """
   .summary{margin-top:26px;padding:20px 22px;background:var(--accent-soft);border-radius:var(--radius);font-size:14.5px;color:#3c4636;}
   .result-actions{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;}
 
-  /* ---------- RECOMMEND ---------- */
-  .recommend{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
-  .rec-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;}
-  .switch-wrap{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--ink-soft);}
-  .switch{width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;transition:.2s;flex:none;}
-  .switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
-  .switch.on{background:var(--accent);}
-  .switch.on::after{left:21px;}
-  .placeholder-note{
-    margin-top:30px;padding:16px 20px;border:1px dashed var(--line);border-radius:var(--radius);
-    color:var(--ink-soft);font-size:13.5px;background:var(--bg);
+  /* ---------- APP STEPS ---------- */
+  section.app-step{display:none;padding:0;}
+  section.app-step.active{display:block;animation:fade .4s ease;}
+  .app-step .wrap{padding-top:28px;padding-bottom:24px;}
+  .step-nav{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    margin-top:26px;padding-top:18px;border-top:1px solid var(--line);
   }
-  .routine-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:30px;}
-  .routine-grid.one{grid-template-columns:1fr;max-width:360px;}
-  .p-card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:22px;}
-  .p-step{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;}
-  .p-name{font-size:16px;font-weight:700;margin-top:10px;}
-  .p-reason{font-size:13px;color:var(--ink-soft);margin-top:8px;}
-  .p-tag{display:inline-block;margin-top:14px;font-size:11.5px;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:700;}
+  .step-nav.on-dark{border-top-color:#3a3934;}
+  .step-progress{display:flex;gap:6px;}
+  .step-dot{width:6px;height:6px;border-radius:50%;background:var(--line);transition:all .2s ease;}
+  .step-dot.active{background:var(--accent);width:18px;border-radius:999px;}
+  .step-nav.on-dark .step-dot{background:#4a4940;}
+  .step-nav.on-dark .step-dot.active{background:var(--gold);}
+  .step-nav-btn{visibility:visible;}
+  .step-nav-btn[disabled]{visibility:hidden;}
+
+  /* ---------- RECOMMEND ---------- */
+  .recommend{background:var(--surface);}
+  .tier-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px;}
+  .tier-tab{
+    padding:9px 16px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);
+    color:var(--ink-soft);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .tier-tab.active{background:var(--dark);border-color:var(--dark);color:#fff;}
+  .tier-desc{margin-top:14px;padding:13px 18px;background:var(--accent-soft);border-radius:var(--radius);font-size:13px;color:#3c4636;line-height:1.5;}
+  .tier-cat-label{margin-top:16px;font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
+
+  .prod-row{display:flex;gap:14px;margin-top:12px;overflow-x:auto;padding-bottom:6px;}
+  .prod-card{
+    flex:0 0 200px;background:var(--bg);border:2px solid var(--line);border-radius:var(--radius-lg);
+    padding:18px;text-align:center;position:relative;
+  }
+  .prod-card.rank-1{border-color:var(--gold);background:linear-gradient(180deg,#fdf8ee,var(--bg));}
+  .prod-rank{
+    position:absolute;top:12px;left:12px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
+    background:var(--dark);color:#fff;
+  }
+  .prod-card.rank-1 .prod-rank{background:var(--gold);color:#1a1a18;}
+  .prod-icon{width:58px;height:72px;border-radius:11px 11px 5px 5px;margin:14px auto 12px;position:relative;}
+  .prod-icon::before{content:'';position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:24px;height:10px;border-radius:3px;background:rgba(0,0,0,.28);}
+  .prod-brand{font-size:11.5px;font-weight:700;color:var(--ink-soft);}
+  .prod-name{font-size:13.5px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.35;min-height:36px;}
+  .prod-tag{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);}
+
+  /* ---------- EXTRA CONCERNS ---------- */
+  .extra-tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-top:20px;}
+  .extra-tab{
+    flex:0 0 auto;padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);
+    color:var(--ink-soft);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s ease;
+  }
+  .extra-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
   /* ---------- COMMUNITY ---------- */
-  .filter-row{display:flex;gap:10px;flex-wrap:wrap;margin:30px 0 26px;}
+  .filter-row{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 18px;}
   .filter-chip{padding:8px 16px;border-radius:999px;border:1.5px solid var(--line);font-size:13.5px;font-weight:600;color:var(--ink-soft);background:var(--surface);}
   .filter-chip.active{background:var(--dark);border-color:var(--dark);color:#fff;}
-  .post-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
-  .post{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:22px;}
-  .post-top{display:flex;align-items:center;gap:10px;}
-  .avatar{width:34px;height:34px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex:none;}
-  .post-meta b{font-size:14px;display:block;}
-  .post-meta span{font-size:12px;color:var(--ink-soft);}
-  .post-tag{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px;}
-  .post-body{font-size:14px;color:#3a3a36;margin:14px 0 16px;}
-  .post-stats{display:flex;gap:16px;font-size:12.5px;color:var(--ink-soft);}
-  .post-stats span{display:flex;align-items:center;gap:5px;}
-  .icon{width:15px;height:15px;}
+  .post-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .post{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;}
+  .post-top{display:flex;align-items:center;gap:8px;}
+  .avatar{width:28px;height:28px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex:none;}
+  .post-meta b{font-size:12.5px;display:block;}
+  .post-meta span{font-size:10.5px;color:var(--ink-soft);}
+  .post-tag{margin-left:auto;font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:3px 8px;border-radius:999px;}
+  .post-body{
+    font-size:12px;color:#3a3a36;margin:9px 0 10px;line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .post-stats{display:flex;gap:12px;font-size:11px;color:var(--ink-soft);}
+  .post-stats span{display:flex;align-items:center;gap:4px;}
+  .icon{width:13px;height:13px;}
   .toast{
     position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(120%);
     background:var(--dark);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;
@@ -207,24 +243,17 @@ DEMO_HTML = """
   }
   .toast.show{transform:translateX(-50%) translateY(0);}
 
-  footer{padding:46px 0;text-align:center;color:var(--ink-soft);font-size:12.5px;background:var(--dark);}
-  footer b{color:#f6f5f2;font-size:15px;display:block;margin-bottom:6px;}
-  footer .fine{margin-top:10px;color:#7d7c75;}
+  footer{padding:0;text-align:center;color:var(--ink-soft);font-size:11.5px;background:none;margin-top:18px;}
+  footer .fine{color:#a6a49c;}
 
   @media (max-width:860px){
-    section{padding:60px 0;}
-    .nav-links{display:none;}
     .hero .wrap{grid-template-columns:1fr;}
-    .hero{padding:70px 0 56px;text-align:left;}
+    .hero{text-align:left;}
     .result-grid{grid-template-columns:1fr;text-align:center;}
-    .routine-grid{grid-template-columns:1fr 1fr;}
-    .routine-grid.one{max-width:none;}
     .post-grid{grid-template-columns:1fr;}
-    .analysis-card{padding:26px;}
-    .rec-head{flex-direction:column;align-items:flex-start;}
+    .analysis-card{padding:22px;}
   }
   @media (max-width:480px){
-    .routine-grid{grid-template-columns:1fr;}
     .wrap{padding:0 18px;}
   }
 
@@ -284,16 +313,21 @@ DEMO_HTML = """
     position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#000;
   }
   .cam-frame video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);border-radius:50%;}
-  .cam-scanline{
-    position:absolute;left:8%;right:8%;height:3px;top:15%;
+  .cam-scanline{position:absolute;pointer-events:none;}
+  .cam-scanline.dir-h{
+    left:8%;right:8%;height:3px;top:15%;
     background:linear-gradient(90deg, transparent, rgba(201,168,106,.95), transparent);
     box-shadow:0 0 14px 3px rgba(201,168,106,.75);
-    animation:cam-scan 2.4s ease-in-out infinite;pointer-events:none;
   }
-  @keyframes cam-scan{
-    0%,100%{ top:15%; opacity:.25; }
-    50%{ top:82%; opacity:1; }
+  .cam-scanline.dir-v{
+    top:12%;bottom:12%;width:3px;left:15%;
+    background:linear-gradient(180deg, transparent, rgba(201,168,106,.95), transparent);
+    box-shadow:0 0 14px 3px rgba(201,168,106,.75);
   }
+  @keyframes scan-down{ 0%,100%{ top:15%; opacity:.25; } 50%{ top:82%; opacity:1; } }
+  @keyframes scan-up{ 0%,100%{ top:82%; opacity:.25; } 50%{ top:15%; opacity:1; } }
+  @keyframes scan-right{ 0%,100%{ left:12%; opacity:.25; } 50%{ left:78%; opacity:1; } }
+  @keyframes scan-left{ 0%,100%{ left:78%; opacity:.25; } 50%{ left:12%; opacity:1; } }
   .cam-ring{
     position:absolute;inset:-9px;width:calc(100% + 18px);height:calc(100% + 18px);
     animation:cam-ring-spin 7s linear infinite;pointer-events:none;
@@ -537,7 +571,7 @@ DEMO_HTML = """
     <div class="cam-frame-outer">
       <div class="cam-frame">
         <video id="camVideo" autoplay playsinline muted></video>
-        <div class="cam-scanline"></div>
+        <div class="cam-scanline dir-h" id="camScanline"></div>
       </div>
       <svg class="cam-ring" viewBox="0 0 200 200"><circle cx="100" cy="100" r="97"/></svg>
       <div class="cam-arrow" id="camArrow"></div>
@@ -677,23 +711,23 @@ DEMO_HTML = """
   <div class="wrap">
     <div class="brand"><b>FOR HIM</b><span>Men's Skincare Lab</span></div>
     <div class="nav-links">
-      <a href="#analysis">피부분석</a>
-      <a href="#recommend">제품추천</a>
-      <a href="#community">커뮤니티</a>
+      <a href="javascript:void(0)" data-step="analysis">피부분석</a>
+      <a href="javascript:void(0)" data-step="recommend">제품추천</a>
+      <a href="javascript:void(0)" data-step="community">커뮤니티</a>
     </div>
     <button type="button" class="btn btn-outline btn-sm" id="navRecall" style="display:none;">최근 결과 다시 보기</button>
-    <a href="#analysis" class="btn btn-dark btn-sm">분석 시작</a>
+    <button type="button" class="btn btn-dark btn-sm" data-step="analysis">분석 시작</button>
   </div>
 </div>
 
-<section class="hero">
+<section class="hero app-step active" id="stepHero">
   <div class="wrap">
     <div>
       <div class="eyebrow on-dark">MEN'S BEAUTY, SIMPLIFIED</div>
       <h1><span id="heroGreet"></span>피부 관리, <em>어렵게</em><br/>생각하지 마세요</h1>
       <p class="sub on-dark">복잡한 성분 이름도, 매장에서의 어색한 상담도 필요 없어요. 지금 신경 쓰이는 부분만 골라도 AI가 상태를 확인해드려요.</p>
       <div class="hero-cta">
-        <a href="#analysis" class="btn btn-gold">30초 만에 피부 확인하기</a>
+        <button type="button" class="btn btn-gold" data-step="analysis">30초 만에 피부 확인하기</button>
         <span class="hero-note">화장품, 처음이어도 괜찮아요</span>
       </div>
       <div class="trust-row">
@@ -706,10 +740,15 @@ DEMO_HTML = """
       <div class="face">영상 분석 화면 (데모)</div>
       <div class="cap">실제 서비스에서는 이 영역에서 카메라 분석이 진행돼요</div>
     </div>
+    <div class="step-nav on-dark" style="grid-column:1/-1;">
+      <button type="button" class="btn btn-outline btn-sm step-nav-btn" disabled>이전</button>
+      <div class="step-progress" data-step-dots></div>
+      <button type="button" class="btn btn-gold btn-sm step-nav-btn" data-step-next>다음</button>
+    </div>
   </div>
 </section>
 
-<section id="analysis">
+<section id="analysis" class="app-step">
   <div class="wrap">
     <div class="eyebrow">SKIN ANALYSIS AI</div>
     <h2>피부 영상 분석 AI</h2>
@@ -740,33 +779,55 @@ DEMO_HTML = """
         </div>
         <div class="summary" id="summary"></div>
         <div class="result-actions">
-          <a href="#recommend" class="btn btn-dark btn-sm" id="toRecommend">맞춤 제품 추천 받기</a>
+          <button type="button" class="btn btn-dark btn-sm" id="toRecommend" data-step="recommend">맞춤 제품 추천 받기</button>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
-<section id="recommend" class="recommend">
-  <div class="wrap">
-    <div class="rec-head">
-      <div>
-        <div class="eyebrow">PRODUCT RECOMMEND AI</div>
-        <h2>제품 추천 AI</h2>
-        <p class="sub">성분표를 몰라도 괜찮아요. 지금 상태에 필요한 것만 알려드릴게요.</p>
-      </div>
-      <div class="switch-wrap">
-        <span>귀찮은 날엔 올인원으로</span>
-        <div class="switch" id="allInOneSwitch"></div>
-      </div>
+    <div class="step-nav">
+      <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
+      <div class="step-progress" data-step-dots></div>
+      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>다음</button>
     </div>
-
-    <div class="placeholder-note" id="recNote">먼저 위에서 피부 분석을 해보면 더 정확한 루틴을 추천해드려요. 지금은 기본 루틴을 보여드리고 있어요.</div>
-    <div class="routine-grid" id="routineGrid"></div>
   </div>
 </section>
 
-<section id="community">
+<section id="recommend" class="recommend app-step">
+  <div class="wrap">
+    <div class="eyebrow">PRODUCT RECOMMEND AI</div>
+    <h2>제품 추천 AI</h2>
+    <p class="sub">원하는 관리 단계를 선택하면, 올리브영 랭킹 기준 TOP 3 제품을 보여드려요.</p>
+
+    <div class="tier-tabs" id="tierTabs"></div>
+    <div class="tier-desc" id="tierDesc"></div>
+    <div class="tier-cat-label" id="tierCatLabel"></div>
+    <div class="prod-row" id="tierProdRow"></div>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
+      <div class="step-progress" data-step-dots></div>
+      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>다음</button>
+    </div>
+  </div>
+</section>
+
+<section id="extra" class="app-step">
+  <div class="wrap">
+    <div class="eyebrow">MORE CONCERNS</div>
+    <h2>더 필요한 케어가 있나요?</h2>
+    <p class="sub">관심있는 고민을 선택하면 맞춤 제품을 추가로 추천해드려요.</p>
+
+    <div class="extra-tabs" id="extraTabs"></div>
+    <div class="prod-row" id="extraProdRow"></div>
+
+    <div class="step-nav">
+      <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
+      <div class="step-progress" data-step-dots></div>
+      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>다음</button>
+    </div>
+  </div>
+</section>
+
+<section id="community" class="app-step">
   <div class="wrap">
     <div class="eyebrow">COMMUNITY</div>
     <h2>커뮤니티</h2>
@@ -782,16 +843,16 @@ DEMO_HTML = """
     </div>
 
     <div class="post-grid" id="postGrid"></div>
+    <footer>
+      <div class="fine">본 화면은 데모이며 모든 분석·추천 결과는 예시 데이터입니다.</div>
+    </footer>
+    <div class="step-nav">
+      <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
+      <div class="step-progress" data-step-dots></div>
+      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-loop>처음으로</button>
+    </div>
   </div>
 </section>
-
-<footer>
-  <div class="wrap">
-    <b>FOR HIM — Men's Beauty, Simplified.</b>
-    복잡한 과정 없이, 자연스럽게 시작하는 남성 스킨케어
-    <div class="fine">본 화면은 데모이며 모든 분석·추천 결과는 예시 데이터입니다.</div>
-  </div>
-</footer>
 
 <div class="toast" id="toast"></div>
 </div>
@@ -896,6 +957,7 @@ DEMO_HTML = """
   /* ---------------- 3) camera capture ---------------- */
   const camVideo = document.getElementById('camVideo');
   const camArrow = document.getElementById('camArrow');
+  const camScanline = document.getElementById('camScanline');
   const camSub = document.getElementById('camSub');
   const camProgressFill = document.getElementById('camProgressFill');
   const camSteps = document.getElementById('camSteps');
@@ -927,6 +989,17 @@ DEMO_HTML = """
 
   document.getElementById('camSkip').addEventListener('click', finishCamera);
 
+  function setScanDirection(dir){
+    camScanline.style.animation = 'none';
+    camScanline.classList.remove('dir-h','dir-v');
+    void camScanline.offsetWidth;
+    if(dir === 'up'){ camScanline.classList.add('dir-h'); camScanline.style.animation = 'scan-up 1.7s ease-in-out infinite'; }
+    else if(dir === 'down'){ camScanline.classList.add('dir-h'); camScanline.style.animation = 'scan-down 1.7s ease-in-out infinite'; }
+    else if(dir === 'right'){ camScanline.classList.add('dir-v'); camScanline.style.animation = 'scan-right 1.7s ease-in-out infinite'; }
+    else if(dir === 'left'){ camScanline.classList.add('dir-v'); camScanline.style.animation = 'scan-left 1.7s ease-in-out infinite'; }
+    else { camScanline.classList.add('dir-h'); camScanline.style.animation = 'scan-down 2.4s ease-in-out infinite'; }
+  }
+
   function runSteps(){
     let i = 0;
     function step(){
@@ -935,6 +1008,7 @@ DEMO_HTML = """
       camSub.textContent = d.label;
       camArrow.textContent = d.arrow;
       camArrow.className = 'cam-arrow dir-' + d.dir;
+      setScanDirection(d.dir);
       camSteps.textContent = (i+1) + ' / ' + DIRECTIONS.length;
       camProgressFill.style.transition = 'none';
       camProgressFill.style.width = '0%';
@@ -1169,10 +1243,9 @@ DEMO_HTML = """
       const greet = document.getElementById('heroGreet');
       if(greet && nickname){ greet.textContent = nickname + '님, '; }
       state.analyzed = true;
-      if(window.renderRoutine){ window.renderRoutine(); }
       appScreen.style.display = 'block';
-      const target = document.getElementById('recommend');
-      if(target){ target.scrollIntoView(); } else { window.scrollTo(0,0); }
+      if(window.showAppStep){ window.showAppStep('recommend'); }
+      window.scrollTo(0,0);
     }, 550);
   }
 
@@ -1340,59 +1413,221 @@ DEMO_HTML = """
       `${listText} 고민을 중심으로 분석했어요. 종합 스코어는 ${overall}점이에요. ${tone}`;
   }
 
-  /* ---------------- recommend ---------------- */
-  const routineGrid = document.getElementById('routineGrid');
-  const recNote = document.getElementById('recNote');
-  const allInOneSwitch = document.getElementById('allInOneSwitch');
+  /* ---------------- step navigation (hero/analysis/recommend/extra/community) ---------------- */
+  const APP_STEPS = ['hero','analysis','recommend','extra','community'];
+  const STEP_EL = {
+    hero: document.getElementById('stepHero'),
+    analysis: document.getElementById('analysis'),
+    recommend: document.getElementById('recommend'),
+    extra: document.getElementById('extra'),
+    community: document.getElementById('community')
+  };
+  let currentStep = 'hero';
 
-  allInOneSwitch.addEventListener('click', ()=>{
-    state.allInOne = !state.allInOne;
-    allInOneSwitch.classList.toggle('on', state.allInOne);
-    renderRoutine();
+  function showAppStep(name){
+    if(!STEP_EL[name]) return;
+    currentStep = name;
+    APP_STEPS.forEach(s=> STEP_EL[s].classList.toggle('active', s===name));
+    document.querySelectorAll('[data-step-dots]').forEach(dotsWrap=>{
+      dotsWrap.innerHTML = APP_STEPS.map(s=>'<span class="step-dot' + (s===name?' active':'') + '"></span>').join('');
+    });
+    window.scrollTo(0,0);
+    if(name === 'recommend' && !tierInitialized){ initTierTabs(); }
+    if(name === 'extra' && !extraInitialized){ initExtraTabs(); }
+  }
+  window.showAppStep = showAppStep;
+
+  document.querySelectorAll('[data-step]').forEach(el=>{
+    el.addEventListener('click', ()=> showAppStep(el.dataset.step));
   });
-
-  document.getElementById('toRecommend').addEventListener('click', ()=>{
-    setTimeout(renderRoutine, 50);
+  document.querySelectorAll('[data-step-next]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const i = APP_STEPS.indexOf(currentStep);
+      if(i < APP_STEPS.length-1){ showAppStep(APP_STEPS[i+1]); }
+    });
   });
+  document.querySelectorAll('[data-step-prev]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const i = APP_STEPS.indexOf(currentStep);
+      if(i > 0){ showAppStep(APP_STEPS[i-1]); }
+    });
+  });
+  document.querySelectorAll('[data-step-loop]').forEach(el=>{
+    el.addEventListener('click', ()=> showAppStep('hero'));
+  });
+  showAppStep('hero');
 
-  function pick(cond, yes, no){ return cond ? yes : no; }
-
-  function getSteps(){
-    const c = state.concerns;
-    return [
-      { step:'클렌징', name:'포어 클린 폼', tag:'저자극',
-        reason: pick(c.has('oil')||c.has('acne'),
-          '피지와 트러블 원인까지 부담 없이 씻어내는 약산성 폼이에요.',
-          '하루 노폐물과 유분을 순하게 씻어내요.') },
-      { step:'토너 · 세럼', name: pick(c.has('pore'),'포어 타이트닝 토너','데일리 수분 세럼'), tag: pick(c.has('scar'),'브라이트닝','수분 진정'),
-        reason: pick(c.has('pore'), '넓어진 모공을 조여주는 데 집중한 토너예요.',
-              pick(c.has('scar'), '흉터 자국과 피부결을 매끈하게 정돈해줘요.', '수분을 채우고 다음 단계를 잘 흡수하게 해줘요.')) },
-      { step:'로션', name: pick(c.has('oil'),'라이트 젤 로션','데일리 수분 로션'), tag:'산뜻 마무리',
-        reason: pick(c.has('oil'), '유분 걱정 없이 촉촉함만 가볍게 남겨요.', '하루종일 당김 없이 편안하게 유지해줘요.') },
-      { step:'선크림', name:'데일리 선크림', tag:'필수',
-        reason:'자외선 차단은 선택이 아니라 관리의 기본이에요.' }
-    ];
+  /* ---------------- product card helper ---------------- */
+  function renderProductCards(list){
+    return list.map(p=>
+      '<div class="prod-card rank-' + p.rank + '">' +
+        '<div class="prod-rank">' + p.rank + '위</div>' +
+        '<div class="prod-icon" style="background:' + p.color + '"></div>' +
+        '<div class="prod-brand">' + p.brand + '</div>' +
+        '<div class="prod-name">' + p.name + '</div>' +
+        '<div class="prod-tag">' + p.tag + '</div>' +
+      '</div>'
+    ).join('');
   }
 
-  function renderRoutine(){
-    const steps = state.allInOne
-      ? [{ step:'올인원', name:'올데이 올인원 크림', tag:'귀찮음 제로',
-           reason:'클렌징 후 이거 하나면 끝. 귀찮은 날에도 이것만 발라도 충분해요.' }]
-      : getSteps();
+  /* ---------------- recommend: tier tabs ---------------- */
+  const TIERS = [
+    { key:'t1', label:'1단계', category:'세럼',
+      desc:'클렌징·스킨·로션·세럼·크림으로 여드름을 억제하고 전반적인 피부 컨디션을 개선해요.',
+      products:[
+        {rank:1, brand:'코스알엑스', name:'더 6 펩타이드 화잘먹 세럼', tag:'여드름 · 컨디션 개선', color:'#8b6f47'},
+        {rank:2, brand:'토리든', name:'다이브인 저분자 히알루론산 세럼', tag:'수분 진정', color:'#5c7a8b'},
+        {rank:3, brand:'아누아', name:'PDRN 히알루론산 캡슐 100 세럼', tag:'피부 컨디션 개선', color:'#7a8b5c'}
+      ]},
+    { key:'t2', label:'1+2단계', category:'선크림',
+      desc:'기초 제품에 이어 피부 타입에 맞는 선케어로 노화·주름까지 예방해요.',
+      products:[
+        {rank:1, brand:'메디힐', name:'마데카소사이드 수분 선세럼', tag:'저자극 진정', color:'#6b8b6f'},
+        {rank:2, brand:'웰라쥬', name:'리얼 히알루로닉 블루 선크림', tag:'산뜻한 마무리', color:'#4a7a9b'},
+        {rank:3, brand:'구달', name:'맑은 어성초 진정 수분 선크림', tag:'민감성 피부용', color:'#7a9b6f'}
+      ]},
+    { key:'t3', label:'1+2+3단계', category:'쿠션',
+      desc:'기초·선케어에 이어 간단한 색조 화장으로 피부 보정 효과까지 더해요.',
+      products:[
+        {rank:1, brand:'정샘물', name:'에센셜 스킨 누더 쿠션', tag:'자연스러운 피부 보정', color:'#c9915c'},
+        {rank:2, brand:'헤라', name:'블랙 쿠션 파운데이션', tag:'커버력 + 지속력', color:'#9b7a4a'},
+        {rank:3, brand:'토코보', name:'블러 피니쉬 선 쿠션', tag:'선케어 + 톤업', color:'#b58b5c'}
+      ]},
+    { key:'t4', label:'1+2+3+4단계', category:'아이 · 립',
+      desc:'색조 화장에 이어 퍼스널 컬러에 맞는 쉐도우·립 제품으로 나만의 개성을 표현해요.',
+      products:[
+        {rank:1, brand:'홀리카홀리카', name:'마이 페이브 피스 아이섀도우', tag:'퍼스널컬러 팔레트', color:'#9b6f8b'},
+        {rank:2, brand:'롬앤', name:'쥬시 라스팅 틴트', tag:'데일리 립 컬러', color:'#c15c5c'},
+        {rank:3, brand:'페리페라', name:'잉크 무드 매트 틴트', tag:'퍼스널컬러 립', color:'#a85c6f'}
+      ]},
+    { key:'t5', label:'1+2+3+4+5단계', category:'뷰티 디바이스',
+      desc:'클렌징·기초·색조 3요소를 갖춘 뒤, 뷰티 디바이스로 얼굴형과 붓기까지 관리해요.',
+      products:[
+        {rank:1, brand:'메디큐브', name:'AGE-R 부스터 프로', tag:'리프팅 디바이스', color:'#5c6f8b'},
+        {rank:2, brand:'브이플랩', name:'브이토닝 디바이스', tag:'얼굴 라인 관리', color:'#6f5c8b'},
+        {rank:3, brand:'웰빙시크릿', name:'4D 페이스 마사지기', tag:'붓기 케어', color:'#5c8b7a'}
+      ]}
+  ];
+  let tierInitialized = false;
 
-    routineGrid.classList.toggle('one', state.allInOne);
-    routineGrid.innerHTML = steps.map(s=>`
-      <div class="p-card">
-        <div class="p-step">${s.step}</div>
-        <div class="p-name">${s.name}</div>
-        <div class="p-reason">${s.reason}</div>
-        <div class="p-tag">${s.tag}</div>
-      </div>`).join('');
-
-    recNote.style.display = state.analyzed ? 'none' : 'block';
+  function initTierTabs(){
+    tierInitialized = true;
+    const tabsEl = document.getElementById('tierTabs');
+    tabsEl.innerHTML = TIERS.map((t,i)=>
+      '<button type="button" class="tier-tab' + (i===0?' active':'') + '" data-tier="' + t.key + '">' + t.label + '</button>'
+    ).join('');
+    tabsEl.querySelectorAll('.tier-tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        tabsEl.querySelectorAll('.tier-tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        renderTier(btn.dataset.tier);
+      });
+    });
+    renderTier(TIERS[0].key);
   }
-  window.renderRoutine = renderRoutine;
-  renderRoutine();
+
+  function renderTier(key){
+    const tier = TIERS.find(t=>t.key===key);
+    document.getElementById('tierDesc').textContent = tier.desc;
+    document.getElementById('tierCatLabel').textContent = '이번 단계 추천 · ' + tier.category + ' TOP 3 (올리브영 랭킹 기준)';
+    document.getElementById('tierProdRow').innerHTML = renderProductCards(tier.products);
+  }
+
+  /* ---------------- extra concerns ---------------- */
+  const EXTRA_CONCERNS = [
+    { key:'elastic', label:'탄력 저하', products:[
+      {rank:1,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'},
+      {rank:2,brand:'오리진스',name:'메가 버섯 퍼스트 에센스',tag:'탄력 영양',color:'#8b7a5c'},
+      {rank:3,brand:'메디큐브',name:'PDRN 핑크 펩타이드 앰플',tag:'재생 케어',color:'#a86f7a'}
+    ]},
+    { key:'texture', label:'피부결 개선', products:[
+      {rank:1,brand:'토리든',name:'다이브인 세럼',tag:'결 정돈',color:'#5c7a8b'},
+      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 화잘먹 세럼',tag:'피부 컨디션',color:'#8b6f47'},
+      {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'모공 · 결 관리',color:'#7a8b5c'}
+    ]},
+    { key:'spot', label:'기미', products:[
+      {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'브라이트닝',color:'#c9915c'},
+      {rank:2,brand:'아누아',name:'PDRN 캡슐 100 세럼',tag:'톤 개선',color:'#7a8b5c'},
+      {rank:3,brand:'에스네이처',name:'아쿠아 스쿠알란 수분크림',tag:'수분 진정',color:'#6b8b8b'}
+    ]},
+    { key:'blemish', label:'잡티', products:[
+      {rank:1,brand:'닥터지',name:'레드 블레미쉬 포맨 올인원',tag:'트러블 케어',color:'#a85c5c'},
+      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 화잘먹 세럼',tag:'피부 진정',color:'#8b6f47'},
+      {rank:3,brand:'라운드랩',name:'마데카 크림',tag:'재생 진정',color:'#5c8b6f'}
+    ]},
+    { key:'tone', label:'피부톤 불균일', products:[
+      {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'톤 케어',color:'#c9915c'},
+      {rank:2,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'톤 보정',color:'#c9915c'},
+      {rank:3,brand:'토코보',name:'블러 피니쉬 선쿠션',tag:'톤업 + 선케어',color:'#b58b5c'}
+    ]},
+    { key:'blackhead', label:'블랙헤드', products:[
+      {rank:1,brand:'에스트라',name:'아토베리어365 클렌징폼',tag:'저자극 클렌징',color:'#6b7a8b'},
+      {rank:2,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'모공 각질 케어',color:'#8b6f47'},
+      {rank:3,brand:'이니스프리',name:'그린티 클렌징폼',tag:'산뜻 세안',color:'#5c8b6f'}
+    ]},
+    { key:'darkcircle', label:'다크서클', products:[
+      {rank:1,brand:'토리든',name:'다이브인 세럼',tag:'눈가 수분',color:'#5c7a8b'},
+      {rank:2,brand:'메디큐브',name:'PDRN 핑크 펩타이드 앰플',tag:'재생 케어',color:'#a86f7a'},
+      {rank:3,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'}
+    ]},
+    { key:'shave', label:'면도 트러블', products:[
+      {rank:1,brand:'라운드랩',name:'마데카 크림',tag:'진정 재생',color:'#5c8b6f'},
+      {rank:2,brand:'피지오겔',name:'레드수딩 크림',tag:'저자극 진정',color:'#a86f6f'},
+      {rank:3,brand:'닥터지',name:'레드 블레미쉬 포맨 올인원',tag:'트러블 케어',color:'#a85c5c'}
+    ]},
+    { key:'ingrown', label:'인그로운 헤어', products:[
+      {rank:1,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'각질 · 모공 케어',color:'#8b6f47'},
+      {rank:2,brand:'라운드랩',name:'자작나무 수분크림',tag:'수분 진정',color:'#5c8b6f'},
+      {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'진정 케어',color:'#7a8b5c'}
+    ]},
+    { key:'dull', label:'얼굴 칙칙함', products:[
+      {rank:1,brand:'오리진스',name:'메가 버섯 퍼스트 에센스',tag:'생기 부여',color:'#8b7a5c'},
+      {rank:2,brand:'구달',name:'청귤 비타C 세럼',tag:'톤 브라이트닝',color:'#c9915c'},
+      {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'생기 있는 톤',color:'#c9915c'}
+    ]},
+    { key:'dryness', label:'세안 후 건조함', products:[
+      {rank:1,brand:'피지오겔',name:'레드수딩 크림',tag:'수분 장벽',color:'#a86f6f'},
+      {rank:2,brand:'에스네이처',name:'아쿠아 스쿠알란 수분크림',tag:'수분 채우기',color:'#6b8b8b'},
+      {rank:3,brand:'라운드랩',name:'자작나무 수분크림',tag:'속당김 케어',color:'#5c8b6f'}
+    ]},
+    { key:'redness', label:'안면 홍조', products:[
+      {rank:1,brand:'피지오겔',name:'레드수딩 크림',tag:'홍조 진정',color:'#a86f6f'},
+      {rank:2,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'},
+      {rank:3,brand:'라운드랩',name:'마데카 크림',tag:'저자극 진정',color:'#5c8b6f'}
+    ]},
+    { key:'pigment', label:'색소 침착', products:[
+      {rank:1,brand:'구달',name:'청귤 비타C 세럼',tag:'색소 케어',color:'#c9915c'},
+      {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 화잘먹 세럼',tag:'톤 개선',color:'#8b6f47'},
+      {rank:3,brand:'아누아',name:'PDRN 캡슐 100 세럼',tag:'재생 브라이트닝',color:'#7a8b5c'}
+    ]},
+    { key:'flake', label:'얼굴 각질', products:[
+      {rank:1,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'각질 케어',color:'#8b6f47'},
+      {rank:2,brand:'토리든',name:'다이브인 세럼',tag:'수분 결 정돈',color:'#5c7a8b'},
+      {rank:3,brand:'아누아',name:'어성초 77 토너',tag:'진정 각질 케어',color:'#7a8b5c'}
+    ]}
+  ];
+  let extraInitialized = false;
+
+  function initExtraTabs(){
+    extraInitialized = true;
+    const tabsEl = document.getElementById('extraTabs');
+    tabsEl.innerHTML = EXTRA_CONCERNS.map((c,i)=>
+      '<button type="button" class="extra-tab' + (i===0?' active':'') + '" data-extra="' + c.key + '">' + c.label + '</button>'
+    ).join('');
+    tabsEl.querySelectorAll('.extra-tab').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        tabsEl.querySelectorAll('.extra-tab').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        renderExtra(btn.dataset.extra);
+      });
+    });
+    renderExtra(EXTRA_CONCERNS[0].key);
+  }
+
+  function renderExtra(key){
+    const c = EXTRA_CONCERNS.find(c=>c.key===key);
+    document.getElementById('extraProdRow').innerHTML = renderProductCards(c.products);
+  }
 
   /* ---------------- community ---------------- */
   const POSTS = [
@@ -1406,7 +1641,7 @@ DEMO_HTML = """
 
   const postGrid = document.getElementById('postGrid');
   function renderPosts(filter){
-    const list = filter==='all' ? POSTS : POSTS.filter(p=>p.tag===filter);
+    const list = (filter==='all' ? POSTS : POSTS.filter(p=>p.tag===filter)).slice(0,3);
     postGrid.innerHTML = list.map(p=>`
       <div class="post">
         <div class="post-top">
