@@ -466,20 +466,21 @@ DEMO_HTML = """
   .score-row-value{font-size:15px;font-weight:700;color:#2b241d;}
   .score-row-chev{width:14px;height:14px;color:#c3b8a5;}
 
-  /* ---------- CONCERN TABS ---------- */
+  /* ---------- CONCERN TABS (vertical sidebar) ---------- */
   .diag-tabsblock{
     margin-top:24px;background:#fffdfa;border:1px solid var(--db-line);border-radius:24px;padding:26px;
     box-shadow:0 10px 28px rgba(120,96,68,.06);
   }
-  .diag-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .diag-tabs-layout{display:grid;grid-template-columns:190px 1fr;gap:24px;margin-top:16px;align-items:start;}
+  .diag-tabs{display:flex;flex-direction:column;gap:8px;}
   .diag-tab{
-    display:flex;align-items:center;gap:6px;padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);
+    display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:14px;border:1.5px solid var(--line);
     background:var(--bg);color:var(--ink-soft);font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;
-    transition:all .15s ease;
+    transition:all .15s ease;text-align:left;width:100%;
   }
   .diag-tab .tab-dot{width:7px;height:7px;border-radius:50%;flex:none;}
   .diag-tab.active{background:var(--dark);border-color:var(--dark);color:#fff;}
-  .diag-panel{display:none;margin-top:18px;padding-top:18px;border-top:1px solid var(--line);}
+  .diag-panel{display:none;}
   .diag-panel.active{display:block;animation:fade .4s ease;}
   .panel-head{display:flex;align-items:center;justify-content:space-between;}
   .panel-title{font-size:15.5px;font-weight:700;color:var(--ink);}
@@ -489,18 +490,20 @@ DEMO_HTML = """
   .panel-badge.bad{background:#f7dede;color:var(--bad);}
   .panel-score-track{height:7px;border-radius:999px;background:var(--bg);margin-top:12px;overflow:hidden;}
   .panel-score-fill{height:100%;border-radius:999px;}
-  .panel-desc{margin-top:14px;font-size:13.5px;color:#4a4944;line-height:1.65;}
+  .panel-desc{margin-top:18px;font-size:13.5px;color:#4a4944;line-height:1.65;}
   .panel-tips{margin-top:14px;}
   .panel-tips-title{font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
   .panel-tips ul{margin:8px 0 0;padding:0;list-style:none;}
   .panel-tips li{position:relative;padding-left:16px;font-size:13px;color:#4a4944;line-height:1.6;margin-top:6px;}
   .panel-tips li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--accent);}
-  .panel-routine{margin-top:14px;display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);}
-  .panel-routine-label{font-size:11px;font-weight:700;color:var(--ink-soft);}
-  .panel-routine-name{font-size:13px;font-weight:700;color:var(--ink);}
 
   @media (max-width:1023px){
     .diag-report{grid-template-columns:1fr 1fr;grid-template-areas:"face face" "info score";}
+  }
+  @media (max-width:760px){
+    .diag-tabs-layout{grid-template-columns:1fr;}
+    .diag-tabs{flex-direction:row;overflow-x:auto;}
+    .diag-tab{width:auto;white-space:nowrap;}
   }
   @media (max-width:640px){
     .diag-report{grid-template-columns:1fr;grid-template-areas:"face" "info" "score";gap:16px;}
@@ -737,11 +740,13 @@ DEMO_HTML = """
     </div>
 
     <div class="diag-tabsblock">
-      <div class="diag-concerns-head" style="margin-bottom:14px;">
+      <div class="diag-concerns-head">
         <span>고민별 자세히 보기</span>
       </div>
-      <div class="diag-tabs" id="diagTabs"></div>
-      <div id="diagPanels"></div>
+      <div class="diag-tabs-layout">
+        <div class="diag-tabs" id="diagTabs"></div>
+        <div id="diagPanels"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1181,7 +1186,12 @@ DEMO_HTML = """
         good:'모공 상태가 양호해요. 지금 루틴을 유지해주세요.'
       },
       tips:['이중세안으로 모공 속 노폐물을 자주 제거해주세요.','뜨거운 물 세안은 피하고 미온수를 사용하세요.','주 1~2회 각질 케어로 모공을 정돈해주세요.'],
-      routine:'포어 타이트닝 토너'
+      routine:'포어 타이트닝 토너',
+      products:[
+        {rank:1,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'모공 결 정돈',imgKey:'cosrx'},
+        {rank:2,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'수분 진정',imgKey:'toriden'},
+        {rank:3,brand:'클리오',name:'킬커버 파운웨어 쿠션',tag:'모공 커버',imgKey:'clioCushion'}
+      ]
     },
     oil: {
       label:'유분', metricKey:'oil',
@@ -1191,7 +1201,12 @@ DEMO_HTML = """
         good:'유분·수분 밸런스가 좋은 편이에요. 지금 루틴을 유지해주세요.'
       },
       tips:['하루 2회, 약산성 클렌저로 과도한 유분만 부드럽게 제거해주세요.','무거운 크림 대신 가벼운 젤 타입 제형을 사용해보세요.','오후에 유분이 심하면 블로팅 페이퍼로 가볍게 눌러주세요.'],
-      routine:'라이트 젤 로션'
+      routine:'라이트 젤 로션',
+      products:[
+        {rank:1,brand:'AHC',name:'마스터즈 에어 리치 선스틱',tag:'산뜻한 마무리',imgKey:'ahc'},
+        {rank:2,brand:'구달',name:'맑은 어성초 진정 수분 선크림',tag:'가벼운 제형',imgKey:'goodal'},
+        {rank:3,brand:'메디힐',name:'마데카소사이드 수분 선세럼',tag:'저자극 진정',imgKey:'mediheal'}
+      ]
     },
     acne: {
       label:'여드름', metricKey:'trouble',
@@ -1201,7 +1216,12 @@ DEMO_HTML = """
         good:'트러블이 잘 관리되고 있어요. 지금 상태를 유지해주세요.'
       },
       tips:['손으로 만지거나 짜지 말고 진정 성분으로 케어해주세요.','베개 커버, 마스크 등 피부에 닿는 물건을 자주 세척해주세요.','트러블 부위엔 저자극 스팟 제품을 사용해보세요.'],
-      routine:'포어 클린 폼'
+      routine:'포어 클린 폼',
+      products:[
+        {rank:1,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'트러블 진정',imgKey:'cosrx'},
+        {rank:2,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'재생 케어',imgKey:'anua'},
+        {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'가벼운 커버',imgKey:'jsm'}
+      ]
     },
     scar: {
       label:'흉터', metricKey:'pigment',
@@ -1211,7 +1231,12 @@ DEMO_HTML = """
         good:'흉터·색소 부담이 적은 편이에요. 지금 루틴을 유지해주세요.'
       },
       tips:['자외선 차단제를 매일 발라 색소 자국이 짙어지는 걸 막아주세요.','브라이트닝 성분(나이아신아마이드 등)을 꾸준히 사용해보세요.','새로 생긴 트러블은 짜지 않아야 흉터로 남지 않아요.'],
-      routine:'브라이트닝 세럼'
+      routine:'브라이트닝 세럼',
+      products:[
+        {rank:1,brand:'아누아',name:'PDRN 히알루론산 캡슐 100 세럼',tag:'브라이트닝',imgKey:'anua'},
+        {rank:2,brand:'헤라',name:'블랙 쿠션 파운데이션',tag:'자국 커버',imgKey:'hera'},
+        {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'자연스러운 커버',imgKey:'jsm'}
+      ]
     }
   };
   const CONCERN_ORDER = ['pore','oil','acne','scar'];
@@ -1247,20 +1272,19 @@ DEMO_HTML = """
       const band = m.score>=7?'good':m.score>=4?'mid':'bad';
       const bandText = band==='good'?'좋음':band==='mid'?'보통':'나쁨';
       const descText = detail.desc[band];
+      const products = detail.products.map(p=> Object.assign({}, p, { img: window.PIMG[p.imgKey] }));
       return '<div class="diag-panel' + (k===defaultKey?' active':'') + '" data-panel="' + k + '">' +
         '<div class="panel-head">' +
           '<span class="panel-title">' + detail.label + ' · ' + m.score.toFixed(1) + '점</span>' +
           '<span class="panel-badge ' + band + '">' + bandText + '</span>' +
         '</div>' +
         '<div class="panel-score-track"><div class="panel-score-fill fill-' + band + '" style="width:' + (m.score*10) + '%"></div></div>' +
+        '<div class="tier-cat-label">' + detail.label + ' 맞춤 추천 · TOP 3 (올리브영 랭킹 기준)</div>' +
+        '<div class="prod-row">' + window.renderProductCards(products) + '</div>' +
         '<p class="panel-desc">' + descText + '</p>' +
         '<div class="panel-tips">' +
           '<div class="panel-tips-title">관리 팁</div>' +
           '<ul>' + detail.tips.map(t=>'<li>'+t+'</li>').join('') + '</ul>' +
-        '</div>' +
-        '<div class="panel-routine">' +
-          '<span class="panel-routine-label">추천 루틴</span>' +
-          '<span class="panel-routine-name">' + detail.routine + '</span>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -1515,6 +1539,7 @@ DEMO_HTML = """
       '</div>'
     ).join('');
   }
+  window.renderProductCards = renderProductCards;
 
   /* ---------------- recommend: tier tabs ---------------- */
   const PIMG = {
@@ -1531,6 +1556,7 @@ DEMO_HTML = """
     peripera: 'https://dn5hzapyfrpio.cloudfront.net/product/d34/d3475980-92e5-11f0-9444-11e570e33be4.jpeg?w=426',
     clioEye: 'https://dn5hzapyfrpio.cloudfront.net/product/9cb/9cbc3980-4242-11ee-88cc-5d4011facace.jpeg?w=426'
   };
+  window.PIMG = PIMG;
 
   const TIERS = [
     { key:'t1', label:'1단계', category:'세럼',
@@ -1575,33 +1601,32 @@ DEMO_HTML = """
   function initTierTabs(){
     tierInitialized = true;
     tierUnlocked = 1;
-    renderTierTabs();
+    const tabsEl = document.getElementById('tierTabs');
+    tabsEl.innerHTML = TIERS.map((t,i)=>
+      '<button type="button" class="tier-tab' + (i===0?' active':'') + '" data-tier="' + t.key + '" data-idx="' + i + '">' + t.label + '</button>'
+    ).join('');
+    updateTierLocks();
+    tabsEl.addEventListener('click', onTierTabClick);
     renderTier(TIERS[0].key);
   }
 
-  function renderTierTabs(){
+  function onTierTabClick(e){
+    const btn = e.target.closest('.tier-tab');
+    if(!btn || btn.disabled) return;
     const tabsEl = document.getElementById('tierTabs');
-    tabsEl.innerHTML = TIERS.map((t,i)=>
-      '<button type="button" class="tier-tab' + (i===0?' active':'') + (i>=tierUnlocked?' locked':'') +
-      '" data-tier="' + t.key + '" data-idx="' + i + '"' + (i>=tierUnlocked?' disabled':'') + '>' + t.label + '</button>'
-    ).join('');
-    tabsEl.querySelectorAll('.tier-tab').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        if(btn.disabled) return;
-        tabsEl.querySelectorAll('.tier-tab').forEach(b=>b.classList.remove('active'));
-        btn.classList.add('active');
-        const idx = Number(btn.dataset.idx);
-        const nextUnlock = Math.min(TIERS.length, idx + 2);
-        if(nextUnlock > tierUnlocked){ tierUnlocked = nextUnlock; renderTierTabs(); reselectTab(btn.dataset.tier); }
-        renderTier(btn.dataset.tier);
-      });
-    });
+    tabsEl.querySelectorAll('.tier-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const idx = Number(btn.dataset.idx);
+    const nextUnlock = Math.min(TIERS.length, idx + 2);
+    if(nextUnlock > tierUnlocked){ tierUnlocked = nextUnlock; updateTierLocks(); }
+    renderTier(btn.dataset.tier);
   }
 
-  function reselectTab(key){
-    const tabsEl = document.getElementById('tierTabs');
-    tabsEl.querySelectorAll('.tier-tab').forEach(b=>{
-      b.classList.toggle('active', b.dataset.tier === key);
+  function updateTierLocks(){
+    document.querySelectorAll('#tierTabs .tier-tab').forEach(btn=>{
+      const locked = Number(btn.dataset.idx) >= tierUnlocked;
+      btn.classList.toggle('locked', locked);
+      btn.disabled = locked;
     });
   }
 
