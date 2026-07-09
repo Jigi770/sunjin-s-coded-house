@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>얼굴 모델 미리보기 (남/여/중립)</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --ink:#2b241d; --db-line:#e6dccd; --db-brown:#8a6a52; --db-brown-soft:#efe4d8;
+    --accent:#54634a; --accent-soft:#e7ecdf; --line:#e6e4de;
+  }
+  *{box-sizing:border-box;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI","Noto Sans KR",sans-serif;
+    margin:0;padding:40px 20px;background:linear-gradient(180deg,#fbf8f4,#f3ede4);color:var(--ink);
+  }
+  h1{font-size:22px;letter-spacing:-.02em;text-align:center;margin:0 0 6px;}
+  .sub{text-align:center;color:#8a8072;font-size:13.5px;margin:0 0 32px;}
+  .zone-toggle{display:flex;justify-content:center;gap:10px;margin-bottom:30px;flex-wrap:wrap;}
+  .zone-toggle button{
+    padding:9px 15px;border-radius:999px;border:1.5px solid var(--db-line);background:#fffdfa;
+    color:#8a8072;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .zone-toggle button.on{background:var(--db-brown);border-color:var(--db-brown);color:#fff;}
+  .row{display:flex;gap:26px;justify-content:center;flex-wrap:wrap;}
+  .panel{
+    background:#fffdfa;border:1px solid var(--db-line);border-radius:24px;padding:26px;
+    box-shadow:0 10px 28px rgba(120,96,68,.06);text-align:center;width:260px;
+  }
+  .panel h2{font-size:13px;font-weight:800;color:var(--db-brown);letter-spacing:.04em;margin:0 0 4px;}
+  .panel p{font-size:11.5px;color:#a89a86;margin:0 0 16px;}
+
+  /* --- face-map (app.py와 동일) --- */
+  .face-map{position:relative;width:184px;height:224px;margin:8px auto 0;}
+  .face-model{
+    position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;
+    background:linear-gradient(180deg,#fbf6ef 0%,#f2e8d9 100%);
+    box-shadow:inset 0 0 0 1px #ece2d2, 0 8px 20px rgba(120,96,68,.10);
+  }
+  .face-model svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;z-index:2;}
+  .face-zone[data-zone="tzone"]{
+    top:20%;left:50%;width:26%;height:46%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
+    background:repeating-linear-gradient(115deg, rgba(201,138,60,.5) 0 3px, rgba(201,138,60,0) 3px 7px);
+  }
+  .face-zone[data-zone="cheek-l"],.face-zone[data-zone="cheek-r"]{
+    top:54%;width:30%;height:22%;
+    background-image:radial-gradient(circle, rgba(200,110,70,.85) 0 6%, transparent 7%);
+    background-size:11px 11px;background-position:center;background-color:rgba(200,110,70,.12);
+  }
+  .face-zone[data-zone="cheek-l"]{left:24%;}
+  .face-zone[data-zone="cheek-r"]{left:76%;}
+  .face-zone[data-zone="scar-mark"]{
+    top:58%;left:76%;width:22%;height:16%;
+    background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.85) 0 2px, transparent 2px 9px);
+  }
+  .face-zone[data-zone="chin"]{
+    top:82%;left:50%;width:24%;height:16%;
+    background-image:
+      radial-gradient(circle at 30% 35%, rgba(193,60,60,.9) 0 9%, transparent 10%),
+      radial-gradient(circle at 65% 55%, rgba(193,60,60,.9) 0 8%, transparent 9%),
+      radial-gradient(circle at 45% 75%, rgba(193,60,60,.9) 0 7%, transparent 8%);
+    background-color:rgba(193,60,60,.1);
+  }
+  .face-zone.on{opacity:1;}
+</style>
+</head>
+<body>
+  <h1>얼굴 모델 미리보기</h1>
+  <p class="sub">성별별 정돈형 얼굴 모델 + 문제 부위 하이라이트(app.py 실제 코드와 동일)</p>
+  <div class="zone-toggle">
+    <button data-zone="tzone">유분 · T존</button>
+    <button data-zone="cheek-l">모공 · 왼볼</button>
+    <button data-zone="cheek-r">모공 · 오른볼</button>
+    <button data-zone="scar-mark">흉터 · 볼</button>
+    <button data-zone="chin">여드름 · 턱</button>
+    <button data-zone="ALL" class="on">전체 켜기</button>
+  </div>
+  <div class="row">
+    <div class="panel"><h2>남성 회원</h2><p>male</p>
+      <div class="face-map" data-kind="male"></div></div>
+    <div class="panel"><h2>여성 회원</h2><p>female</p>
+      <div class="face-map" data-kind="female"></div></div>
+    <div class="panel"><h2>성별 미상</h2><p>neutral (기본값)</p>
+      <div class="face-map" data-kind="neutral"></div></div>
+  </div>
+
+<script>
+  function faceSVG(kind){
+    const female = kind === 'female';
+    const skinTop = female ? '#fbe3d3' : '#f3d8c2';
+    const skinMid = female ? '#f6d2bd' : '#ecc7a9';
+    const skinBot = female ? '#eec4aa' : '#dfb595';
+    const hairCol = female ? '#4a3327' : '#2f251f';
+    const hairHi  = female ? '#6a4c3b' : '#453529';
+    const lip     = female ? '#d98784' : '#c48978';
+    const cloth   = female ? '#d9cfc4' : '#c9bfb4';
+    const browW   = female ? 2.8 : 4;
+
+    const hairBack = female
+      ? '<path d="M34 96 C24 54 52 22 92 22 C132 22 160 54 150 96 L156 178 C150 150 146 132 138 120 C142 152 140 180 136 200 L48 200 C44 180 42 152 46 120 C38 132 34 150 28 178 Z" fill="'+hairCol+'"/>'
+      : '';
+    const hairFront = female
+      ? '<path d="M40 94 C36 50 60 26 92 26 C124 26 148 50 144 94 C140 74 132 62 118 57 C120 66 120 74 117 80 C104 62 80 62 67 80 C64 74 64 66 66 57 C52 62 44 74 40 94 Z" fill="'+hairCol+'"/>'
+        + '<path d="M92 26 C74 26 62 40 60 56 C72 44 84 42 92 42 Z" fill="'+hairHi+'" opacity=".5"/>'
+      : '<path d="M42 98 C36 52 60 28 92 28 C124 28 148 52 142 98 C138 76 132 62 120 56 C124 64 124 72 121 79 C118 66 108 58 92 58 C76 58 66 66 63 79 C60 72 60 64 64 56 C52 62 46 78 42 98 Z" fill="'+hairCol+'"/>'
+        + '<path d="M64 56 C74 48 84 46 92 46 C100 46 110 48 120 56 C108 52 96 51 92 51 C88 51 76 52 64 56 Z" fill="'+hairHi+'" opacity=".45"/>';
+    const lashes = female
+      ? '<path d="M60 108 q11 -6 22 0" stroke="#5a4038" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+        + '<path d="M102 108 q11 -6 22 0" stroke="#5a4038" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+      : '';
+    const stubble = kind === 'male'
+      ? '<path d="M60 158 C70 186 114 186 124 158 C120 178 108 192 92 192 C76 192 64 178 60 158 Z" fill="#c9a889" opacity=".2"/>'
+      : '';
+    const lipTop = female ? 9 : 6;
+    const lipBot = female ? 5 : 3;
+
+    return '<svg viewBox="0 0 184 224" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs>'
+      +   '<linearGradient id="fmSkin_'+kind+'" x1="0" y1="0" x2="0" y2="1">'
+      +     '<stop offset="0" stop-color="'+skinTop+'"/><stop offset=".55" stop-color="'+skinMid+'"/><stop offset="1" stop-color="'+skinBot+'"/>'
+      +   '</linearGradient>'
+      +   '<radialGradient id="fmCheek_'+kind+'" cx="0.5" cy="0.5" r="0.5">'
+      +     '<stop offset="0" stop-color="#e8a184" stop-opacity=".45"/><stop offset="1" stop-color="#e8a184" stop-opacity="0"/>'
+      +   '</radialGradient>'
+      + '</defs>'
+      + '<path d="M26 224 C28 196 56 182 92 182 C128 182 156 196 158 224 Z" fill="'+cloth+'"/>'
+      + '<path d="M92 176 c-9 0 -16 3 -16 3 l0 12 q16 9 32 0 l0 -12 s-7 -3 -16 -3z" fill="url(#fmSkin_'+kind+')"/>'
+      + hairBack
+      + '<ellipse cx="48" cy="120" rx="8" ry="12" fill="url(#fmSkin_'+kind+')"/>'
+      + '<ellipse cx="136" cy="120" rx="8" ry="12" fill="url(#fmSkin_'+kind+')"/>'
+      + '<path d="M46 104 C46 64 66 40 92 40 C118 40 138 64 138 104 C138 146 120 186 92 190 C64 186 46 146 46 104 Z" fill="url(#fmSkin_'+kind+')"/>'
+      + '<ellipse cx="66" cy="132" rx="15" ry="12" fill="url(#fmCheek_'+kind+')"/>'
+      + '<ellipse cx="118" cy="132" rx="15" ry="12" fill="url(#fmCheek_'+kind+')"/>'
+      + stubble
+      + hairFront
+      + '<path d="M60 100 q11 -6 22 -1" stroke="#5a4238" stroke-width="'+browW+'" fill="none" stroke-linecap="round"/>'
+      + '<path d="M102 99 q11 -5 22 1" stroke="#5a4238" stroke-width="'+browW+'" fill="none" stroke-linecap="round"/>'
+      + '<ellipse cx="71" cy="112" rx="7" ry="4" fill="#fff"/><circle cx="71" cy="112" r="2.7" fill="#3a2c24"/>'
+      + '<ellipse cx="113" cy="112" rx="7" ry="4" fill="#fff"/><circle cx="113" cy="112" r="2.7" fill="#3a2c24"/>'
+      + lashes
+      + '<path d="M92 116 L87 140 q5 4 10 0" stroke="#d3a17d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<path d="M79 160 q13 '+lipTop+' 26 0 q-13 '+lipBot+' -26 0 Z" fill="'+lip+'"/>'
+      + '<path d="M79 160 q13 3 26 0" stroke="#b06b63" stroke-width="1.1" fill="none" opacity=".55"/>'
+      + '</svg>';
+  }
+
+  const ZONES = ['tzone','cheek-l','cheek-r','scar-mark','chin'];
+  document.querySelectorAll('.face-map').forEach(function(map){
+    map.innerHTML = '<div class="face-model">' + faceSVG(map.dataset.kind) + '</div>'
+      + ZONES.map(function(z){ return '<div class="face-zone on" data-zone="'+z+'"></div>'; }).join('');
+  });
+
+  document.querySelectorAll('.zone-toggle button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const z = btn.dataset.zone;
+      const buttons = document.querySelectorAll('.zone-toggle button');
+      if(z === 'ALL'){
+        const turnOn = !btn.classList.contains('on');
+        buttons.forEach(function(b){ b.classList.toggle('on', b.dataset.zone === 'ALL' ? turnOn : false); });
+        document.querySelectorAll('.face-zone').forEach(function(el){ el.classList.toggle('on', turnOn); });
+        return;
+      }
+      btn.classList.toggle('on');
+      document.querySelector('.zone-toggle button[data-zone="ALL"]').classList.remove('on');
+      document.querySelectorAll('.face-zone[data-zone="'+z+'"]').forEach(function(el){
+        el.classList.toggle('on', btn.classList.contains('on'));
+      });
+    });
+  });
+</script>
+</body>
+</html>
