@@ -2917,7 +2917,12 @@ if auth_on:
             st.logout()
     else:
         if st.button("Google 계정으로 로그인", type="primary"):
-            st.login("google")
+            try:
+                st.login()
+            except Exception:
+                st.error("구글 로그인 설정을 확인해주세요. secrets의 [auth] 블록에 "
+                         "client_id / client_secret / redirect_uri / cookie_secret / "
+                         "server_metadata_url 이 모두 있어야 합니다.")
 
 # Optional Supabase config. When absent, the frontend falls back to its
 # built-in product catalog, so the demo keeps working with no secrets set.
