@@ -907,7 +907,7 @@ HTML = r"""
     if(W.USER_LOGGED_IN==='1'){ beginSignup(W.USER_EMAIL||'', W.USER_NAME||''); return; }
     if(W.AUTH_ON==='1' && W.APP_URL){
       try{ localStorage.setItem('forhimc_pending','1'); }catch(e){}
-      pop('구글 로그인 창을 여는 중…');
+      pop('구글 로그인 페이지로 이동해요. (새 탭이 열리면 그 탭에서 이어집니다)');
       var url=W.APP_URL+(W.APP_URL.indexOf('?')>=0?'&':'?')+'login=google';
       try{ var a=document.createElement('a'); a.href=url; a.target='_top'; a.rel='opener'; document.body.appendChild(a); a.click(); a.remove(); }catch(e){}
       setTimeout(function(){ try{ W.top.location.href=url; }catch(e){ try{ W.open(url,'_blank'); }catch(e2){} } },150);
