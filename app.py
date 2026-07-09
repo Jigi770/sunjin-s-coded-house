@@ -360,6 +360,27 @@ DEMO_HTML = """
   .cm-form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
   .cm-form-hint{font-size:12px;color:var(--bad);min-height:16px;margin-bottom:8px;}
 
+  /* auth control + modal */
+  .cm-auth{display:flex;align-items:center;gap:8px;flex:none;}
+  .cm-auth:empty{display:none;}
+  .cm-auth-name{font-size:12.5px;font-weight:700;color:var(--ink);}
+  .cm-auth-btn{
+    padding:9px 15px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface);
+    color:var(--ink-soft);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .cm-auth-btn:hover{border-color:var(--ink);color:var(--ink);}
+  .cm-modal{position:fixed;inset:0;z-index:200;background:rgba(20,20,18,.55);display:flex;align-items:center;justify-content:center;padding:20px;}
+  .cm-modal[hidden]{display:none;}
+  .cm-modal-card{
+    width:100%;max-width:360px;background:var(--surface);border-radius:var(--radius-lg);padding:28px;
+    box-shadow:0 24px 60px rgba(0,0,0,.32);position:relative;
+  }
+  .cm-modal-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:none;background:none;font-size:24px;color:var(--ink-soft);cursor:pointer;line-height:1;}
+  .cm-modal-title{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.02em;}
+  .cm-modal-sub{font-size:12.5px;color:var(--ink-soft);margin:7px 0 20px;}
+  .cm-auth-toggle{width:100%;margin-top:12px;background:none;border:none;color:var(--ink-soft);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;}
+  .cm-auth-toggle:hover{color:var(--ink);}
+
   @media (max-width:860px){
     .cm-list{grid-template-columns:1fr 1fr;}
   }
@@ -1008,6 +1029,7 @@ DEMO_HTML = """
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
           <input type="text" id="cmSearch" placeholder="궁금한 키워드로 검색해보세요" />
         </label>
+        <div class="cm-auth" id="cmAuth"></div>
         <button type="button" class="btn btn-dark btn-sm cm-write-btn" id="cmWriteBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
           글 남기기
@@ -1062,6 +1084,19 @@ DEMO_HTML = """
           <button type="button" class="btn btn-outline btn-sm" id="cmFormCancel">취소</button>
           <button type="button" class="btn btn-dark btn-sm" id="cmFormSubmit">등록하기</button>
         </div>
+      </div>
+    </div>
+
+    <div class="cm-modal" id="cmAuthModal" hidden>
+      <div class="cm-modal-card">
+        <button type="button" class="cm-modal-close" id="cmAuthClose" aria-label="닫기">×</button>
+        <div class="cm-modal-title" id="cmAuthTitle">로그인</div>
+        <p class="cm-modal-sub">글쓰기·댓글을 남기려면 로그인이 필요해요.</p>
+        <div class="cm-field"><label>이메일</label><input type="email" id="cmAuthEmail" placeholder="you@example.com" /></div>
+        <div class="cm-field"><label>비밀번호</label><input type="password" id="cmAuthPw" placeholder="6자 이상" /></div>
+        <div class="cm-form-hint" id="cmAuthHint"></div>
+        <button type="button" class="btn btn-dark" id="cmAuthSubmit" style="width:100%;padding:13px;">로그인</button>
+        <button type="button" class="cm-auth-toggle" id="cmAuthToggle">계정이 없으신가요? 회원가입</button>
       </div>
     </div>
 
@@ -1969,6 +2004,103 @@ DEMO_HTML = """
   let cmEditingId = null;
   let cmPendingPhoto = null;
 
+  /* ---- optional Supabase backend + email auth (falls back to localStorage) ---- */
+  const SB_ON = !!(window.SB_URL && window.SB_KEY && String(window.SB_URL).indexOf('http') === 0);
+  const CM_SESS = 'forhim_sb_session';
+  let cmSession = null;
+  let cmAuthMode = 'login';
+  try{ cmSession = JSON.parse(localStorage.getItem(CM_SESS) || 'null'); }catch(e){}
+  function cmLoggedIn(){ return !!(cmSession && cmSession.access_token); }
+  function cmUserName(){
+    if(window.appState && window.appState.nickname) return window.appState.nickname;
+    if(cmSession && cmSession.user && cmSession.user.email) return cmSession.user.email.split('@')[0];
+    return '익명';
+  }
+  function cmSaveSession(s){ cmSession = s; try{ localStorage.setItem(CM_SESS, JSON.stringify(s)); }catch(e){} cmRenderAuth(); }
+  function cmLogout(){ cmSession = null; try{ localStorage.removeItem(CM_SESS); }catch(e){} cmRenderAuth(); cmShowToast('로그아웃했어요.'); }
+  function sbAuthHeaders(){ return { apikey: window.SB_KEY, 'Content-Type':'application/json' }; }
+  function sbRestHeaders(useToken){
+    const h = { apikey: window.SB_KEY, 'Content-Type':'application/json' };
+    h.Authorization = 'Bearer ' + ((useToken && cmLoggedIn()) ? cmSession.access_token : window.SB_KEY);
+    return h;
+  }
+  async function sbSignup(email, pw){
+    const r = await fetch(window.SB_URL + '/auth/v1/signup', { method:'POST', headers:sbAuthHeaders(), body:JSON.stringify({ email:email, password:pw }) });
+    return r.json();
+  }
+  async function sbSignin(email, pw){
+    const r = await fetch(window.SB_URL + '/auth/v1/token?grant_type=password', { method:'POST', headers:sbAuthHeaders(), body:JSON.stringify({ email:email, password:pw }) });
+    return r.json();
+  }
+  function cmMapRow(p){
+    return { id:String(p.id), cat:p.category, title:p.title, body:p.body, photo:p.photo_url||null,
+      author:p.author||'익명', skin:p.skin_tags||[], createdAt:p.created_at?new Date(p.created_at).getTime():Date.now(),
+      comments:(p.comments||[]).map(function(c){ return { id:String(c.id), author:c.author||'익명', body:c.body, createdAt:c.created_at?new Date(c.created_at).getTime():Date.now() }; })
+        .sort(function(a,b){ return a.createdAt - b.createdAt; }) };
+  }
+  async function cmFetchRemote(){
+    const q = '/rest/v1/posts?select=id,category,title,body,photo_url,author,skin_tags,created_at,comments(id,author,body,created_at)&order=created_at.desc';
+    const r = await fetch(window.SB_URL + q, { headers: sbRestHeaders(false) });
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return (await r.json()).map(cmMapRow);
+  }
+  async function cmRefresh(){
+    if(!SB_ON) return;
+    try{ cmPosts = await cmFetchRemote(); cmRenderCats(); cmRenderList(); }catch(e){ /* keep current data */ }
+  }
+  function cmNeedLogin(){
+    if(cmLoggedIn()) return false;
+    cmOpenAuth();
+    return true;
+  }
+
+  /* ---- auth UI ---- */
+  function cmRenderAuth(){
+    const el = document.getElementById('cmAuth');
+    if(!el) return;
+    if(!SB_ON){ el.innerHTML = ''; return; }
+    if(cmLoggedIn()){
+      el.innerHTML = '<span class="cm-auth-name">'+esc(cmUserName())+'님</span><button type="button" class="cm-auth-btn" id="cmLogoutBtn">로그아웃</button>';
+      document.getElementById('cmLogoutBtn').addEventListener('click', cmLogout);
+    } else {
+      el.innerHTML = '<button type="button" class="cm-auth-btn" id="cmLoginBtn">로그인</button>';
+      document.getElementById('cmLoginBtn').addEventListener('click', cmOpenAuth);
+    }
+  }
+  function cmSetAuthMode(m){
+    cmAuthMode = m;
+    document.getElementById('cmAuthTitle').textContent = (m==='login'?'로그인':'회원가입');
+    document.getElementById('cmAuthSubmit').textContent = (m==='login'?'로그인':'회원가입');
+    document.getElementById('cmAuthToggle').textContent = (m==='login'?'계정이 없으신가요? 회원가입':'이미 계정이 있으신가요? 로그인');
+  }
+  function cmOpenAuth(){
+    if(!SB_ON){ cmShowToast('로그인은 Supabase 연동 후 사용할 수 있어요.'); return; }
+    document.getElementById('cmAuthHint').textContent = '';
+    document.getElementById('cmAuthModal').hidden = false;
+  }
+  function cmCloseAuth(){ document.getElementById('cmAuthModal').hidden = true; }
+  async function cmAuthSubmit(){
+    const email = document.getElementById('cmAuthEmail').value.trim();
+    const pw = document.getElementById('cmAuthPw').value;
+    const hint = document.getElementById('cmAuthHint');
+    if(!email || pw.length < 6){ hint.textContent = '이메일과 6자 이상 비밀번호를 입력해주세요.'; return; }
+    hint.textContent = '처리 중...';
+    try{
+      let res;
+      if(cmAuthMode === 'signup'){
+        res = await sbSignup(email, pw);
+        if(!(res && res.access_token)){ res = await sbSignin(email, pw); }
+      } else {
+        res = await sbSignin(email, pw);
+      }
+      if(res && res.access_token){
+        cmSaveSession(res); cmCloseAuth(); cmShowToast('로그인되었어요.');
+      } else {
+        hint.textContent = (res && (res.msg || res.error_description || res.error)) || '실패했어요. 이메일 인증이 필요할 수 있어요.';
+      }
+    }catch(e){ hint.textContent = '네트워크 오류가 발생했어요.'; }
+  }
+
   const STAR_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 6.9L12 17.8 5.2 21l1.5-6.9L1.5 9.3l7-.8z"/></svg>';
   const STAR_FILL = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.5 6.9L12 17.8 5.2 21l1.5-6.9L1.5 9.3l7-.8z"/></svg>';
   const EDIT_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
@@ -2055,10 +2187,22 @@ DEMO_HTML = """
         '<p>'+esc(c.body)+'</p></div></div>';
     }).join('');
   }
-  function cmAddComment(id){
+  async function cmAddComment(id){
     const input = document.getElementById('cmCommentInput');
     const val = input.value.trim();
     if(!val) return;
+    if(SB_ON){
+      if(cmNeedLogin()) return;
+      try{
+        const r = await fetch(window.SB_URL + '/rest/v1/comments', {
+          method:'POST', headers:sbRestHeaders(true),
+          body:JSON.stringify({ post_id:id, user_id:cmSession.user.id, author:cmUserName(), body:val })
+        });
+        if(!r.ok) throw new Error('HTTP ' + r.status);
+        await cmRefresh(); cmRenderDetail(id);
+      }catch(e){ cmShowToast('댓글 등록에 실패했어요.'); }
+      return;
+    }
     const p = cmPosts.find(function(x){ return x.id===id; });
     if(!p.comments) p.comments = [];
     p.comments.push({ id:'c'+Date.now(), author:(window.appState.nickname||'익명'), body:val, createdAt:Date.now() });
@@ -2129,12 +2273,38 @@ DEMO_HTML = """
     document.getElementById('cmFormPhoto').value = '';
     cmShow('write');
   }
-  function cmSubmitForm(){
+  async function cmSubmitForm(){
     const cat = document.getElementById('cmFormCat').value;
     const title = document.getElementById('cmFormTitleInput').value.trim();
     const body = document.getElementById('cmFormBody').value.trim();
     const hint = document.getElementById('cmFormHint');
     if(!title || !body){ hint.textContent = '제목과 내용을 모두 입력해주세요.'; return; }
+
+    if(SB_ON){
+      if(cmNeedLogin()) return;
+      hint.textContent = '';
+      try{
+        if(cmEditingId){
+          const r = await fetch(window.SB_URL + '/rest/v1/posts?id=eq.' + encodeURIComponent(cmEditingId), {
+            method:'PATCH', headers:sbRestHeaders(true),
+            body:JSON.stringify({ category:cat, title:title, body:body, photo_url:cmPendingPhoto })
+          });
+          if(!r.ok) throw new Error('HTTP ' + r.status);
+          cmShowToast('글이 수정되었어요.');
+          await cmRefresh(); cmOpenDetail(cmEditingId);
+        } else {
+          const ins = { user_id:cmSession.user.id, author:cmUserName(), category:cat, title:title,
+            body:body, photo_url:cmPendingPhoto, skin_tags:Array.from(window.appState.concerns||[]) };
+          const r = await fetch(window.SB_URL + '/rest/v1/posts', { method:'POST', headers:sbRestHeaders(true), body:JSON.stringify(ins) });
+          if(!r.ok) throw new Error('HTTP ' + r.status);
+          cmShowToast('글이 등록되었어요.');
+          cmActiveCat = 'all'; cmQuery = ''; document.getElementById('cmSearch').value = '';
+          await cmRefresh(); cmShow('list');
+        }
+      }catch(e){ hint.textContent = '저장에 실패했어요. 로그인이 만료됐다면 다시 로그인해주세요.'; }
+      return;
+    }
+
     if(cmEditingId){
       const p = cmPosts.find(function(x){ return x.id===cmEditingId; });
       p.cat = cat; p.title = title; p.body = body; p.photo = cmPendingPhoto;
@@ -2175,6 +2345,8 @@ DEMO_HTML = """
   cmPopulateCatSelect();
   cmRenderCats();
   cmRenderList();
+  cmRenderAuth();
+  if(SB_ON){ cmRefresh(); }
 
   document.getElementById('cmCats').addEventListener('click', function(e){
     const btn = e.target.closest('.cm-cat'); if(!btn) return;
@@ -2197,6 +2369,10 @@ DEMO_HTML = """
     document.getElementById('cmPhotoPreview').classList.remove('show');
     document.getElementById('cmFormPhoto').value = '';
   });
+  document.getElementById('cmAuthClose').addEventListener('click', cmCloseAuth);
+  document.getElementById('cmAuthToggle').addEventListener('click', function(){ cmSetAuthMode(cmAuthMode==='login'?'signup':'login'); });
+  document.getElementById('cmAuthSubmit').addEventListener('click', cmAuthSubmit);
+  document.getElementById('cmAuthPw').addEventListener('keydown', function(e){ if(e.key==='Enter'){ cmAuthSubmit(); } });
 
 })();
 </script>
