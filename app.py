@@ -20,8 +20,9 @@ def _img_data_uri(name: str) -> str:
 
 
 # Real analysis faces used on the detailed diagnosis page (by member gender).
-face_male_uri = _img_data_uri("남자.png")
-face_female_uri = _img_data_uri("여자.png")
+# ASCII filenames so the deploy platform loads them reliably.
+face_male_uri = _img_data_uri("face_male.png")
+face_female_uri = _img_data_uri("face_female.png")
 
 DEMO_HTML = """
 <!doctype html>
@@ -605,7 +606,7 @@ DEMO_HTML = """
 
   /* ---------- DIAGNOSIS RESULT (report dashboard) ---------- */
   .diagnosis{
-    background:linear-gradient(180deg,#fbf8f4,#f3ede4);opacity:0;transition:opacity .5s ease;padding:32px 24px;
+    background:linear-gradient(180deg,#fbf8f4,#f3ede4);opacity:0;transition:opacity .5s ease;padding:18px 24px;
     --db-brown:#8a6a52; --db-brown-soft:#efe4d8; --db-line:#e6dccd;
   }
   .diagnosis.visible{opacity:1;}
@@ -613,40 +614,40 @@ DEMO_HTML = """
   .diag-back{
     display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px;border-radius:999px;
     border:1.5px solid var(--db-line);background:#fff;color:#8a8072;font-size:13px;font-weight:700;
-    font-family:inherit;cursor:pointer;margin-bottom:18px;transition:border-color .15s ease,color .15s ease;
+    font-family:inherit;cursor:pointer;margin-bottom:10px;transition:border-color .15s ease,color .15s ease;
   }
   .diag-back:hover{border-color:var(--db-brown);color:var(--db-brown);}
   .diag-back svg{width:16px;height:16px;}
-  .diag-title{font-size:clamp(19px,3vw,23px);margin-top:8px;font-weight:700;letter-spacing:-.02em;color:#2b241d;}
-  .diag-face-title,.diag-summary-title{font-size:12px;font-weight:700;letter-spacing:.06em;color:#a89a86;text-transform:uppercase;margin-bottom:12px;}
+  .diag-title{font-size:clamp(18px,3vw,22px);margin-top:2px;font-weight:700;letter-spacing:-.02em;color:#2b241d;}
+  .diag-face-title,.diag-summary-title{font-size:12px;font-weight:700;letter-spacing:.06em;color:#a89a86;text-transform:uppercase;margin-bottom:10px;}
 
   .diag-report{
-    display:grid;grid-template-columns:1fr 1.25fr 1fr;grid-template-areas:"info face score";gap:22px;
+    display:grid;grid-template-columns:1fr 1.25fr 1fr;grid-template-areas:"info face score";gap:16px;
     align-items:start;
   }
   .diag-info-panel,.diag-face-panel,.diag-scorelist{
-    background:#fffdfa;border:1px solid var(--db-line);border-radius:24px;padding:26px;
+    background:#fffdfa;border:1px solid var(--db-line);border-radius:20px;padding:18px;
     box-shadow:0 10px 28px rgba(120,96,68,.06);
   }
   .diag-info-panel{grid-area:info;}
   .diag-face-panel{grid-area:face;text-align:center;}
   .diag-scorelist{grid-area:score;}
 
-  .diag-score-hero{display:flex;align-items:baseline;gap:6px;margin-top:16px;}
-  .diag-score-hero b{font-size:52px;font-weight:800;color:var(--db-brown);letter-spacing:-.02em;line-height:1;}
+  .diag-score-hero{display:flex;align-items:baseline;gap:6px;margin-top:10px;}
+  .diag-score-hero b{font-size:44px;font-weight:800;color:var(--db-brown);letter-spacing:-.02em;line-height:1;}
   .diag-score-hero span{font-size:14px;color:#a89a86;font-weight:700;}
   .diag-score-tag{
     display:inline-block;margin-top:10px;font-size:11.5px;font-weight:700;color:var(--db-brown);
     background:var(--db-brown-soft);padding:5px 12px;border-radius:999px;
   }
   .diag-sentence{
-    margin-top:16px;font-size:13.5px;color:#5c5346;line-height:1.7;padding-top:16px;border-top:1px solid var(--db-line);
+    margin-top:12px;font-size:13px;color:#5c5346;line-height:1.6;padding-top:12px;border-top:1px solid var(--db-line);
   }
-  .diag-userinfo{margin-top:16px;padding-top:16px;border-top:1px solid var(--db-line);}
-  .diag-userinfo div{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+  .diag-userinfo{margin-top:12px;padding-top:12px;border-top:1px solid var(--db-line);}
+  .diag-userinfo div{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;}
   .diag-userinfo span{color:#a89a86;}
   .diag-userinfo b{color:#2b241d;font-weight:700;}
-  .diag-survey{margin-top:16px;padding-top:16px;border-top:1px solid var(--db-line);}
+  .diag-survey{margin-top:12px;padding-top:12px;border-top:1px solid var(--db-line);}
   .diag-survey-flag{
     display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:#3c6b4a;
     background:#e4efe4;border-radius:10px;padding:9px 12px;margin-bottom:12px;line-height:1.4;
@@ -656,10 +657,10 @@ DEMO_HTML = """
   .diag-survey-tags{display:flex;flex-wrap:wrap;gap:6px;}
   .diag-survey-tags span{font-size:11.5px;font-weight:700;color:var(--db-brown);background:var(--db-brown-soft);padding:5px 11px;border-radius:999px;}
   .diag-survey-empty{font-size:12.5px;color:#5c5346;line-height:1.6;}
-  #diagCta{margin-top:20px;width:100%;padding:14px;font-size:15px;background:var(--db-brown);}
+  #diagCta{margin-top:14px;width:100%;padding:13px;font-size:15px;background:var(--db-brown);}
   #diagCta:hover{opacity:.9;}
 
-  .face-map{position:relative;width:100%;max-width:238px;aspect-ratio:1/1;margin:8px auto 0;}
+  .face-map{position:relative;width:100%;max-width:194px;aspect-ratio:1/1;margin:6px auto 0;}
   .face-model{
     position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;background:#f2e8d9;
     box-shadow:inset 0 0 0 1px #ece2d2, 0 8px 20px rgba(120,96,68,.10);
@@ -723,10 +724,10 @@ DEMO_HTML = """
 
   /* ---------- CONCERN TABS (vertical sidebar) ---------- */
   .diag-tabsblock{
-    margin-top:24px;background:#fffdfa;border:1px solid var(--db-line);border-radius:24px;padding:26px;
+    margin-top:14px;background:#fffdfa;border:1px solid var(--db-line);border-radius:20px;padding:18px;
     box-shadow:0 10px 28px rgba(120,96,68,.06);
   }
-  .diag-tabs-layout{display:grid;grid-template-columns:190px 1fr;gap:24px;margin-top:16px;align-items:start;}
+  .diag-tabs-layout{display:grid;grid-template-columns:190px 1fr;gap:20px;margin-top:12px;align-items:start;}
   .diag-tabs{display:flex;flex-direction:column;gap:8px;}
   .diag-tab{
     display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:14px;border:1.5px solid var(--line);
@@ -743,10 +744,10 @@ DEMO_HTML = """
   .panel-badge.good{background:var(--accent-soft);color:var(--accent);}
   .panel-badge.mid{background:#fbe9d2;color:var(--mid);}
   .panel-badge.bad{background:#f7dede;color:var(--bad);}
-  .panel-score-track{height:7px;border-radius:999px;background:var(--bg);margin-top:12px;overflow:hidden;}
+  .panel-score-track{height:7px;border-radius:999px;background:var(--bg);margin-top:10px;overflow:hidden;}
   .panel-score-fill{height:100%;border-radius:999px;}
-  .panel-desc{margin-top:18px;font-size:13.5px;color:#4a4944;line-height:1.65;}
-  .panel-tips{margin-top:14px;}
+  .panel-desc{margin-top:12px;font-size:13px;color:#4a4944;line-height:1.6;}
+  .panel-tips{margin-top:10px;}
   .panel-tips-title{font-size:11.5px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
   .panel-tips ul{margin:8px 0 0;padding:0;list-style:none;}
   .panel-tips li{position:relative;padding-left:16px;font-size:13px;color:#4a4944;line-height:1.6;margin-top:6px;}
