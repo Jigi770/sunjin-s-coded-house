@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><title>FOR HIM · clean</title></head>
+<body style="margin:0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{ --ink:#17130f; --paper:#f6f3ee; --line:#e3ddd3; --mute:#9a9186; --accent:#2f5d4b; }
+  html,body{height:100%;font-family:-apple-system,"Apple SD Gothic Neo","Helvetica Neue","Segoe UI",sans-serif;}
+  body{display:flex;align-items:center;justify-content:center;min-height:100dvh;background:#0e0e0d;color:var(--ink);overflow:hidden;}
+  .phone{position:relative;width:min(430px,100vw);height:min(880px,100dvh);background:var(--paper);
+    display:flex;flex-direction:column;overflow:hidden;}
+  @media(min-width:460px){ .phone{border-radius:34px;border:1px solid #262421;height:min(880px,96dvh);
+    box-shadow:0 30px 90px rgba(0,0,0,.5);} }
+
+  .top{padding:20px 22px 12px;display:flex;align-items:center;flex-shrink:0;}
+  .brand{font-size:15px;font-weight:800;letter-spacing:3px;}
+  .brand span{color:var(--accent);}
+  .top .r{margin-left:auto;width:34px;height:34px;border-radius:50%;background:#eceae4;display:grid;place-items:center;
+    font-size:13px;font-weight:800;color:var(--accent);}
+  .ey{font-size:10.5px;font-weight:800;letter-spacing:2.5px;color:var(--mute);text-transform:uppercase;}
+
+  .stage{flex:1;position:relative;overflow:hidden;}
+  .screen{position:absolute;inset:0;padding:8px 22px 16px;display:flex;flex-direction:column;gap:16px;
+    opacity:0;transform:translateY(10px);pointer-events:none;transition:.4s cubic-bezier(.2,.8,.2,1);overflow:hidden;}
+  .screen.on{opacity:1;transform:none;pointer-events:auto;}
+  .h1{font-size:27px;font-weight:800;line-height:1.2;letter-spacing:-.6px;}
+  .h1 .thin{font-weight:300;}
+  .lead{font-size:13px;color:#6b6459;line-height:1.6;font-weight:500;}
+
+  /* score */
+  .scorewrap{display:flex;align-items:center;gap:20px;padding:6px 2px;}
+  .ring{position:relative;width:120px;height:120px;flex-shrink:0;}
+  .ring svg{transform:rotate(-90deg);}
+  .ring .val{position:absolute;inset:0;display:grid;place-items:center;text-align:center;}
+  .ring .val b{font-size:38px;font-weight:300;line-height:1;} .ring .val span{font-size:10px;letter-spacing:2px;color:var(--mute);}
+  .metrics{flex:1;display:flex;flex-direction:column;gap:10px;}
+  .metric span{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:5px;}
+  .metric span i{font-style:normal;color:var(--mute);}
+  .track{height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
+  .track>i{display:block;height:100%;background:var(--accent);}
+
+  .hr{height:1px;background:var(--line);}
+  .row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .row:last-child{border-bottom:none;}
+  .row .n{font-size:11px;font-weight:800;color:var(--mute);width:22px;flex-shrink:0;}
+  .row .body b{font-size:14px;font-weight:700;display:block;} .row .body small{font-size:11.5px;color:var(--mute);}
+  .row .meta{margin-left:auto;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;}
+  .row .arw{margin-left:auto;color:var(--mute);flex-shrink:0;}
+
+  .btn{border:none;font-family:inherit;font-weight:700;font-size:15px;color:var(--paper);background:var(--ink);
+    border-radius:14px;padding:16px;cursor:pointer;transition:.15s;letter-spacing:.3px;}
+  .btn:active{transform:scale(.985);opacity:.9;}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink);}
+  .btn.accent{background:var(--accent);}
+
+  .tabs{display:flex;gap:6px;}
+  .tab{flex:0 0 auto;font-size:12.5px;font-weight:700;color:var(--mute);padding:8px 14px;border-radius:999px;
+    border:1px solid var(--line);cursor:pointer;transition:.15s;}
+  .tab.sel{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+  .center{margin:auto 0;text-align:center;display:flex;flex-direction:column;align-items:center;gap:18px;}
+  .scancircle{width:180px;height:180px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;position:relative;}
+  .scancircle::before{content:"";position:absolute;inset:16px;border-radius:50%;border:1px dashed var(--accent);opacity:.5;}
+  .scancircle .face{font-size:60px;filter:grayscale(.2);}
+  .scanning .scancircle::before{animation:rot 1.4s linear infinite;}
+  @keyframes rot{to{transform:rotate(360deg);}}
+
+  .post{padding:15px 0;border-bottom:1px solid var(--line);}
+  .post .ph{display:flex;align-items:center;gap:9px;}
+  .ava{width:30px;height:30px;border-radius:50%;background:#e6e3db;display:grid;place-items:center;font-weight:800;font-size:12px;color:var(--accent);}
+  .post .ph b{font-size:12.5px;font-weight:700;} .post .ph time{font-size:11px;color:var(--mute);margin-left:auto;}
+  .post p{font-size:13px;color:#4d473e;line-height:1.55;margin-top:9px;}
+  .post .rx{display:flex;gap:16px;margin-top:9px;font-size:11.5px;color:var(--mute);font-weight:600;}
+
+  .statline{display:flex;text-align:center;}
+  .statline>div{flex:1;padding:6px 0;border-right:1px solid var(--line);}
+  .statline>div:last-child{border-right:none;}
+  .statline b{font-size:26px;font-weight:300;display:block;} .statline span{font-size:10.5px;letter-spacing:1.5px;color:var(--mute);text-transform:uppercase;}
+  .profile{display:flex;align-items:center;gap:16px;}
+  .pav{width:64px;height:64px;border-radius:50%;background:var(--accent);color:var(--paper);display:grid;place-items:center;font-size:24px;font-weight:300;}
+
+  .nav{flex-shrink:0;display:flex;justify-content:space-around;padding:12px 8px calc(14px + env(safe-area-inset-bottom));
+    background:var(--paper);border-top:1px solid var(--line);}
+  .nb{border:none;background:none;font-family:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;
+    font-size:9.5px;font-weight:700;letter-spacing:.5px;color:var(--mute);cursor:pointer;flex:1;transition:.15s;text-transform:uppercase;}
+  .nb .ic{width:22px;height:22px;}
+  .nb.on{color:var(--ink);}
+  .nb svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;}
+
+  .toast{position:absolute;left:50%;bottom:92px;transform:translateX(-50%) translateY(16px);opacity:0;
+    background:var(--ink);color:var(--paper);font-weight:600;font-size:12.5px;padding:11px 18px;border-radius:12px;
+    transition:.3s;pointer-events:none;white-space:nowrap;z-index:40;}
+  .toast.on{opacity:1;transform:translateX(-50%);}
+</style>
+
+<div class="phone">
+  <div class="top">
+    <div class="brand">FOR <span>HIM</span></div>
+    <div class="r">MJ</div>
+  </div>
+
+  <div class="stage" id="stage">
+
+    <!-- HOME -->
+    <section class="screen on" data-screen="home">
+      <div>
+        <div class="ey">Today's skin</div>
+        <div class="h1" style="margin-top:6px;">좋은 아침이에요, <span class="thin">민준님.</span></div>
+      </div>
+      <div class="scorewrap">
+        <div class="ring">
+          <svg width="120" height="120"><circle cx="60" cy="60" r="54" stroke="#e3ddd3" stroke-width="3" fill="none"/>
+            <circle cx="60" cy="60" r="54" stroke="#2f5d4b" stroke-width="3" fill="none" stroke-linecap="round"
+              stroke-dasharray="339" stroke-dashoffset="95"/></svg>
+          <div class="val"><b>72</b><span>SCORE</span></div>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span>모공 <i>78</i></span><div class="track"><i style="width:78%"></i></div></div>
+          <div class="metric"><span>트러블 <i>64</i></span><div class="track"><i style="width:64%"></i></div></div>
+          <div class="metric"><span>유분 <i>70</i></span><div class="track"><i style="width:70%"></i></div></div>
+          <div class="metric"><span>탄력 <i>75</i></span><div class="track"><i style="width:75%"></i></div></div>
+        </div>
+      </div>
+      <div class="lead">지난주보다 <b style="color:var(--accent)">+4점</b> 좋아졌어요. 모공은 안정적, 트러블은 조금 더 관리가 필요합니다.</div>
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px;">
+        <button class="btn" data-go="scan">오늘의 피부 스캔</button>
+      </div>
+    </section>
+
+    <!-- SCAN -->
+    <section class="screen" data-screen="scan" id="scanScreen">
+      <div><div class="ey">Analysis</div><div class="h1" style="margin-top:6px;">얼굴을 <span class="thin">비춰주세요.</span></div></div>
+      <div class="center">
+        <div class="scancircle"><div class="face">🙂</div></div>
+        <div class="lead" id="scanMsg" style="max-width:240px;">카메라를 켜고 5초간 고개를 천천히 움직이면 AI가 피부 상태를 진단해요.</div>
+      </div>
+      <button class="btn accent" id="scanBtn" style="margin-top:auto;">스캔 시작하기</button>
+    </section>
+
+    <!-- RECOMMEND -->
+    <section class="screen" data-screen="reco">
+      <div><div class="ey">Curated for you</div><div class="h1" style="margin-top:6px;">추천 <span class="thin">아이템.</span></div></div>
+      <div class="tabs"><div class="tab sel">전체</div><div class="tab">모공</div><div class="tab">트러블</div><div class="tab">유분</div></div>
+      <div style="overflow:hidden;">
+        <div class="row"><div class="n">01</div><div class="body"><b>레드 블레미쉬 토너</b><small>Dr.G · 진정 · 트러블</small></div><div class="meta">96%</div></div>
+        <div class="row"><div class="n">02</div><div class="body"><b>마데카소사이드 선세럼</b><small>Mediheal · 자외선 · 보습</small></div><div class="meta">91%</div></div>
+        <div class="row"><div class="n">03</div><div class="body"><b>6펩타이드 세럼</b><small>COSRX · 탄력 · 결</small></div><div class="meta">88%</div></div>
+        <div class="row"><div class="n">04</div><div class="body"><b>시카 데일리 크림</b><small>Aestura · 보습 · 장벽</small></div><div class="meta">84%</div></div>
+      </div>
+      <button class="btn ghost" style="margin-top:auto;">전체 루틴 저장하기</button>
+    </section>
+
+    <!-- COMMUNITY -->
+    <section class="screen" data-screen="comm">
+      <div><div class="ey">Community</div><div class="h1" style="margin-top:6px;">함께 <span class="thin">기록해요.</span></div></div>
+      <div style="overflow:hidden;">
+        <div class="post"><div class="ph"><div class="ava">J</div><b>준코</b><time>2분 전</time></div>
+          <p>모공 토너 3주째. 결이 확실히 정돈됐어요. 같은 고민 있으신 분들과 기록 공유하고 싶어요.</p>
+          <div class="rx"><span>♡ 24</span><span>댓글 8</span></div></div>
+        <div class="post"><div class="ph"><div class="ava">S</div><b>수현</b><time>15분 전</time></div>
+          <p>턱 트러블 진정 루틴 공유합니다. 스캔 점수 62 → 74 로 올랐어요.</p>
+          <div class="rx"><span>♡ 51</span><span>댓글 19</span></div></div>
+        <div class="post"><div class="ph"><div class="ava">M</div><b>민지</b><time>1시간 전</time></div>
+          <p>선세럼 매치율 91% 보고 구매했는데 발림성 좋네요.</p>
+          <div class="rx"><span>♡ 12</span><span>댓글 3</span></div></div>
+      </div>
+      <button class="btn" style="margin-top:auto;">글 작성하기</button>
+    </section>
+
+    <!-- MY -->
+    <section class="screen" data-screen="my">
+      <div><div class="ey">Profile</div></div>
+      <div class="profile"><div class="pav">민</div><div><div class="h1" style="font-size:22px;">김민준</div><div class="lead" style="margin-top:2px;">minjun@gmail.com · 29세</div></div></div>
+      <div class="statline"><div><b>18</b><span>Scans</span></div><div><b>7</b><span>Routines</span></div><div><b>+12</b><span>Trend</span></div></div>
+      <div class="hr"></div>
+      <div style="overflow:hidden;">
+        <div class="row"><div class="body"><b>피부 분석 내역</b><small>최근 스캔 18건</small></div><div class="arw">→</div></div>
+        <div class="row"><div class="body"><b>추천 이력</b><small>저장한 루틴 7건</small></div><div class="arw">→</div></div>
+        <div class="row"><div class="body"><b>변화 추적</b><small>월별 점수 리포트</small></div><div class="arw">→</div></div>
+      </div>
+      <button class="btn ghost" style="margin-top:auto;">로그아웃</button>
+    </section>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <nav class="nav" id="nav">
+    <button class="nb on" data-go="home"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span>Home</button>
+    <button class="nb" data-go="reco"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg></span>Shop</button>
+    <button class="nb" data-go="scan"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3"/><circle cx="12" cy="12" r="3.2"/></svg></span>Scan</button>
+    <button class="nb" data-go="comm"><span class="ic"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg></span>Feed</button>
+    <button class="nb" data-go="my"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>My</button>
+  </nav>
+</div>
+
+<script>
+(function(){
+  var screens = document.querySelectorAll('.screen');
+  var nbs = document.querySelectorAll('.nb');
+  function go(name){
+    screens.forEach(function(s){ s.classList.toggle('on', s.dataset.screen===name); });
+    nbs.forEach(function(b){ b.classList.toggle('on', b.dataset.go===name); });
+  }
+  nbs.forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.go); }); });
+  document.querySelectorAll('[data-go]').forEach(function(el){
+    if(!el.classList.contains('nb')) el.addEventListener('click', function(){ go(el.dataset.go); });
+  });
+
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){ document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('sel');}); t.classList.add('sel'); });
+  });
+
+  var toast = document.getElementById('toast');
+  function pop(msg){ toast.textContent=msg; toast.classList.add('on'); setTimeout(function(){ toast.classList.remove('on'); },1800); }
+
+  var scanBtn = document.getElementById('scanBtn');
+  var scanScreen = document.getElementById('scanScreen');
+  var scanMsg = document.getElementById('scanMsg');
+  scanBtn.addEventListener('click', function(){
+    scanScreen.classList.add('scanning');
+    scanMsg.textContent = '피부 상태를 분석하고 있어요…';
+    scanBtn.style.opacity=.6; scanBtn.style.pointerEvents='none';
+    setTimeout(function(){
+      scanScreen.classList.remove('scanning');
+      scanMsg.textContent = '분석 완료 · 종합 점수 72점';
+      scanBtn.style.opacity=1; scanBtn.style.pointerEvents='auto';
+      pop('분석이 완료되었어요');
+      setTimeout(function(){ go('reco'); }, 900);
+    }, 1800);
+  });
+})();
+</script>
+</body>
+</html>
