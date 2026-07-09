@@ -3618,4 +3618,15 @@ DEMO_HTML = DEMO_HTML.replace("__USER_EMAIL__", json.dumps(user_email))
 DEMO_HTML = DEMO_HTML.replace("__USER_NAME__", json.dumps(user_name))
 DEMO_HTML = DEMO_HTML.replace("__APP_URL__", json.dumps(app_url))
 
-st.iframe(DEMO_HTML, height="content", width="stretch")
+# Sidebar view switch: main demo vs. the face-model preview page. The preview
+# reuses the standalone face-model-preview.html (same faceSVG code as the demo).
+view = st.sidebar.radio("화면", ["데모 앱", "얼굴 모델 미리보기"], index=0)
+
+if view == "얼굴 모델 미리보기":
+    preview_path = Path(__file__).parent / "face-model-preview.html"
+    try:
+        st.iframe(preview_path.read_text(encoding="utf-8"), height="content", width="stretch")
+    except Exception:
+        st.error("미리보기 파일(face-model-preview.html)을 찾을 수 없어요.")
+else:
+    st.iframe(DEMO_HTML, height="content", width="stretch")
