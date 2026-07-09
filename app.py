@@ -190,17 +190,22 @@ DEMO_HTML = """
     color:var(--ink-soft);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
   }
   .tier-tab.active{background:var(--dark);border-color:var(--dark);color:#fff;}
-  .tier-tab.locked{opacity:.4;cursor:not-allowed;}
-  .tier-tab.locked:hover{border-color:var(--line);}
   .tier-desc{margin-top:14px;padding:13px 18px;background:var(--accent-soft);border-radius:var(--radius);font-size:13px;color:#3c4636;line-height:1.5;}
   .tier-cat-label{margin-top:16px;font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
 
   .prod-row{display:flex;gap:16px;margin-top:12px;overflow-x:auto;padding-bottom:6px;}
   .prod-card{
     flex:0 0 240px;background:var(--bg);border:2px solid var(--line);border-radius:var(--radius-lg);
-    padding:20px;text-align:center;position:relative;
+    padding:20px;text-align:center;position:relative;display:block;text-decoration:none;color:inherit;
+    transition:transform .15s ease,box-shadow .15s ease;cursor:pointer;
   }
+  .prod-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(20,20,18,.08);}
   .prod-card.rank-1{border-color:var(--gold);background:linear-gradient(180deg,#fdf8ee,var(--bg));}
+  .prod-cart-btn{
+    margin-top:14px;padding:9px 0;border-radius:999px;background:var(--dark);color:#fff;
+    font-size:11.5px;font-weight:700;
+  }
+  .prod-card.rank-1 .prod-cart-btn{background:var(--gold);color:#1a1a18;}
   .prod-rank{
     position:absolute;top:12px;left:12px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
     background:var(--dark);color:#fff;z-index:1;
@@ -850,7 +855,7 @@ DEMO_HTML = """
     <div class="step-nav">
       <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
       <div class="step-progress" data-step-dots></div>
-      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>다음</button>
+      <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-next>상세 고민별 추천 보기 →</button>
     </div>
   </div>
 </section>
@@ -1527,8 +1532,10 @@ DEMO_HTML = """
 
   /* ---------------- product card helper ---------------- */
   function renderProductCards(list){
-    return list.map(p=>
-      '<div class="prod-card rank-' + p.rank + '">' +
+    return list.map(p=>{
+      const query = encodeURIComponent(p.brand + ' ' + p.name);
+      const url = 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=' + query;
+      return '<a class="prod-card rank-' + p.rank + '" href="' + url + '" target="_blank" rel="noopener noreferrer">' +
         '<div class="prod-rank">' + p.rank + '위</div>' +
         (p.img
           ? '<div class="prod-photo"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" /></div>'
@@ -1536,8 +1543,9 @@ DEMO_HTML = """
         '<div class="prod-brand">' + p.brand + '</div>' +
         '<div class="prod-name">' + p.name + '</div>' +
         '<div class="prod-tag">' + p.tag + '</div>' +
-      '</div>'
-    ).join('');
+        '<div class="prod-cart-btn">올리브영에서 담기 →</div>' +
+      '</a>';
+    }).join('');
   }
   window.renderProductCards = renderProductCards;
 
@@ -1554,7 +1562,10 @@ DEMO_HTML = """
     clioCushion: 'https://dn5hzapyfrpio.cloudfront.net/product/a88/a88ee6f0-846b-11f0-b021-b5dec3c00b35.jpeg?w=426',
     lumir: 'https://dn5hzapyfrpio.cloudfront.net/product/629/629e9f90-47ff-11ef-9c5c-759480f80bcd.jpeg?w=426',
     peripera: 'https://dn5hzapyfrpio.cloudfront.net/product/d34/d3475980-92e5-11f0-9444-11e570e33be4.jpeg?w=426',
-    clioEye: 'https://dn5hzapyfrpio.cloudfront.net/product/9cb/9cbc3980-4242-11ee-88cc-5d4011facace.jpeg?w=426'
+    clioEye: 'https://dn5hzapyfrpio.cloudfront.net/product/9cb/9cbc3980-4242-11ee-88cc-5d4011facace.jpeg?w=426',
+    physiogel: 'https://dn5hzapyfrpio.cloudfront.net/product/b1f/b1fc6de0-b9f2-11f0-97cf-eb8f804ad159.jpeg?w=426',
+    drg: 'https://dn5hzapyfrpio.cloudfront.net/product/c67/c671e760-8bd2-11ed-a6ae-7f4a9ccf8e92.jpeg?w=426',
+    medicubeMist: 'https://dn5hzapyfrpio.cloudfront.net/product/adb/adbe3440-984e-11f0-9b5e-4999a7af4d26.jpeg?w=426'
   };
   window.PIMG = PIMG;
 
@@ -1596,38 +1607,24 @@ DEMO_HTML = """
       ]}
   ];
   let tierInitialized = false;
-  let tierUnlocked = 1;
 
   function initTierTabs(){
     tierInitialized = true;
-    tierUnlocked = 1;
     const tabsEl = document.getElementById('tierTabs');
     tabsEl.innerHTML = TIERS.map((t,i)=>
-      '<button type="button" class="tier-tab' + (i===0?' active':'') + '" data-tier="' + t.key + '" data-idx="' + i + '">' + t.label + '</button>'
+      '<button type="button" class="tier-tab' + (i===0?' active':'') + '" data-tier="' + t.key + '">' + t.label + '</button>'
     ).join('');
-    updateTierLocks();
     tabsEl.addEventListener('click', onTierTabClick);
     renderTier(TIERS[0].key);
   }
 
   function onTierTabClick(e){
     const btn = e.target.closest('.tier-tab');
-    if(!btn || btn.disabled) return;
+    if(!btn) return;
     const tabsEl = document.getElementById('tierTabs');
     tabsEl.querySelectorAll('.tier-tab').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    const idx = Number(btn.dataset.idx);
-    const nextUnlock = Math.min(TIERS.length, idx + 2);
-    if(nextUnlock > tierUnlocked){ tierUnlocked = nextUnlock; updateTierLocks(); }
     renderTier(btn.dataset.tier);
-  }
-
-  function updateTierLocks(){
-    document.querySelectorAll('#tierTabs .tier-tab').forEach(btn=>{
-      const locked = Number(btn.dataset.idx) >= tierUnlocked;
-      btn.classList.toggle('locked', locked);
-      btn.disabled = locked;
-    });
   }
 
   function renderTier(key){
@@ -1642,7 +1639,7 @@ DEMO_HTML = """
     { key:'elastic', label:'탄력 저하', products:[
       {rank:1,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'},
       {rank:2,brand:'오리진스',name:'메가 버섯 퍼스트 에센스',tag:'탄력 영양',color:'#8b7a5c'},
-      {rank:3,brand:'메디큐브',name:'PDRN 핑크 펩타이드 앰플',tag:'재생 케어',color:'#a86f7a'}
+      {rank:3,brand:'메디큐브',name:'PDRN 핑크 콜라겐 젤리 미스트 세럼',tag:'재생 케어',img:PIMG.medicubeMist,color:'#a86f7a'}
     ]},
     { key:'texture', label:'피부결 개선', products:[
       {rank:1,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'결 정돈',img:PIMG.toriden,color:'#5c7a8b'},
@@ -1655,7 +1652,7 @@ DEMO_HTML = """
       {rank:3,brand:'에스네이처',name:'아쿠아 스쿠알란 수분크림',tag:'수분 진정',color:'#6b8b8b'}
     ]},
     { key:'blemish', label:'잡티', products:[
-      {rank:1,brand:'닥터지',name:'레드 블레미쉬 포맨 올인원',tag:'트러블 케어',color:'#a85c5c'},
+      {rank:1,brand:'닥터지',name:'레드 블레미쉬 클리어 수딩 토너',tag:'트러블 케어',img:PIMG.drg,color:'#a85c5c'},
       {rank:2,brand:'코스알엑스',name:'더 6 펩타이드 스킨 부스터 세럼',tag:'피부 진정',img:PIMG.cosrx,color:'#8b6f47'},
       {rank:3,brand:'라운드랩',name:'마데카 크림',tag:'재생 진정',color:'#5c8b6f'}
     ]},
@@ -1671,13 +1668,13 @@ DEMO_HTML = """
     ]},
     { key:'darkcircle', label:'다크서클', products:[
       {rank:1,brand:'토리든',name:'다이브인 저분자 히알루론산 세럼',tag:'눈가 수분',img:PIMG.toriden,color:'#5c7a8b'},
-      {rank:2,brand:'메디큐브',name:'PDRN 핑크 펩타이드 앰플',tag:'재생 케어',color:'#a86f7a'},
+      {rank:2,brand:'메디큐브',name:'PDRN 핑크 콜라겐 젤리 미스트 세럼',tag:'재생 케어',img:PIMG.medicubeMist,color:'#a86f7a'},
       {rank:3,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'}
     ]},
     { key:'shave', label:'면도 트러블', products:[
       {rank:1,brand:'라운드랩',name:'마데카 크림',tag:'진정 재생',color:'#5c8b6f'},
-      {rank:2,brand:'피지오겔',name:'레드수딩 크림',tag:'저자극 진정',color:'#a86f6f'},
-      {rank:3,brand:'닥터지',name:'레드 블레미쉬 포맨 올인원',tag:'트러블 케어',color:'#a85c5c'}
+      {rank:2,brand:'피지오겔',name:'데일리 모이스쳐 테라피 에센스 인 토너',tag:'저자극 진정',img:PIMG.physiogel,color:'#a86f6f'},
+      {rank:3,brand:'닥터지',name:'레드 블레미쉬 클리어 수딩 토너',tag:'트러블 케어',img:PIMG.drg,color:'#a85c5c'}
     ]},
     { key:'ingrown', label:'인그로운 헤어', products:[
       {rank:1,brand:'코스알엑스',name:'BHA 블랙헤드 파워 리퀴드',tag:'각질 · 모공 케어',color:'#8b6f47'},
@@ -1690,12 +1687,12 @@ DEMO_HTML = """
       {rank:3,brand:'정샘물',name:'에센셜 스킨 누더 쿠션',tag:'생기 있는 톤',img:PIMG.jsm,color:'#c9915c'}
     ]},
     { key:'dryness', label:'세안 후 건조함', products:[
-      {rank:1,brand:'피지오겔',name:'레드수딩 크림',tag:'수분 장벽',color:'#a86f6f'},
+      {rank:1,brand:'피지오겔',name:'데일리 모이스쳐 테라피 에센스 인 토너',tag:'수분 장벽',img:PIMG.physiogel,color:'#a86f6f'},
       {rank:2,brand:'에스네이처',name:'아쿠아 스쿠알란 수분크림',tag:'수분 채우기',color:'#6b8b8b'},
       {rank:3,brand:'라운드랩',name:'자작나무 수분크림',tag:'속당김 케어',color:'#5c8b6f'}
     ]},
     { key:'redness', label:'안면 홍조', products:[
-      {rank:1,brand:'피지오겔',name:'레드수딩 크림',tag:'홍조 진정',color:'#a86f6f'},
+      {rank:1,brand:'피지오겔',name:'데일리 모이스쳐 테라피 에센스 인 토너',tag:'홍조 진정',img:PIMG.physiogel,color:'#a86f6f'},
       {rank:2,brand:'에스트라',name:'아토베리어365 크림',tag:'장벽 강화',color:'#6b7a8b'},
       {rank:3,brand:'라운드랩',name:'마데카 크림',tag:'저자극 진정',color:'#5c8b6f'}
     ]},
