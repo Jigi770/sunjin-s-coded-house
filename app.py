@@ -624,12 +624,14 @@ DEMO_HTML = """
   #diagCta{margin-top:20px;width:100%;padding:14px;font-size:15px;background:var(--db-brown);}
   #diagCta:hover{opacity:.9;}
 
-  .face-map{position:relative;width:170px;height:206px;margin:8px auto 0;}
-  .face-ear{position:absolute;top:44%;width:11%;height:16%;border-radius:50%;background:#f1ede4;border:1.5px solid #ddd6c6;}
-  .face-ear.left{left:-4%;}
-  .face-ear.right{right:-4%;}
-  .face-shape{position:absolute;inset:0;background:#f4f0e8;border:1.5px solid #ddd6c6;border-radius:48% 48% 44% 44% / 58% 58% 42% 42%;overflow:hidden;}
-  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;}
+  .face-map{position:relative;width:184px;height:224px;margin:8px auto 0;}
+  .face-model{
+    position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;
+    background:linear-gradient(180deg,#fbf6ef 0%,#f2e8d9 100%);
+    box-shadow:inset 0 0 0 1px #ece2d2, 0 8px 20px rgba(120,96,68,.10);
+  }
+  .face-model svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;z-index:2;}
   .face-zone[data-zone="tzone"]{
     top:20%;left:50%;width:26%;height:46%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
     background:repeating-linear-gradient(115deg, rgba(201,138,60,.5) 0 3px, rgba(201,138,60,0) 3px 7px);
@@ -871,6 +873,13 @@ DEMO_HTML = """
   .prof-badge{font-style:normal;font-size:10px;font-weight:800;padding:2px 8px;border-radius:999px;background:var(--gold-soft);color:var(--gold);}
   #screenProfile input[readonly]{opacity:.75;cursor:default;}
   #screenProfile .btn-gold{margin-top:8px;}
+  .prof-gender{display:flex;gap:8px;}
+  .prof-gender-btn{
+    flex:1;padding:12px 8px;border-radius:12px;border:1.5px solid #3a3934;background:#201f1c;
+    color:#c9c8c1;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .prof-gender-btn:hover{border-color:#6f6e67;}
+  .prof-gender-btn.on{background:var(--gold);border-color:var(--gold);color:#1a1a18;}
 
   /* ---------- MY PAGE ---------- */
   .mypage{background:linear-gradient(180deg,#fbf8f4,#f3ede4);opacity:0;transition:opacity .5s ease;padding:32px 24px;}
@@ -1050,7 +1059,7 @@ DEMO_HTML = """
         <div class="simple-score-label">피부 점수</div>
         <div class="simple-cmp">
           <div><span>전체</span><b id="cmpAll">-</b></div>
-          <div><span>20대 남성</span><b id="cmpAge">-</b></div>
+          <div><span id="cmpAgeLabel">동일 연령대</span><b id="cmpAge">-</b></div>
         </div>
       </div>
       <div class="simple-score-main"><b id="simpleScore">-</b><span>점 / 100</span></div>
@@ -1094,9 +1103,7 @@ DEMO_HTML = """
       <div class="diag-face-panel">
         <div class="diag-face-title">관리가 필요한 부위</div>
         <div class="face-map">
-          <div class="face-ear left"></div>
-          <div class="face-ear right"></div>
-          <div class="face-shape"></div>
+          <div class="face-model" id="faceModel"></div>
           <div class="face-zone" data-zone="tzone"></div>
           <div class="face-zone" data-zone="cheek-l"></div>
           <div class="face-zone" data-zone="cheek-r"></div>
@@ -1217,6 +1224,14 @@ DEMO_HTML = """
     <div class="field-row">
       <label>나이 <i class="prof-badge">계정 연동</i></label>
       <input type="number" id="profAge" min="1" max="120" placeholder="나이" />
+    </div>
+    <div class="field-row">
+      <label>성별 <i class="prof-badge">비교 기준</i></label>
+      <div class="prof-gender" id="profGender">
+        <button type="button" class="prof-gender-btn" data-gender="male">남성</button>
+        <button type="button" class="prof-gender-btn" data-gender="female">여성</button>
+        <button type="button" class="prof-gender-btn" data-gender="">밝히지 않음</button>
+      </div>
     </div>
     <div class="field-row">
       <label>닉네임</label>
@@ -1520,7 +1535,7 @@ DEMO_HTML = """
 
 <script>
 (function(){
-  window.appState = { concerns:new Set(), analyzed:false, allInOne:false, age:29, nickname:'', survey:{} };
+  window.appState = { concerns:new Set(), analyzed:false, allInOne:false, age:29, nickname:'', gender:'', survey:{} };
   const state = window.appState;
 
   const splash = document.getElementById('screenSplash');
@@ -1598,9 +1613,9 @@ DEMO_HTML = """
   /* 계정 연동 시 제공사에서 받아오는 정보(데모: 시뮬레이션). 실제 OAuth 연동 시
      이메일은 세션에서, 나이는 제공사 동의 범위에 따라 채워집니다. */
   const PROVIDER_SAMPLE = {
-    kakao:  { email:'minjun.kim@kakao.com',  age:28, name:'김민준' },
-    google: { email:'minjun.kim@gmail.com',  age:31, name:'Minjun' },
-    naver:  { email:'minjun.kim@naver.com',  age:26, name:'민준' }
+    kakao:  { email:'minjun.kim@kakao.com',  age:28, name:'김민준', gender:'male' },
+    google: { email:'minjun.kim@gmail.com',  age:31, name:'Minjun', gender:'male' },
+    naver:  { email:'minjun.kim@naver.com',  age:26, name:'민준',   gender:'male' }
   };
   let authOrigin = 'intro';
   let pendingProvider = null;
@@ -1645,6 +1660,11 @@ DEMO_HTML = """
   function saveMember(m){ member = m; try{ if(m) localStorage.setItem(MEMBER_KEY, JSON.stringify(m)); else localStorage.removeItem(MEMBER_KEY); }catch(e){} }
   function isMember(){ return !!(member && member.loggedIn); }
   let member = loadMember();
+  /* 로그인 회원 정보를 분석 상태에 반영(비교 기준·얼굴 모델 성별에 사용). */
+  if(member){
+    if(member.gender) state.gender = member.gender;
+    if(member.age){ enteredAge = member.age; state.age = member.age; }
+  }
 
   function emptyRecords(){ return { analyses:[], recommends:[], consults:[] }; }
   /* Stable per-account id: email when available, else provider+nickname. */
@@ -1781,6 +1801,18 @@ DEMO_HTML = """
     showProfile();
   }
 
+  /* 성별 선택 UI (프로필). 기본값은 계정 정보 → 없으면 미선택. */
+  let pendingGender = '';
+  function setProfileGender(g){
+    pendingGender = g;
+    document.querySelectorAll('#profGender .prof-gender-btn').forEach(b=>{
+      b.classList.toggle('on', b.dataset.gender === g);
+    });
+  }
+  document.querySelectorAll('#profGender .prof-gender-btn').forEach(b=>{
+    b.addEventListener('click', ()=> setProfileGender(b.dataset.gender));
+  });
+
   function showProfile(){
     const acc = linkedAccount || PROVIDER_SAMPLE.kakao;
     document.getElementById('profProvider').textContent = providerLabel(pendingProvider) + ' 계정에서 정보를 가져왔어요';
@@ -1788,6 +1820,7 @@ DEMO_HTML = """
     document.getElementById('profAge').value = acc.age || '';
     document.getElementById('profNick').value = acc.name || nickname || '';
     document.getElementById('profHint').textContent = '';
+    setProfileGender(acc.gender || '');
     showMemberScreen(screenProfile);
   }
   function profileSubmit(){
@@ -1797,8 +1830,8 @@ DEMO_HTML = """
     const hint = document.getElementById('profHint');
     if(!nick){ hint.textContent = '닉네임을 입력해주세요.'; return; }
     if(!age || age < 1 || age > 120){ hint.textContent = '나이를 올바르게 입력해주세요.'; return; }
-    nickname = nick; enteredAge = age; state.nickname = nick; state.age = age;
-    saveMember({ loggedIn:true, provider:pendingProvider||'kakao', nickname:nick, email:email, age:age,
+    nickname = nick; enteredAge = age; state.nickname = nick; state.age = age; state.gender = pendingGender;
+    saveMember({ loggedIn:true, provider:pendingProvider||'kakao', nickname:nick, email:email, age:age, gender:pendingGender,
       joinedAt:Date.now(), agreements:{ required:true, marketing:!!pendingMarketing } });
     /* Load this account's history and fold in anything done as a guest, so the
        flow continues seamlessly and future records keep accumulating here. */
@@ -2239,6 +2272,91 @@ DEMO_HTML = """
   /* ---------------- 4) diagnosis result ---------------- */
   function clamp10(v){ return Math.max(0.5, Math.min(10, Math.round(v*10)/10)); }
 
+  /* ---- 로그인 회원 정보 기반 비교 기준 라벨 (고정 "20대 남성" 대체) ---- */
+  function ageBandLabel(age){
+    if(!age || age < 1) return '';
+    if(age < 20) return '10대';
+    if(age < 30) return '20대';
+    if(age < 40) return '30대';
+    return '40대 이상';
+  }
+  function genderWord(g){ return g === 'male' ? '남성' : g === 'female' ? '여성' : ''; }
+  function currentGender(){ return (member && member.gender) || state.gender || ''; }
+  function peerLabel(){
+    const g = genderWord(currentGender());
+    const band = ageBandLabel((member && member.age) || state.age || enteredAge);
+    if(band && g) return band + ' ' + g;   /* 예: 20대 남성 / 30대 여성 */
+    if(band) return band;                   /* 성별 없음 → 동일 연령대 기준 */
+    if(g) return g;                          /* 나이 없음 → 성별 기준 */
+    return '전체 사용자';                    /* 정보 없음 → 전체 기준 */
+  }
+
+  /* ---- 성별에 따라 달라지는 정돈된 얼굴 모델(SVG). 문제 부위 하이라이트는 별도 오버레이 유지 ---- */
+  function faceSVG(kind){
+    const female = kind === 'female';
+    const skinTop = female ? '#fbe3d3' : '#f3d8c2';
+    const skinMid = female ? '#f6d2bd' : '#ecc7a9';
+    const skinBot = female ? '#eec4aa' : '#dfb595';
+    const hairCol = female ? '#4a3327' : '#2f251f';
+    const hairHi  = female ? '#6a4c3b' : '#453529';
+    const lip     = female ? '#d98784' : '#c48978';
+    const cloth   = female ? '#d9cfc4' : '#c9bfb4';
+    const browW   = female ? 2.8 : 4;
+
+    const hairBack = female
+      ? '<path d="M34 96 C24 54 52 22 92 22 C132 22 160 54 150 96 L156 178 C150 150 146 132 138 120 C142 152 140 180 136 200 L48 200 C44 180 42 152 46 120 C38 132 34 150 28 178 Z" fill="'+hairCol+'"/>'
+      : '';
+    const hairFront = female
+      ? '<path d="M40 94 C36 50 60 26 92 26 C124 26 148 50 144 94 C140 74 132 62 118 57 C120 66 120 74 117 80 C104 62 80 62 67 80 C64 74 64 66 66 57 C52 62 44 74 40 94 Z" fill="'+hairCol+'"/>'
+        + '<path d="M92 26 C74 26 62 40 60 56 C72 44 84 42 92 42 Z" fill="'+hairHi+'" opacity=".5"/>'
+      : '<path d="M42 98 C36 52 60 28 92 28 C124 28 148 52 142 98 C138 76 132 62 120 56 C124 64 124 72 121 79 C118 66 108 58 92 58 C76 58 66 66 63 79 C60 72 60 64 64 56 C52 62 46 78 42 98 Z" fill="'+hairCol+'"/>'
+        + '<path d="M64 56 C74 48 84 46 92 46 C100 46 110 48 120 56 C108 52 96 51 92 51 C88 51 76 52 64 56 Z" fill="'+hairHi+'" opacity=".45"/>';
+    const lashes = female
+      ? '<path d="M60 108 q11 -6 22 0" stroke="#5a4038" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+        + '<path d="M102 108 q11 -6 22 0" stroke="#5a4038" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+      : '';
+    const stubble = kind === 'male'
+      ? '<path d="M60 158 C70 186 114 186 124 158 C120 178 108 192 92 192 C76 192 64 178 60 158 Z" fill="#c9a889" opacity=".2"/>'
+      : '';
+    const lipTop = female ? 9 : 6;
+    const lipBot = female ? 5 : 3;
+
+    return '<svg viewBox="0 0 184 224" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs>'
+      +   '<linearGradient id="fmSkin" x1="0" y1="0" x2="0" y2="1">'
+      +     '<stop offset="0" stop-color="'+skinTop+'"/><stop offset=".55" stop-color="'+skinMid+'"/><stop offset="1" stop-color="'+skinBot+'"/>'
+      +   '</linearGradient>'
+      +   '<radialGradient id="fmCheek" cx="0.5" cy="0.5" r="0.5">'
+      +     '<stop offset="0" stop-color="#e8a184" stop-opacity=".45"/><stop offset="1" stop-color="#e8a184" stop-opacity="0"/>'
+      +   '</radialGradient>'
+      + '</defs>'
+      + '<path d="M26 224 C28 196 56 182 92 182 C128 182 156 196 158 224 Z" fill="'+cloth+'"/>'
+      + '<path d="M92 176 c-9 0 -16 3 -16 3 l0 12 q16 9 32 0 l0 -12 s-7 -3 -16 -3z" fill="url(#fmSkin)"/>'
+      + hairBack
+      + '<ellipse cx="48" cy="120" rx="8" ry="12" fill="url(#fmSkin)"/>'
+      + '<ellipse cx="136" cy="120" rx="8" ry="12" fill="url(#fmSkin)"/>'
+      + '<path d="M46 104 C46 64 66 40 92 40 C118 40 138 64 138 104 C138 146 120 186 92 190 C64 186 46 146 46 104 Z" fill="url(#fmSkin)"/>'
+      + '<ellipse cx="66" cy="132" rx="15" ry="12" fill="url(#fmCheek)"/>'
+      + '<ellipse cx="118" cy="132" rx="15" ry="12" fill="url(#fmCheek)"/>'
+      + stubble
+      + hairFront
+      + '<path d="M60 100 q11 -6 22 -1" stroke="#5a4238" stroke-width="'+browW+'" fill="none" stroke-linecap="round"/>'
+      + '<path d="M102 99 q11 -5 22 1" stroke="#5a4238" stroke-width="'+browW+'" fill="none" stroke-linecap="round"/>'
+      + '<ellipse cx="71" cy="112" rx="7" ry="4" fill="#fff"/><circle cx="71" cy="112" r="2.7" fill="#3a2c24"/>'
+      + '<ellipse cx="113" cy="112" rx="7" ry="4" fill="#fff"/><circle cx="113" cy="112" r="2.7" fill="#3a2c24"/>'
+      + lashes
+      + '<path d="M92 116 L87 140 q5 4 10 0" stroke="#d3a17d" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<path d="M79 160 q13 '+lipTop+' 26 0 q-13 '+lipBot+' -26 0 Z" fill="'+lip+'"/>'
+      + '<path d="M79 160 q13 3 26 0" stroke="#b06b63" stroke-width="1.1" fill="none" opacity=".55"/>'
+      + '</svg>';
+  }
+  function renderFaceModel(){
+    const g = currentGender();
+    const kind = g === 'female' ? 'female' : g === 'male' ? 'male' : 'neutral';
+    const el = document.getElementById('faceModel');
+    if(el) el.innerHTML = faceSVG(kind);
+  }
+
   function computeDiagnosis(){
     const c = state.concerns;
     /* 영상 분석 점수에 설문(체감 상태) 보정을 더한다. */
@@ -2269,6 +2387,8 @@ DEMO_HTML = """
     document.getElementById('diagType').textContent = skinType;
     document.getElementById('diagUserNick').textContent = nickname || '고객';
     document.getElementById('diagDate').textContent = formatToday();
+
+    renderFaceModel();
 
     document.getElementById('diagSentence').textContent =
       '좋습니다! 당신의 피부 점수는 ' + overall.toFixed(1) + '입니다. 우선 ' + best.label +
@@ -2504,6 +2624,8 @@ DEMO_HTML = """
     document.getElementById('simpleScore').textContent = scorePct;
     document.getElementById('simpleTier').textContent = tier + '의 점수예요';
     document.getElementById('cmpAll').textContent = cmpAll + '%';
+    const peerEl = document.getElementById('cmpAgeLabel');
+    if(peerEl) peerEl.textContent = peerLabel();
     document.getElementById('cmpAge').textContent = cmpAge + '%';
 
     const ssEl = document.getElementById('simpleSurveyNote');
