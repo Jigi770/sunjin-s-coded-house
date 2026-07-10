@@ -3142,16 +3142,14 @@ DEMO_HTML = """
   function showAppStep(name){
     if(!STEP_EL[name]) return;
     currentStep = name;
-    /* null 가드: 특정 스텝 요소가 없어도 나머지 전환은 계속 동작하도록 */
-    APP_STEPS.forEach(function(s){ if(STEP_EL[s]) STEP_EL[s].classList.toggle('active', s===name); });
+    APP_STEPS.forEach(s=> STEP_EL[s].classList.toggle('active', s===name));
     document.querySelectorAll('[data-step-dots]').forEach(dotsWrap=>{
       dotsWrap.innerHTML = APP_STEPS.map(s=>'<span class="step-dot' + (s===name?' active':'') + '"></span>').join('');
     });
     window.scrollTo(0,0);
-    /* 지연 초기화가 실패해도 네비게이션(화면 전환)은 절대 막히지 않도록 방어 */
-    try{ if(name === 'recommend' && !tierInitialized){ initTierTabs(); } }catch(e){}
-    try{ if(name === 'style' && !styleInitialized){ initStyle(); } }catch(e){}
-    try{ if(name === 'extra' && !extraInitialized){ initExtraTabs(); } }catch(e){}
+    if(name === 'recommend' && !tierInitialized){ initTierTabs(); }
+    if(name === 'style' && !styleInitialized){ initStyle(); }
+    if(name === 'extra' && !extraInitialized){ initExtraTabs(); }
   }
   window.showAppStep = showAppStep;
 
@@ -4195,7 +4193,7 @@ DEMO_HTML = """
       cmPendingPhoto = p.photo || null;
       cmSetFormType(p.type || 'normal');
       if(p.type==='vote' && p.options){ opt1.value = (p.options[0]||{}).label || ''; opt2.value = (p.options[1]||{}).label || ''; }
-      if(p.type==='ba'){ prodInput.value = (p.products||[]).join('\n'); changeInput.value = p.change || ''; }
+      if(p.type==='ba'){ prodInput.value = (p.products||[]).join('\\n'); changeInput.value = p.change || ''; }
       document.getElementById('cmFormSubmit').textContent = '수정 완료';
     } else {
       document.getElementById('cmFormTitle').textContent = '새 글 남기기';
@@ -4216,7 +4214,7 @@ DEMO_HTML = """
     const hint = document.getElementById('cmFormHint');
     const o1 = document.getElementById('cmFormOpt1').value.trim();
     const o2 = document.getElementById('cmFormOpt2').value.trim();
-    const prods = document.getElementById('cmFormProducts').value.split('\n').map(function(s){ return s.trim(); }).filter(Boolean);
+    const prods = document.getElementById('cmFormProducts').value.split('\\n').map(function(s){ return s.trim(); }).filter(Boolean);
     const change = document.getElementById('cmFormChange').value.trim();
     if(!title){ hint.textContent = '제목을 입력해주세요.'; return; }
     if(cmFormType==='vote'){ if(!o1 || !o2){ hint.textContent = '투표 선택지 2개를 입력해주세요.'; return; } }
