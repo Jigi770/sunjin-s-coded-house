@@ -3142,14 +3142,16 @@ DEMO_HTML = """
   function showAppStep(name){
     if(!STEP_EL[name]) return;
     currentStep = name;
-    APP_STEPS.forEach(s=> STEP_EL[s].classList.toggle('active', s===name));
+    /* null 가드: 특정 스텝 요소가 없어도 나머지 전환은 계속 동작하도록 */
+    APP_STEPS.forEach(function(s){ if(STEP_EL[s]) STEP_EL[s].classList.toggle('active', s===name); });
     document.querySelectorAll('[data-step-dots]').forEach(dotsWrap=>{
       dotsWrap.innerHTML = APP_STEPS.map(s=>'<span class="step-dot' + (s===name?' active':'') + '"></span>').join('');
     });
     window.scrollTo(0,0);
-    if(name === 'recommend' && !tierInitialized){ initTierTabs(); }
-    if(name === 'style' && !styleInitialized){ initStyle(); }
-    if(name === 'extra' && !extraInitialized){ initExtraTabs(); }
+    /* 지연 초기화가 실패해도 네비게이션(화면 전환)은 절대 막히지 않도록 방어 */
+    try{ if(name === 'recommend' && !tierInitialized){ initTierTabs(); } }catch(e){}
+    try{ if(name === 'style' && !styleInitialized){ initStyle(); } }catch(e){}
+    try{ if(name === 'extra' && !extraInitialized){ initExtraTabs(); } }catch(e){}
   }
   window.showAppStep = showAppStep;
 
