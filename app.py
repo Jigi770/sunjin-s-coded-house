@@ -24,6 +24,52 @@ def _img_data_uri(name: str) -> str:
 face_male_uri = _img_data_uri("face_male.png")
 face_female_uri = _img_data_uri("face_female.png")
 
+# ---- 올리브영 랭킹 데이터 ----
+# fetch_oy_ranking.py 배치를 주기 실행(1일 1회 권장)하면 oy_ranking.json 이 갱신된다.
+# 파일이 없거나 읽기 실패 시 아래 시드 스냅샷을 쓴다(공개된 올리브영 베스트/어워즈
+# 정보를 참고해 수동 구성한 데이터 — 실계약/공식 데이터 확보 시 교체).
+# segmented=True 가 되면(연령·성별 세분화 랭킹 확보 시) 뱃지 문구가
+# "30대 男 구매 1위" 형태로 자동 고도화된다.
+OY_RANKING_SEED = {
+    "updatedAt": "2026-07-10",
+    "source": "seed(올리브영 공개 베스트/어워즈 정보 기반 수동 구성)",
+    "segmented": False,
+    "entries": [
+        {"matchId": "anuaTuner",     "cat": "toner",      "rank": 1, "brand": "아누아",   "name": "어성초 77 토너"},
+        {"matchId": "toriden",       "cat": "serum",      "rank": 1, "brand": "토리든",   "name": "다이브인 저분자 히알루론산 세럼"},
+        {"matchId": "illiyoonLotion","cat": "lotion",     "rank": 1, "brand": "일리윤",   "name": "세라마이드 아토 로션"},
+        {"matchId": "estraCream",    "cat": "cream",      "rank": 1, "brand": "에스트라", "name": "아토베리어365 크림"},
+        {"matchId": "estraCleanser", "cat": "cleanser",   "rank": 1, "brand": "에스트라", "name": "아토베리어365 클렌징폼"},
+        {"matchId": "ahc",           "cat": "sun",        "rank": 1, "brand": "AHC",      "name": "마스터즈 에어 리치 선스틱"},
+        {"matchId": "clioCushion",   "cat": "cushion",    "rank": 1, "brand": "클리오",   "name": "킬커버 파운웨어 쿠션"},
+        {"matchId": "clioBrow",      "cat": "brow",       "rank": 1, "brand": "클리오",   "name": "킬브로우 오토 하드 브로우 펜슬"},
+        {"matchId": "clioEye",       "cat": "eye",        "rank": 1, "brand": "클리오",   "name": "프로 아이 팔레트 에어"},
+        {"matchId": "foretPerfume",  "cat": "perfume",    "rank": 1, "brand": "포레",     "name": "우디 머스크 오 드 퍼퓸"},
+        {"matchId": "ceraveBody",    "cat": "bodylotion", "rank": 1, "brand": "세라비",   "name": "모이스처라이징 바디 크림"},
+        {"matchId": "scholFoot",     "cat": "foot",       "rank": 1, "brand": "닥터숄",   "name": "벨벳 스무스 풋 크림"},
+        {"matchId": "niveaDeo",      "cat": "deo",        "rank": 1, "brand": "니베아",   "name": "프레시 액티브 데오 롤온"},
+        {"matchId": "medicubeAger",  "cat": "device",     "rank": 1, "brand": "메디큐브", "name": "AGE-R 부스터 프로"},
+    ],
+}
+
+
+def _load_oy_ranking() -> dict:
+    """배치가 만든 oy_ranking.json을 우선 사용, 없으면 시드 폴백."""
+    try:
+        p = Path(__file__).parent / "oy_ranking.json"
+        if p.exists():
+            data = json.loads(p.read_text(encoding="utf-8"))
+            if isinstance(data, dict) and data.get("entries"):
+                return data
+    except Exception:
+        pass
+    return OY_RANKING_SEED
+
+
+oy_ranking = _load_oy_ranking()
+# 데이터 갱신 시점 확인용 로그(서버 콘솔) — 관리자용 표시는 사이드바 캡션 참조
+print(f"[oy_ranking] updatedAt={oy_ranking.get('updatedAt')} source={oy_ranking.get('source')} entries={len(oy_ranking.get('entries', []))}")
+
 DEMO_HTML = """
 <!doctype html>
 <html lang="ko">
@@ -31,7 +77,7 @@ DEMO_HTML = """
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FOR HIM — Men's Beauty AI Demo</title>
-<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";</script>
+<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";window.OY_RANKING=__OY_RANKING__;</script>
 <style>
   :root{
     --bg:#f6f5f2;
@@ -291,10 +337,12 @@ DEMO_HTML = """
     font-size:11.5px;font-weight:700;
   }
   .prod-card.reco .prod-cart-btn{background:var(--gold);color:#1a1a18;}
-  /* 배지: 왼쪽 상단 '1위'(인기 구매순) · 오른쪽 상단 '추천'(내 피부 매칭) */
+  /* 배지: 왼쪽 상단 랭킹(올리브영 랭킹 데이터 기반) · 오른쪽 상단 '추천'(내 피부 매칭)
+     문구가 길어져도 한 줄 유지(nowrap) + 폰트 90% 축소, 위치·색·형태는 기존 그대로 */
   .prod-rank{
-    position:absolute;top:12px;left:12px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
-    background:var(--dark);color:#fff;z-index:1;
+    position:absolute;top:12px;left:12px;font-size:9.5px;font-weight:800;padding:3px 9px;border-radius:999px;
+    background:var(--dark);color:#fff;z-index:1;white-space:nowrap;
+    max-width:calc(100% - 72px);overflow:hidden;text-overflow:ellipsis;
   }
   .prod-reco{
     position:absolute;top:12px;right:12px;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
@@ -307,6 +355,9 @@ DEMO_HTML = """
     display:flex;align-items:center;justify-content:center;overflow:hidden;
   }
   .prod-photo img{width:100%;height:100%;object-fit:contain;padding:8px;}
+  /* 이미지 없는 제품: 카테고리 형태 일러스트로 동일한 카드 비율 유지 */
+  .prod-photo-ph{background:linear-gradient(165deg,#fbf9f5,#f0ebe2);}
+  .prod-photo-ph svg{width:72px;height:120px;}
   .prod-brand{font-size:11.5px;font-weight:700;color:var(--ink-soft);}
   .prod-name{font-size:13.5px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.35;min-height:36px;}
   .prod-tag{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);}
@@ -927,45 +978,29 @@ DEMO_HTML = """
   #diagCta{margin-top:14px;width:100%;padding:13px;font-size:15px;background:var(--db-brown);}
   #diagCta:hover{opacity:.9;}
 
-  .face-map{position:relative;width:100%;max-width:290px;aspect-ratio:1/1;margin:8px auto 0;}
+  /* 이미지가 카드의 중심 정보로 보이도록 크게, 패널 여백은 축소 */
+  .diag-face-panel{padding:18px 16px !important;}
+  .face-map{position:relative;width:100%;max-width:360px;aspect-ratio:1/1;margin:4px auto 0;}
   .face-model{
     position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;background:#f2e8d9;
     box-shadow:inset 0 0 0 1px #ece2d2, 0 8px 20px rgba(120,96,68,.10);
   }
   .face-model img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
   .face-model svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
-  /* 실제 사진 위에 문제 부위를 겹쳐 표시(멀티플라이로 피부에 자연스럽게 얹힘) */
-  .face-zone{position:absolute;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .6s ease;z-index:2;mix-blend-mode:multiply;}
-  /* 기본 좌표는 남성 사진 기준. 여성 사진은 얼굴이 더 위쪽이라 .gf 로 보정. */
-  .face-zone[data-zone="tzone"]{
-    top:34%;left:50%;width:12%;height:20%;border-radius:50% 50% 40% 40% / 60% 60% 40% 40%;
-    background:repeating-linear-gradient(115deg, rgba(201,138,60,.6) 0 3px, rgba(201,138,60,0) 3px 7px);
+  /* 피부 분석 맵 오버레이: 라인 기반 영역 구분 + 고민별 반투명 하이라이트 + 부위 점 표시 */
+  .face-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;}
+  .face-overlay .fz{opacity:0;transition:opacity .6s ease;}
+  .face-overlay .fz.on{opacity:1;}
+  .face-overlay .fz-base{opacity:.55;}
+  .fz-line{fill:none;stroke-width:.7;stroke-dasharray:2 1.6;stroke-linecap:round;}
+  .fz-fill{stroke-width:.8;stroke-dasharray:2.4 1.8;stroke-linejoin:round;}
+  .fz-dot{stroke:none;}
+  .fz-label{
+    font-size:3.4px;font-weight:800;letter-spacing:.02em;
+    paint-order:stroke;stroke:#fff;stroke-width:.9px;stroke-linejoin:round;
   }
-  .face-zone[data-zone="cheek-l"],.face-zone[data-zone="cheek-r"]{
-    top:42%;width:13%;height:10%;
-    background-image:radial-gradient(circle, rgba(200,110,70,.9) 0 6%, transparent 7%);
-    background-size:8px 8px;background-position:center;background-color:rgba(200,110,70,.14);
-  }
-  .face-zone[data-zone="cheek-l"]{left:37%;}
-  .face-zone[data-zone="cheek-r"]{left:63%;}
-  .face-zone[data-zone="scar-mark"]{
-    top:43%;left:63%;width:9%;height:8%;
-    background-image:repeating-linear-gradient(20deg, rgba(150,90,150,.9) 0 2px, transparent 2px 9px);
-  }
-  .face-zone[data-zone="chin"]{
-    top:56%;left:50%;width:12%;height:7%;
-    background-image:
-      radial-gradient(circle at 30% 35%, rgba(193,60,60,.95) 0 9%, transparent 10%),
-      radial-gradient(circle at 65% 55%, rgba(193,60,60,.95) 0 8%, transparent 9%),
-      radial-gradient(circle at 45% 75%, rgba(193,60,60,.95) 0 7%, transparent 8%);
-    background-color:rgba(193,60,60,.12);
-  }
-  /* 여성 사진 보정: T존·볼·흉터·턱을 위로 */
-  .face-map.gf .face-zone[data-zone="tzone"]{top:31%;}
-  .face-map.gf .face-zone[data-zone="cheek-l"],.face-map.gf .face-zone[data-zone="cheek-r"]{top:39%;}
-  .face-map.gf .face-zone[data-zone="scar-mark"]{top:40%;}
-  .face-map.gf .face-zone[data-zone="chin"]{top:52%;}
-  .face-zone.on{opacity:1;}
+  /* 여성 사진은 얼굴이 더 위쪽 → 오버레이 전체 보정 */
+  .face-map.gf .face-overlay{transform:translateY(-3.2%);}
   .face-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;}
   .legend-item{
     display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#b9b6ab;
@@ -977,6 +1012,7 @@ DEMO_HTML = """
   .legend-dot.pore{background:#c86e46;}
   .legend-dot.scar{background:#965a96;}
   .legend-dot.acne{background:#c13c3c;}
+  .legend-dot.redness{background:#c1666b;}
 
   .score-row{
     display:flex;align-items:center;justify-content:space-between;padding:8.5px 0;
@@ -1414,17 +1450,58 @@ DEMO_HTML = """
         <div class="diag-face-title">관리가 필요한 부위</div>
         <div class="face-map">
           <div class="face-model" id="faceModel"></div>
-          <div class="face-zone" data-zone="tzone"></div>
-          <div class="face-zone" data-zone="cheek-l"></div>
-          <div class="face-zone" data-zone="cheek-r"></div>
-          <div class="face-zone" data-zone="scar-mark"></div>
-          <div class="face-zone" data-zone="chin"></div>
+          <svg class="face-overlay" id="faceOverlay" viewBox="0 0 100 100" aria-hidden="true">
+            <!-- 기본 영역 구분 라인(항상 표시): T존 / U존 -->
+            <g class="fz-base">
+              <path class="fz-line" stroke="#b9ad99" d="M39 25 Q50 22 61 25 Q62 29 61 32 Q56 31 55 33 L55 50 Q55 54 50 54 Q45 54 45 50 L45 33 Q44 31 39 32 Q38 29 39 25 Z"/>
+              <path class="fz-line" stroke="#b9ad99" d="M29 40 Q29 60 50 65 Q71 60 71 40"/>
+              <text class="fz-label" fill="#a89a86" x="63" y="23">T존</text>
+              <text class="fz-label" fill="#a89a86" x="72.5" y="42">U존</text>
+            </g>
+            <!-- 유분 → 이마·코 T존 -->
+            <g class="fz" data-zone="oil">
+              <path class="fz-fill" fill="rgba(201,138,60,.16)" stroke="#c98a3c" d="M39 25 Q50 22 61 25 Q62 29 61 32 Q56 31 55 33 L55 50 Q55 54 50 54 Q45 54 45 50 L45 33 Q44 31 39 32 Q38 29 39 25 Z"/>
+              <circle class="fz-dot" fill="#c98a3c" cx="47" cy="28" r=".9"/><circle class="fz-dot" fill="#c98a3c" cx="53" cy="27.4" r=".9"/><circle class="fz-dot" fill="#c98a3c" cx="50" cy="44" r=".9"/>
+              <text class="fz-label" fill="#c98a3c" x="34" y="20">유분 · T존</text>
+            </g>
+            <!-- 모공 → 양볼 -->
+            <g class="fz" data-zone="pore">
+              <ellipse class="fz-fill" fill="rgba(200,110,70,.14)" stroke="#c86e46" cx="35" cy="46" rx="8" ry="5.6"/>
+              <ellipse class="fz-fill" fill="rgba(200,110,70,.14)" stroke="#c86e46" cx="65" cy="46" rx="8" ry="5.6"/>
+              <circle class="fz-dot" fill="#c86e46" cx="33" cy="45" r=".8"/><circle class="fz-dot" fill="#c86e46" cx="37" cy="47.5" r=".8"/>
+              <circle class="fz-dot" fill="#c86e46" cx="63.5" cy="47.2" r=".8"/><circle class="fz-dot" fill="#c86e46" cx="67" cy="45" r=".8"/>
+              <text class="fz-label" fill="#c86e46" x="16" y="46">모공 · 볼</text>
+            </g>
+            <!-- 붉은기 → 볼 안쪽·코 -->
+            <g class="fz" data-zone="redness">
+              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="42.5" cy="48.5" rx="4.6" ry="3.2"/>
+              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="57.5" cy="48.5" rx="4.6" ry="3.2"/>
+              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="50" cy="46" rx="3" ry="2.4"/>
+              <text class="fz-label" fill="#c1666b" x="59" y="56.5">붉은기</text>
+            </g>
+            <!-- 흉터·색소 → 국소 부위(오른볼) -->
+            <g class="fz" data-zone="scar">
+              <circle class="fz-fill" fill="rgba(150,90,150,.14)" stroke="#965a96" cx="62.5" cy="42.5" r="3.2"/>
+              <circle class="fz-dot" fill="#965a96" cx="62.5" cy="42.5" r=".9"/>
+              <circle class="fz-fill" fill="rgba(150,90,150,.14)" stroke="#965a96" cx="58" cy="46.5" r="2.2"/>
+              <circle class="fz-dot" fill="#965a96" cx="58" cy="46.5" r=".7"/>
+              <text class="fz-label" fill="#965a96" x="68" y="37">흉터 · 국소</text>
+            </g>
+            <!-- 여드름 → 턱·볼 -->
+            <g class="fz" data-zone="acne">
+              <ellipse class="fz-fill" fill="rgba(193,60,60,.13)" stroke="#c13c3c" cx="50" cy="59.5" rx="8.5" ry="4.4"/>
+              <circle class="fz-dot" fill="#c13c3c" cx="47.5" cy="58.6" r="1"/><circle class="fz-dot" fill="#c13c3c" cx="52.5" cy="60.4" r=".9"/><circle class="fz-dot" fill="#c13c3c" cx="50" cy="61.8" r=".8"/>
+              <circle class="fz-dot" fill="#c13c3c" cx="37.5" cy="49" r=".9"/>
+              <text class="fz-label" fill="#c13c3c" x="32" y="66">여드름 · 턱·볼</text>
+            </g>
+          </svg>
         </div>
         <div class="face-legend" id="faceLegend">
-          <span class="legend-item" data-concern="oil"><span class="legend-dot oil"></span>유분 · T존</span>
+          <span class="legend-item" data-concern="oil"><span class="legend-dot oil"></span>유분 · T존(이마·코)</span>
           <span class="legend-item" data-concern="pore"><span class="legend-dot pore"></span>모공 · 볼</span>
-          <span class="legend-item" data-concern="scar"><span class="legend-dot scar"></span>흉터 · 볼</span>
-          <span class="legend-item" data-concern="acne"><span class="legend-dot acne"></span>여드름 · 턱</span>
+          <span class="legend-item" data-concern="redness"><span class="legend-dot redness"></span>붉은기 · 볼·코</span>
+          <span class="legend-item" data-concern="scar"><span class="legend-dot scar"></span>흉터·색소 · 국소</span>
+          <span class="legend-item" data-concern="acne"><span class="legend-dot acne"></span>여드름 · 턱·볼</span>
         </div>
       </div>
 
@@ -2900,17 +2977,20 @@ DEMO_HTML = """
         '</div>';
       }).join('');
 
-    document.querySelectorAll('.face-zone').forEach(z=>{
-      const zone = z.dataset.zone;
-      let on = false;
-      if(zone === 'tzone'){ on = state.concerns.has('oil'); }
-      if(zone === 'cheek-l' || zone === 'cheek-r'){ on = state.concerns.has('pore'); }
-      if(zone === 'scar-mark'){ on = state.concerns.has('scar'); }
-      if(zone === 'chin'){ on = state.concerns.has('acne'); }
-      z.classList.toggle('on', on);
+    /* 고민 종류 → 얼굴 부위 하이라이트. 범례 칩과 오버레이는 같은 data-concern 키·색으로 연결 */
+    const sv = state.survey || {};
+    const zoneOn = {
+      oil:     state.concerns.has('oil'),
+      pore:    state.concerns.has('pore'),
+      scar:    state.concerns.has('scar'),
+      acne:    state.concerns.has('acne'),
+      redness: sv.redness === 'high' || sv.sensitive === 'high' || state.concerns.has('acne')
+    };
+    document.querySelectorAll('#faceOverlay .fz').forEach(z=>{
+      z.classList.toggle('on', !!zoneOn[z.dataset.zone]);
     });
     document.querySelectorAll('.legend-item').forEach(el=>{
-      el.classList.toggle('active', state.concerns.has(el.dataset.concern));
+      el.classList.toggle('active', !!zoneOn[el.dataset.concern]);
     });
 
     document.getElementById('diagCta').textContent = '나에게 맞는 제품 찾기';
@@ -3825,26 +3905,117 @@ DEMO_HTML = """
     renderFeed();
   }
 
+  /* ---------------- 올리브영 랭킹 뱃지 ----------------
+     window.OY_RANKING: fetch_oy_ranking.py 배치(1일 1회 권장)가 갱신하는 랭킹 스냅샷.
+     랭킹 데이터에 매칭되는 제품만 뱃지를 노출한다 — 근거 없는 '1위' 표기 방지. */
+  function normTxt(s){ return String(s || '').split(' ').join('').toLowerCase(); }
+  function getOyRank(p){
+    const d = window.OY_RANKING;
+    if(!d || !Array.isArray(d.entries)) return null;
+    for(const e of d.entries){
+      if(e.matchId && e.matchId === p.id) return e;
+      /* 배치 수집 데이터: 브랜드 일치 + 제품명 부분 일치로 자사 카탈로그와 매칭 */
+      if(!e.matchId && e.brand && normTxt(e.brand) === normTxt(p.brand) && e.name &&
+         (normTxt(p.name).indexOf(normTxt(e.name)) >= 0 || normTxt(e.name).indexOf(normTxt(p.name)) >= 0)){
+        return e;
+      }
+    }
+    return null;
+  }
+  function userAgeGroup(){
+    const age = (window.appState && window.appState.age) || 0;
+    return age ? (Math.floor(age / 10) * 10) + '대' : '';
+  }
+  function userGenderLabel(){
+    const g = (window.appState && window.appState.gender) || '';
+    return g === 'male' ? '男' : g === 'female' ? '女' : '';
+  }
+  function getRankBadgeText({ rank, ageGroup, gender, hasSegmentedData }){
+    if(rank !== 1) return null;   /* 1위가 아니면(또는 랭킹 정보가 없으면) 뱃지 미노출 */
+    if(hasSegmentedData && ageGroup && gender){
+      return ageGroup + ' ' + gender + ' 구매 1위';   /* 예: "30대 男 구매 1위" */
+    }
+    return '올리브영 판매 1위';   /* 연령/성별 세분화 데이터 없을 때 fallback */
+  }
+  window.getRankBadgeText = getRankBadgeText;
+  function rankBadgeFor(p){
+    const e = getOyRank(p);
+    if(!e) return null;
+    const d = window.OY_RANKING || {};
+    return getRankBadgeText({
+      rank: e.rank,
+      ageGroup: e.ageGroup || userAgeGroup(),
+      gender: e.gender || userGenderLabel(),
+      hasSegmentedData: !!d.segmented
+    });
+  }
+
+  /* 이미지 없는 제품용 카테고리 형태 일러스트 — 카드 비율을 이미지 카드와 동일하게 유지 */
+  function prodShapeSvg(p){
+    const c = p.color || '#8b6f47';
+    const hl = 'rgba(255,255,255,.4)';
+    const cat = (p.cats && p.cats[0]) || '';
+    const wrap = inner => '<svg viewBox="0 0 60 100" aria-hidden="true">' + inner + '</svg>';
+    if(cat === 'perfume') return wrap(
+      '<rect x="25" y="6" width="10" height="12" rx="2" fill="#b6afa2"/>' +
+      '<path d="M15 32 Q15 21 30 21 Q45 21 45 32 L43 87 Q43 93 30 93 Q17 93 17 87 Z" fill="'+c+'"/>' +
+      '<ellipse cx="24" cy="42" rx="4" ry="9" fill="'+hl+'"/>');
+    if(cat === 'deo') return wrap(
+      '<path d="M18 30 Q18 18 30 18 Q42 18 42 30 V38 H18 Z" fill="'+c+'" opacity=".55"/>' +
+      '<rect x="18" y="38" width="24" height="52" rx="7" fill="'+c+'"/>' +
+      '<rect x="22" y="46" width="5" height="30" rx="2.5" fill="'+hl+'"/>');
+    if(cat === 'bodylotion') return wrap(
+      '<path d="M27 8 H33 V16 H43 V22 H27 Z" fill="#b6afa2"/><rect x="27" y="16" width="6" height="10" fill="#b6afa2"/>' +
+      '<path d="M17 30 Q17 26 21 26 H39 Q43 26 43 30 L44 86 Q44 93 30 93 Q16 93 16 86 Z" fill="'+c+'"/>' +
+      '<rect x="21" y="42" width="6" height="34" rx="3" fill="'+hl+'"/>');
+    if(cat === 'foot' || cat === 'cleanser' || cat === 'sun') return wrap(
+      '<rect x="22" y="8" width="16" height="10" rx="3" fill="#b6afa2"/>' +
+      '<path d="M20 20 H40 L44 82 Q44 92 30 92 Q16 92 16 82 Z" fill="'+c+'"/>' +
+      '<rect x="21" y="34" width="5" height="36" rx="2.5" fill="'+hl+'"/>');
+    if(cat === 'cushion') return wrap(
+      '<ellipse cx="30" cy="58" rx="24" ry="22" fill="'+c+'"/>' +
+      '<ellipse cx="30" cy="50" rx="24" ry="6" fill="'+hl+'"/>' +
+      '<ellipse cx="30" cy="38" rx="24" ry="7" fill="'+c+'" opacity=".7"/>');
+    if(cat === 'brow') return wrap(
+      '<rect x="26" y="14" width="8" height="58" rx="3" fill="'+c+'"/>' +
+      '<path d="M26 72 L30 90 L34 72 Z" fill="#d8cfc0"/><path d="M28.6 82 L30 90 L31.4 82 Z" fill="#4a3a2c"/>' +
+      '<rect x="27.5" y="18" width="2.5" height="46" fill="'+hl+'"/>');
+    if(cat === 'eye') return wrap(
+      '<rect x="8" y="30" width="44" height="40" rx="6" fill="'+c+'"/>' +
+      '<circle cx="19" cy="42" r="4.5" fill="#e8d3bd"/><circle cx="30" cy="42" r="4.5" fill="#c9a184"/><circle cx="41" cy="42" r="4.5" fill="#8a6a52"/>' +
+      '<circle cx="19" cy="56" r="4.5" fill="#d9b8a6"/><circle cx="30" cy="56" r="4.5" fill="#a87b62"/><circle cx="41" cy="56" r="4.5" fill="#5c4436"/>');
+    if(cat === 'cream') return wrap(
+      '<rect x="14" y="34" width="32" height="10" rx="4" fill="'+c+'" opacity=".65"/>' +
+      '<path d="M15 46 H45 Q46 72 30 72 Q14 72 15 46 Z" fill="'+c+'"/>' +
+      '<ellipse cx="24" cy="52" rx="3" ry="7" fill="'+hl+'"/>');
+    if(cat === 'device') return wrap(
+      '<rect x="18" y="12" width="24" height="76" rx="12" fill="'+c+'"/>' +
+      '<circle cx="30" cy="30" r="7" fill="'+hl+'"/><rect x="26" y="56" width="8" height="16" rx="4" fill="'+hl+'"/>');
+    /* 기본: 토너·세럼·로션 등 보틀 */
+    return wrap(
+      '<rect x="24" y="8" width="12" height="10" rx="2" fill="#b6afa2"/>' +
+      '<path d="M18 26 Q18 20 24 20 H36 Q42 20 42 26 L42 84 Q42 92 30 92 Q18 92 18 84 Z" fill="'+c+'"/>' +
+      '<rect x="22" y="36" width="5" height="34" rx="2.5" fill="'+hl+'"/>');
+  }
+
   /* ---------------- product card helper ---------------- */
   /* CTA 문구는 특정 판매처에 종속되지 않는 중립 문구를 기본값으로 두고,
      판매 채널이 늘어나면 opts.ctaText로 호출부에서 교체할 수 있게 변수로 관리 */
   const PROD_CTA_DEFAULT = '판매 페이지로 이동 →';
   function renderProductCards(list, opts){
     const ctaText = (opts && opts.ctaText) || PROD_CTA_DEFAULT;
-    /* 인기 1위(구매량=pop 최고)와 추천(내 피부 매칭 1순위)을 배지로 구분 표기 */
-    let topPop = -1, bestSellerId = null;
-    list.forEach(p=>{ if((p.pop || 0) > topPop){ topPop = p.pop || 0; bestSellerId = p.id; } });
     return list.map(p=>{
       const query = encodeURIComponent(p.brand + ' ' + p.name);
       const url = 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=' + query;
-      const isBestSeller = p.id === bestSellerId;   /* 많이 구매하는 제품 → '1위' */
+      /* 랭킹 뱃지: 올리브영 랭킹 데이터에 1위로 매칭될 때만 노출 */
+      const rankText = rankBadgeFor(p);
       const isReco = p.rank === 1;                    /* 내 피부 매칭 최상 → '추천' */
       return '<a class="prod-card' + (isReco ? ' reco' : '') + '" href="' + url + '" target="_blank" rel="noopener noreferrer">' +
-        (isBestSeller ? '<div class="prod-rank">1위</div>' : '') +
+        (rankText ? '<div class="prod-rank">' + rankText + '</div>' : '') +
         (isReco ? '<div class="prod-reco">추천</div>' : '') +
         (p.img
           ? '<div class="prod-photo"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" /></div>'
-          : '<div class="prod-icon" style="background:' + p.color + '"></div>') +
+          : '<div class="prod-photo prod-photo-ph">' + prodShapeSvg(p) + '</div>') +
         '<div class="prod-brand">' + p.brand + '</div>' +
         '<div class="prod-name">' + p.name + '</div>' +
         '<div class="prod-tags">' +
@@ -4029,7 +4200,13 @@ DEMO_HTML = """
       if(!r.ok) throw new Error('HTTP ' + r.status);
       const rows = await r.json();
       if(Array.isArray(rows) && rows.length){
-        PRODUCTS = rows.map(normalizeProduct);
+        /* 교체가 아니라 병합: 원격 카탈로그가 오래돼 새 카테고리(브로우·퍼퓸·바디·풋·데오 등)가
+           없어도 내장 항목이 유지되어 모든 추천 라인이 빈 화면이 되지 않는다.
+           같은 id는 원격(Supabase) 값이 우선. */
+        const merged = {};
+        PRODUCTS.forEach(p=>{ merged[p.id] = p; });
+        rows.map(normalizeProduct).forEach(p=>{ if(p && p.id) merged[p.id] = p; });
+        PRODUCTS = Object.values(merged);
         window.PRODUCTS = PRODUCTS;
         /* 현재 열려 있는 추천 화면이 있으면 새 카탈로그로 다시 그린다 */
         if(typeof tierInitialized !== 'undefined' && tierInitialized){
@@ -4113,16 +4290,16 @@ DEMO_HTML = """
     { key:'t4', label:'4단계', category:'아이메이크업',
       desc:'눈썹 정리로 또렷한 인상을 만들고, 눈매를 자연스럽게 정돈해요.',
       lines:[
-        { label:'눈썹 정리', sub:'또렷한 인상', cat:'brow' },
-        { label:'눈매 연출', sub:'자연스러운 분위기', cat:'eye' }
+        { label:'아이브로우', sub:'눈썹 정리·또렷한 인상', cat:'brow' },
+        { label:'아이섀도우', sub:'눈매 연출·자연스러운 분위기', cat:'eye' }
       ] },
-    { key:'t5', label:'5단계', category:'퍼퓸&바디',
+    { key:'t5', label:'5단계', category:'퍼퓸&바디케어',
       desc:'향과 바디케어로 하루의 마무리까지 완성해요.',
       lines:[
-        { label:'향수', sub:'시그니처 향', cat:'perfume' },
-        { label:'바디 로션', sub:'전신 보습', cat:'bodylotion' },
-        { label:'풋케어', sub:'발 각질·건조', cat:'foot' },
-        { label:'데오라인', sub:'냄새·땀 케어', cat:'deo' }
+        { label:'향수 추천', sub:'시그니처 향', cat:'perfume' },
+        { label:'바디 로션 추천', sub:'전신 보습', cat:'bodylotion' },
+        { label:'풋케어 추천', sub:'발 각질·건조', cat:'foot' },
+        { label:'데오라인 추천', sub:'냄새·땀 케어', cat:'deo' }
       ] }
   ];
   let tierInitialized = false;
@@ -4928,10 +5105,15 @@ DEMO_HTML = DEMO_HTML.replace("__USER_NAME__", json.dumps(user_name))
 DEMO_HTML = DEMO_HTML.replace("__APP_URL__", json.dumps(app_url))
 DEMO_HTML = DEMO_HTML.replace("__FACE_MALE__", face_male_uri)
 DEMO_HTML = DEMO_HTML.replace("__FACE_FEMALE__", face_female_uri)
+DEMO_HTML = DEMO_HTML.replace("__OY_RANKING__", json.dumps(oy_ranking, ensure_ascii=False))
 
 # Sidebar view switch: main demo vs. the face-model preview page. The preview
 # reuses the standalone face-model-preview.html (same faceSVG code as the demo).
 view = st.sidebar.radio("화면", ["데모 앱", "얼굴 모델 미리보기"], index=0)
+# 관리자 확인용: 올리브영 랭킹 데이터 갱신 시점
+st.sidebar.caption(
+    f"랭킹 데이터: {oy_ranking.get('updatedAt', '-')} · {oy_ranking.get('source', '-')}"
+)
 
 if view == "얼굴 모델 미리보기":
     preview_path = Path(__file__).parent / "face-model-preview.html"
