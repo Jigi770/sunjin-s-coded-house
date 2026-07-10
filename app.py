@@ -99,6 +99,7 @@ DEMO_HTML = """
   .brand span{font-size:10.5px;letter-spacing:.16em;color:var(--ink-soft);text-transform:uppercase;margin-top:2px;}
   .nav-links{display:flex;gap:28px;font-size:14.5px;font-weight:600;color:var(--ink-soft);}
   .nav-links a:hover{color:var(--ink);}
+  .nav-links a.active{color:var(--ink);text-decoration:underline;text-underline-offset:7px;text-decoration-color:var(--gold);text-decoration-thickness:2px;}
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
     padding:12px 22px;border-radius:999px;border:none;font-weight:700;font-size:14.5px;
@@ -180,6 +181,13 @@ DEMO_HTML = """
     .reward-body{grid-template-columns:1fr;}
     .reward-use{border-left:none;padding-left:0;border-top:1px solid #3a3934;padding-top:18px;}
   }
+
+  /* ---------- REWARDS PAGE (독립 탭) ---------- */
+  .rewards-page{
+    background:radial-gradient(120% 140% at 15% 0%, #232320 0%, var(--dark) 55%, var(--dark) 100%);
+    color:#f6f5f2;
+  }
+  .rewards-page .reward-card{margin-top:30px;}
 
   .hero-visual{
     position:relative;background:var(--dark-soft);border:1px solid #3a3934;
@@ -420,6 +428,30 @@ DEMO_HTML = """
   .sheet-mini-main{font-size:14px;font-weight:700;color:var(--ink);}
   .sheet-mini-sub{font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
   @media (max-width:440px){ .sheet-two{grid-template-columns:1fr;} }
+
+  /* 준비 순서(이미지 번호와 동일) 단계 리스트 */
+  .sheet-step{padding:10px 0;border-bottom:1px solid var(--line);}
+  .sheet-step:last-of-type{border-bottom:none;}
+  .sheet-step-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .sheet-step-name{font-size:13.5px;font-weight:800;color:var(--ink);}
+  .sheet-step-sub{font-size:11.5px;color:var(--ink-soft);}
+  .sheet-step-items{margin-top:7px;padding-left:31px;}
+  .sheet-step-item{position:relative;padding-left:13px;font-size:13px;color:#4a4944;line-height:1.6;}
+  .sheet-step-item::before{content:'';position:absolute;left:0;top:9px;width:4px;height:4px;border-radius:50%;background:var(--accent);}
+  /* 추가 추천 열기/닫기 */
+  .sheet-more-btn{
+    display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:12px;
+    padding:11px;border-radius:999px;border:1.5px solid var(--line);background:var(--bg);
+    color:var(--ink-soft);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;
+    transition:border-color .15s ease,color .15s ease;
+  }
+  .sheet-more-btn:hover{border-color:var(--ink);color:var(--ink);}
+  .sheet-more-btn svg{width:14px;height:14px;transition:transform .2s ease;}
+  .sheet-more-btn.open svg{transform:rotate(180deg);}
+  .sheet-extra{display:none;margin-top:6px;}
+  .sheet-extra.open{display:block;animation:fade .3s ease;}
+  .sheet-extra-group{margin-top:12px;}
+  .sheet-extra-label{font-size:11.5px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
 
   /* ---------- COMMUNITY ---------- */
   .avatar{width:30px;height:30px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none;}
@@ -1567,10 +1599,11 @@ DEMO_HTML = """
   <div class="wrap">
     <div class="brand"><b>FOR HIM</b><span>Men's Skincare Lab</span></div>
     <div class="nav-links">
-      <a href="javascript:void(0)" data-step="analysis">피부분석</a>
-      <a href="javascript:void(0)" data-step="recommend">제품추천</a>
-      <a href="javascript:void(0)" data-step="style">스타일</a>
-      <a href="javascript:void(0)" data-step="community">커뮤니티</a>
+      <a href="#" data-step="analysis">피부분석</a>
+      <a href="#" data-step="recommend">제품추천</a>
+      <a href="#" data-step="style">스타일</a>
+      <a href="#" data-step="community">커뮤니티</a>
+      <a href="#" data-step="rewards">리워드</a>
     </div>
     <button type="button" class="btn btn-outline btn-sm" id="navRecall" style="display:none;">최근 결과 다시 보기</button>
     <button type="button" class="btn btn-outline btn-sm" id="navMember">로그인</button>
@@ -1597,38 +1630,6 @@ DEMO_HTML = """
     <div class="hero-visual">
       <div class="face">영상 분석 화면 (데모)</div>
       <div class="cap">실제 서비스에서는 이 영역에서 카메라 분석이 진행돼요</div>
-    </div>
-    <div class="reward-card" style="grid-column:1/-1;">
-      <div class="reward-body">
-        <div class="reward-col">
-          <div class="reward-head">
-            <div class="reward-title">
-              <svg class="rw-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7C12 7 12 2 8.5 2 5 2 5 7 12 7zM12 7s0-5 3.5-5S19 7 12 7z"/></svg>
-              리워드 미션
-            </div>
-            <div class="reward-balance">내 포인트 <b id="rewardTotal">0</b>P</div>
-          </div>
-          <div class="reward-missions" id="rewardMissions"></div>
-        </div>
-        <div class="reward-use">
-          <div class="reward-use-head">리워드 사용처 <span>여기서 바로 사용 가능</span></div>
-          <a class="use-card" href="https://tinder.com" target="_blank" rel="noopener noreferrer">
-            <div class="use-ic" style="background:#3a2530;color:#fe3c72;">🔥</div>
-            <div class="use-txt"><b>틴더</b><span>포인트 사용 가능</span></div>
-            <div class="use-go">사이트로 이동 →</div>
-          </a>
-          <a class="use-card" href="https://map.naver.com/p/search/%ED%98%BC%EC%88%A0%EC%A7%91" target="_blank" rel="noopener noreferrer">
-            <div class="use-ic" style="background:#233022;color:#5ac467;">🍶</div>
-            <div class="use-txt"><b>혼술집</b><span>제휴 혜택 확인</span></div>
-            <div class="use-go">네이버 맵에서 보기 →</div>
-          </a>
-          <a class="use-card" href="https://www.oliveyoung.co.kr" target="_blank" rel="noopener noreferrer">
-            <div class="use-ic" style="background:#2f2a20;color:#f5c04a;">🛍️</div>
-            <div class="use-txt"><b>올리브영</b><span>적립 포인트로 이용</span></div>
-            <div class="use-go">추천 상품 보러가기 →</div>
-          </a>
-        </div>
-      </div>
     </div>
     <div class="step-nav on-dark" style="grid-column:1/-1;">
       <button type="button" class="btn btn-outline btn-sm step-nav-btn" disabled>이전</button>
@@ -1855,6 +1856,51 @@ DEMO_HTML = """
       <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
       <div class="step-progress" data-step-dots></div>
       <button type="button" class="btn btn-dark btn-sm step-nav-btn" data-step-loop>처음으로</button>
+    </div>
+  </div>
+</section>
+
+<section id="rewards" class="app-step rewards-page">
+  <div class="wrap">
+    <div class="eyebrow on-dark">REWARDS</div>
+    <h2>리워드</h2>
+    <p class="sub on-dark">미션으로 포인트를 모으고, 제휴 서비스에서 바로 사용하세요.</p>
+    <div class="reward-card">
+      <div class="reward-body">
+        <div class="reward-col">
+          <div class="reward-head">
+            <div class="reward-title">
+              <svg class="rw-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7C12 7 12 2 8.5 2 5 2 5 7 12 7zM12 7s0-5 3.5-5S19 7 12 7z"/></svg>
+              리워드 미션
+            </div>
+            <div class="reward-balance">내 포인트 <b id="rewardTotal">0</b>P</div>
+          </div>
+          <div class="reward-missions" id="rewardMissions"></div>
+        </div>
+        <div class="reward-use">
+          <div class="reward-use-head">리워드 사용처 <span>여기서 바로 사용 가능</span></div>
+          <a class="use-card" href="https://tinder.com" target="_blank" rel="noopener noreferrer">
+            <div class="use-ic" style="background:#3a2530;color:#fe3c72;">🔥</div>
+            <div class="use-txt"><b>틴더</b><span>포인트 사용 가능</span></div>
+            <div class="use-go">사이트로 이동 →</div>
+          </a>
+          <a class="use-card" href="https://map.naver.com/p/search/%ED%98%BC%EC%88%A0%EC%A7%91" target="_blank" rel="noopener noreferrer">
+            <div class="use-ic" style="background:#233022;color:#5ac467;">🍶</div>
+            <div class="use-txt"><b>혼술집</b><span>제휴 혜택 확인</span></div>
+            <div class="use-go">네이버 맵에서 보기 →</div>
+          </a>
+          <a class="use-card" href="https://www.oliveyoung.co.kr" target="_blank" rel="noopener noreferrer">
+            <div class="use-ic" style="background:#2f2a20;color:#f5c04a;">🛍️</div>
+            <div class="use-txt"><b>올리브영</b><span>적립 포인트로 이용</span></div>
+            <div class="use-go">추천 상품 보러가기 →</div>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="step-nav on-dark">
+      <button type="button" class="btn btn-outline btn-sm step-nav-btn" data-step-prev>이전</button>
+      <div class="step-progress" data-step-dots></div>
+      <button type="button" class="btn btn-gold btn-sm step-nav-btn" data-step-loop>처음으로</button>
     </div>
   </div>
 </section>
@@ -3089,7 +3135,6 @@ DEMO_HTML = """
       renderResult(computeMetrics());
       resultEl.classList.add('show');
       state.analyzed = true;
-      renderRoutine();
       if(window.persistAnalysis){ window.persistAnalysis(); }
       if(window.awardPoints){ window.awardPoints('scan'); window.awardPoints('result'); }  /* 검사·결과 확인 포인트 */
     }, 1400);
@@ -3127,15 +3172,16 @@ DEMO_HTML = """
       `${listText} 고민을 중심으로 분석했어요. 종합 스코어는 ${overall}점이에요. ${tone}`;
   }
 
-  /* ---------------- step navigation (hero/analysis/recommend/extra/community) ---------------- */
-  const APP_STEPS = ['hero','analysis','recommend','style','extra','community'];
+  /* ---------------- step navigation (hero/analysis/recommend/extra/community/rewards) ---------------- */
+  const APP_STEPS = ['hero','analysis','recommend','style','extra','community','rewards'];
   const STEP_EL = {
     hero: document.getElementById('stepHero'),
     analysis: document.getElementById('analysis'),
     recommend: document.getElementById('recommend'),
     style: document.getElementById('style'),
     extra: document.getElementById('extra'),
-    community: document.getElementById('community')
+    community: document.getElementById('community'),
+    rewards: document.getElementById('rewards')
   };
   let currentStep = 'hero';
 
@@ -3146,6 +3192,9 @@ DEMO_HTML = """
     document.querySelectorAll('[data-step-dots]').forEach(dotsWrap=>{
       dotsWrap.innerHTML = APP_STEPS.map(s=>'<span class="step-dot' + (s===name?' active':'') + '"></span>').join('');
     });
+    /* 현재 페이지에 해당하는 상단 메뉴 강조 */
+    document.querySelectorAll('.nav-links a[data-step]').forEach(a=>
+      a.classList.toggle('active', a.dataset.step === name));
     window.scrollTo(0,0);
     if(name === 'recommend' && !tierInitialized){ initTierTabs(); }
     if(name === 'style' && !styleInitialized){ initStyle(); }
@@ -3153,8 +3202,13 @@ DEMO_HTML = """
   }
   window.showAppStep = showAppStep;
 
-  document.querySelectorAll('[data-step]').forEach(el=>{
-    el.addEventListener('click', ()=> showAppStep(el.dataset.step));
+  /* 개별 바인딩 대신 문서 위임: 나중에 추가되는 [data-step] 요소도 항상 동작하고,
+     앵커 기본 이동(#)을 막아 iframe 환경에서도 안전하게 전환된다. */
+  document.addEventListener('click', e=>{
+    const el = e.target.closest('[data-step]');
+    if(!el) return;
+    e.preventDefault();
+    showAppStep(el.dataset.step);
   });
   document.querySelectorAll('[data-step-next]').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -3242,11 +3296,29 @@ DEMO_HTML = """
       male:{ impression:['부드러운 첫인상','청결','신뢰'],
         skin:'유분·번들거림을 잡아 매트하고 깨끗한 인상. 만나기 30분 전 가벼운 수분만 더하세요.',
         cosmetics:['메디힐 마데카소사이드 선세럼','정샘물 에센셜 스킨 누더 쿠션','아누아 어성초 토너'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'유분·번들거림부터 정리', items:['아누아 어성초 77 토너','메디힐 마데카소사이드 수분 선세럼']},
+          {k:'base', step:'피부 표현', d:'얇게 한 겹, 깨끗한 톤 정돈', items:['정샘물 에센셜 스킨 누더 쿠션']},
+          {k:'brow', step:'눈썹·마무리', d:'눈썹만 정리해도 인상이 달라져요', items:['클리오 킬브로우 오토 하드 브로우 펜슬']}
+        ],
+        extras:[
+          {label:'립·수분 마무리', items:['립밤으로 입술 각질 정돈','메디큐브 PDRN 핑크 미스트 — 만나기 직전 수분 보충']},
+          {label:'향', items:['포레 우디 머스크 오 드 퍼퓸 — 손목·목에 1~2회만 가볍게']}
+        ],
         outfit:{main:'화이트 셔츠 + 베이지 슬랙스', sub:'깔끔한 컬러로 부담 없는 호감형'},
         hair:{main:'내추럴 덮머리', sub:'다운펌으로 자연스럽게'} },
       female:{ impression:['화사','생기','다정'],
         skin:'수분+비타C로 화사하게. 은은한 톤업으로 생기 있는 인상을 만드세요.',
         cosmetics:['토리든 다이브인 세럼','구달 청귤 비타C 세럼','클리오 킬커버 쿠션'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'수분과 비타민으로 화사한 바탕', items:['토리든 다이브인 저분자 히알루론산 세럼','구달 청귤 비타C 잡티 세럼']},
+          {k:'base', step:'피부 표현', d:'은은한 톤업으로 생기 있게', items:['클리오 킬커버 파운웨어 쿠션']},
+          {k:'point', step:'포인트·마무리', d:'입술에 생기만 살짝', items:['페리페라 틴트']}
+        ],
+        extras:[
+          {label:'아이 메이크업', items:['루미르 라이트 온 아이즈 섀도우 팔레트 — 은은한 음영만']},
+          {label:'향', items:['탬버린즈 베르가못 시트러스 오 드 퍼퓸']}
+        ],
         outfit:{main:'아이보리 니트 + 연핑크 스커트', sub:'부드러운 파스텔로 다정한 무드'},
         hair:{main:'웨이브 반묶음', sub:'얼굴 라인을 부드럽게'} }
     },
@@ -3254,11 +3326,28 @@ DEMO_HTML = """
       male:{ impression:['단정','신뢰','프로페셔널'],
         skin:'톤 정리 + 자연스러운 커버로 또렷하고 신뢰감 있는 인상.',
         cosmetics:['에스트라 아토베리어365 크림','헤라 블랙 쿠션','코스알엑스 6 펩타이드 세럼'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'결 정돈과 장벽 케어로 안정감 있게', items:['코스알엑스 더 6 펩타이드 스킨 부스터 세럼','에스트라 아토베리어365 크림']},
+          {k:'base', step:'피부 표현', d:'번들거림 없는 커버로 신뢰감', items:['헤라 블랙 쿠션 파운데이션']},
+          {k:'brow', step:'눈썹·마무리', d:'또렷한 눈썹으로 단정하게', items:['클리오 킬브로우 오토 하드 브로우 펜슬']}
+        ],
+        extras:[
+          {label:'헤어 세팅', items:['매트 왁스로 이마 오픈 고정','스프레이로 잔머리 정리']},
+          {label:'마무리 점검', items:['니베아 프레시 액티브 데오 롤온','그랑핸드 뉴트럴 오 드 퍼퓸 — 아주 가볍게 1회']}
+        ],
         outfit:{main:'네이비 자켓 + 화이트 셔츠', sub:'기본에 충실한 신뢰형 조합'},
         hair:{main:'깐머리 (이마 오픈)', sub:'단정하게 넘겨 프로페셔널하게'} },
       female:{ impression:['단정','또렷','프로페셔널'],
         skin:'번들거림 없는 깔끔한 피부 표현 + 또렷한 눈썹으로 신뢰감 있는 인상.',
         cosmetics:['에스트라 아토베리어365 크림','클리오 킬커버 쿠션','클리오 킬브로우 펜슬'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'장벽 케어로 들뜸 없이', items:['에스트라 아토베리어365 크림']},
+          {k:'base', step:'피부 표현', d:'깔끔한 커버로 단정하게', items:['클리오 킬커버 파운웨어 쿠션']},
+          {k:'brow', step:'눈썹·마무리', d:'또렷한 눈썹으로 신뢰감', items:['클리오 킬브로우 오토 하드 브로우 펜슬']}
+        ],
+        extras:[
+          {label:'헤어 세팅', items:['로우 포니테일 — 잔머리는 스프레이로 정리']}
+        ],
         outfit:{main:'네이비 자켓 + 화이트 블라우스', sub:'클래식한 오피스 무드'},
         hair:{main:'로우 포니테일', sub:'깔끔하게 넘겨 단정하게'} }
     },
@@ -3266,11 +3355,27 @@ DEMO_HTML = """
       male:{ impression:['깔끔','부지런','호감'],
         skin:'빠른 아침 루틴 — 수분·선케어로 하루 컨디션을 유지하세요.',
         cosmetics:['AHC 마스터즈 선스틱','토리든 다이브인 세럼','라운드랩 1025 독도 로션'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'아침 3분, 수분부터 채우고', items:['토리든 다이브인 저분자 히알루론산 세럼','라운드랩 1025 독도 로션']},
+          {k:'sun', step:'선케어', d:'출근길 자외선 차단은 필수', items:['AHC 마스터즈 에어 리치 선스틱']},
+          {k:'hair', step:'헤어·마무리', d:'가볍게 정돈하고 출발', items:['드라이 1분으로 덮머리 정돈']}
+        ],
+        extras:[
+          {label:'오후 컨디션 케어', items:['메디큐브 PDRN 핑크 미스트 — 오후 수분 보충','니베아 프레시 액티브 데오 롤온']}
+        ],
         outfit:{main:'그레이 니트 + 화이트 이너', sub:'단정하지만 편한 데일리'},
         hair:{main:'가벼운 덮머리', sub:'힘 뺀 자연스러운 스타일'} },
       female:{ impression:['깔끔','생기','프로'],
         skin:'가벼운 수분 + 톤업 선크림으로 산뜻하게.',
         cosmetics:['구달 어성초 진정 선크림','토리든 다이브인 세럼','정샘물 쿠션'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'가벼운 수분으로 산뜻하게', items:['토리든 다이브인 저분자 히알루론산 세럼']},
+          {k:'sun', step:'선케어', d:'톤업 겸 자외선 차단', items:['구달 맑은 어성초 진정 수분 선크림']},
+          {k:'base', step:'피부 표현', d:'얇게 톤만 정돈', items:['정샘물 에센셜 스킨 누더 쿠션']}
+        ],
+        extras:[
+          {label:'마무리', items:['로우 번으로 단정하게','립밤으로 생기 유지']}
+        ],
         outfit:{main:'베이지 가디건 + 슬랙스', sub:'편안한 오피스 캐주얼'},
         hair:{main:'로우 번', sub:'단정한 하루용 스타일'} }
     },
@@ -3278,11 +3383,27 @@ DEMO_HTML = """
       male:{ impression:['편안','트렌디','자연스러움'],
         skin:'가볍게 수분+톤업, 힘 뺀 무드로 자연스럽게.',
         cosmetics:['구달 어성초 진정 선크림','메디큐브 PDRN 핑크 미스트','정샘물 쿠션(가볍게)'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'가볍게 수분만 채우고', items:['메디큐브 PDRN 핑크 콜라겐 젤리 미스트 세럼']},
+          {k:'sun', step:'선케어', d:'외출 전 진정 겸 차단', items:['구달 맑은 어성초 진정 수분 선크림']},
+          {k:'base', step:'피부 표현', d:'쿠션은 힘 빼고 얇게', items:['정샘물 에센셜 스킨 누더 쿠션 — 가볍게']}
+        ],
+        extras:[
+          {label:'무드 마무리', items:['내추럴 애즈펌 볼륨 정돈','탬버린즈 베르가못 시트러스 오 드 퍼퓸 — 캐주얼하게']}
+        ],
         outfit:{main:'블랙 후드 + 데님', sub:'꾸안꾸 캐주얼'},
         hair:{main:'내추럴 애즈펌', sub:'자연스러운 볼륨'} },
       female:{ impression:['편안','러블리','자연스러움'],
         skin:'수분 위주의 가벼운 피부 표현으로 촉촉한 무드.',
         cosmetics:['토리든 다이브인 세럼','메디큐브 PDRN 핑크 미스트','페리페라 틴트'],
+        routine:[
+          {k:'skin', step:'스킨케어', d:'촉촉한 바탕부터', items:['토리든 다이브인 저분자 히알루론산 세럼','메디큐브 PDRN 핑크 콜라겐 젤리 미스트 세럼']},
+          {k:'base', step:'피부 표현', d:'수분감 살려 가볍게', items:['정샘물 에센셜 스킨 누더 쿠션 — 얇게']},
+          {k:'point', step:'포인트·마무리', d:'입술로 러블리하게', items:['페리페라 틴트']}
+        ],
+        extras:[
+          {label:'무드 마무리', items:['로우 웨이브로 자연스럽게','그랑핸드 뉴트럴 오 드 퍼퓸']}
+        ],
         outfit:{main:'니트 + 데님', sub:'편안한 데이트 룩'},
         hair:{main:'로우 웨이브', sub:'자연스럽게 풀어서'} }
     }
@@ -3296,6 +3417,15 @@ DEMO_HTML = """
     { id:'f6', sit:'weekend',   gender:'female', title:'주말 데이트 룩' }
   ];
   const TAG_POS = [{top:'32%',left:'40%'},{top:'50%',left:'62%'},{top:'66%',left:'42%'}];
+  /* 준비 단계 종류(k)별 사진 위 번호 위치 — 번호는 실제 준비 순서, 위치는 해당 부위를 가리킨다 */
+  const STEP_POS = {
+    skin:  {top:'50%', left:'62%'},   /* 볼 — 스킨케어 */
+    sun:   {top:'30%', left:'55%'},   /* 이마 — 선케어 */
+    base:  {top:'66%', left:'42%'},   /* 턱선 — 피부 표현 */
+    brow:  {top:'32%', left:'40%'},   /* 눈썹 */
+    point: {top:'58%', left:'48%'},   /* 입술 — 포인트 */
+    hair:  {top:'12%', left:'52%'}    /* 헤어 */
+  };
   const IC_SKIN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M8.5 15a4 4 0 0 0 7 0"/></svg>';
   const IC_COS   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6v4l1 3v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V9l1-3z"/><path d="M9 9h6"/></svg>';
   const IC_SHIRT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3l4 3-3 3-1-1v11H8V8L7 8 4 6l4-3 2 2h4z"/></svg>';
@@ -3330,8 +3460,12 @@ DEMO_HTML = """
       const look = TPO_LOOKS[f.sit][f.gender];
       const t = TPO[f.sit];
       const img = faceImg(f.gender);
-      const tags = look.cosmetics.slice(0,3).map((c,i)=>
-        '<div class="feed-tag" style="top:'+TAG_POS[i].top+';left:'+TAG_POS[i].left+'">'+(i+1)+'</div>').join('');
+      /* 번호 = 실제 준비 순서(1 먼저 → 3 마지막), 위치 = 그 단계가 닿는 부위 */
+      const steps = look.routine || [];
+      const tags = steps.map((s,i)=>{
+        const pos = STEP_POS[s.k] || TAG_POS[i] || TAG_POS[0];
+        return '<div class="feed-tag" style="top:'+pos.top+';left:'+pos.left+'" title="'+(i+1)+'. '+s.step+'">'+(i+1)+'</div>';
+      }).join('');
       return '<div class="feed-card" data-feed="'+f.id+'">' +
         '<div class="feed-photo">' + (img?'<img src="'+img+'" alt="'+f.title+'" />':'') +
           '<div class="feed-situation">'+t.emoji+' '+t.label+'</div>' + tags + '</div>' +
@@ -3359,8 +3493,27 @@ DEMO_HTML = """
         '<div class="sheet-title">'+f.title+'</div>' +
         '<div class="sheet-keys">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
         sec(IC_SKIN,'피부 타입 추천 포인트','<div class="sheet-skin">'+look.skin+'</div>') +
-        sec(IC_COS,'사용 화장품', look.cosmetics.map((c,i)=>
-          '<div class="sheet-prod"><div class="sheet-prod-no">'+(i+1)+'</div><div class="sheet-prod-txt"><b>'+c+'</b></div></div>').join('')) +
+        /* 준비 순서: 사진 속 번호와 동일한 순서로, 단계별 사용 제품을 나열 */
+        (look.routine && look.routine.length
+          ? sec(IC_COS,'준비 순서 · 사진 속 번호와 같아요',
+              look.routine.map((s,i)=>
+                '<div class="sheet-step">' +
+                  '<div class="sheet-step-head"><div class="sheet-prod-no">'+(i+1)+'</div>' +
+                    '<b class="sheet-step-name">'+s.step+'</b><span class="sheet-step-sub">'+s.d+'</span></div>' +
+                  '<div class="sheet-step-items">'+s.items.map(it=>'<div class="sheet-step-item">'+it+'</div>').join('')+'</div>' +
+                '</div>').join('') +
+              (look.extras && look.extras.length
+                ? '<button type="button" class="sheet-more-btn" id="sheetMoreBtn"><span>추가 추천 보기</span>' +
+                    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></button>' +
+                  '<div class="sheet-extra" id="sheetExtra">' +
+                    look.extras.map(g=>
+                      '<div class="sheet-extra-group"><div class="sheet-extra-label">'+g.label+'</div>' +
+                        g.items.map(it=>'<div class="sheet-step-item">'+it+'</div>').join('') +
+                      '</div>').join('') +
+                  '</div>'
+                : ''))
+          : sec(IC_COS,'사용 화장품', look.cosmetics.map((c,i)=>
+              '<div class="sheet-prod"><div class="sheet-prod-no">'+(i+1)+'</div><div class="sheet-prod-txt"><b>'+c+'</b></div></div>').join(''))) +
         '<div class="sheet-sec"><div class="sheet-two">' +
           '<div><div class="sheet-sec-label">'+IC_SHIRT+'추천 옷 스타일</div><div class="sheet-mini-main">'+look.outfit.main+'</div><div class="sheet-mini-sub">'+look.outfit.sub+'</div></div>' +
           '<div><div class="sheet-sec-label">'+IC_HAIR+'헤어 스타일</div><div class="sheet-mini-main">'+look.hair.main+'</div><div class="sheet-mini-sub">'+look.hair.sub+'</div></div>' +
@@ -3369,6 +3522,16 @@ DEMO_HTML = """
     const sheet = document.getElementById('styleSheet');
     sheet.hidden = false;
     document.getElementById('sheetClose').addEventListener('click', closeSheet);
+    /* 추가 추천 열기/닫기 — 기본은 접힌 상태로 가볍게 유지 */
+    const moreBtn = document.getElementById('sheetMoreBtn');
+    if(moreBtn){
+      moreBtn.addEventListener('click', ()=>{
+        const ex = document.getElementById('sheetExtra');
+        const open = ex.classList.toggle('open');
+        moreBtn.classList.toggle('open', open);
+        moreBtn.querySelector('span').textContent = open ? '접기' : '추가 추천 보기';
+      });
+    }
   }
   function closeSheet(){ document.getElementById('styleSheet').hidden = true; }
 
