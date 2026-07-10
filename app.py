@@ -3601,46 +3601,59 @@ DEMO_HTML = """
   /* 상황(TPO)별 스타일 피드 카드 세트 — 탭 전환 시 해당 상황 카드로 전체 교체.
      visual: 착장 합성(outfit)·사진 톤(filter)·크롭(pos), outfitText/hairText: 카드별 착장·헤어 설명 오버라이드.
      window.LOOK_IMGS 에 look_<id>.png 실사 에셋이 있으면 그 이미지를 우선 사용(합성 생략). */
+  /* markers: 첨부된 최종 촬영 세트 기준 카드별 번호 위치(% 좌표) — look_<id>.png 크롭과 짝을 이룬다 */
   const STYLE_FEED = [
     /* 소개팅 */
     { id:'f1', sit:'date', gender:'male', title:'소개팅 클린 룩',
       visual:{ outfit:'shirt', c:{main:'#c9ddf0', line:'#8fb3d4'}, filter:'brightness(1.06) saturate(1.08)', pos:'center 16%' },
+      markers:[{t:19, l:48}, {t:52, l:36}, {t:20, l:76}],
       outfitText:{main:'라이트 블루 셔츠', sub:'밝고 호감 가는 첫인상'}, hairText:'내추럴 덮머리' },
     { id:'f2', sit:'date', gender:'female', title:'소개팅 화사 룩',
       visual:{ outfit:'blouse', c:{main:'#efe6d8', line:'#d9c9b2'}, filter:'brightness(1.07) saturate(1.1) sepia(.05)', pos:'center 14%' },
+      markers:[{t:31, l:70}, {t:52, l:72}, {t:58, l:60}],
       outfitText:{main:'아이보리 니트 블라우스', sub:'부드러운 파스텔 무드'}, hairText:'웨이브 반묶음' },
     { id:'f3', sit:'date', gender:'male', title:'소개팅 세미 캐주얼 룩',
       visual:{ outfit:'cardigan', c:{main:'#d8cbb6', line:'#c0ae92'}, filter:'brightness(1.04) sepia(.06)', pos:'center 20%' },
+      markers:[{t:19, l:45}, {t:49, l:42}, {t:20, l:78}],
       outfitText:{main:'베이지 가디건 + 화이트 이너', sub:'편안하지만 정돈된 분위기'}, hairText:'내추럴 가르마' },
     /* 면접 */
     { id:'f4', sit:'interview', gender:'male', title:'면접 신뢰 룩',
       visual:{ outfit:'suit', c:{main:'#2e3a52', line:'#222b3e', shirt:'#f6f7f9', tie:'#5f7396'}, filter:'contrast(1.05) saturate(.9)', pos:'center 22%' },
-      outfitText:{main:'네이비 수트 + 타이', sub:'기본에 충실한 신뢰형'}, hairText:'깐머리 (이마 오픈)' },
+      markers:[{t:40, l:57}, {t:48, l:26}, {t:29, l:33}],
+      outfitText:{main:'네이비 수트 + 타이', sub:'기본에 충실한 신뢰형'}, hairText:'사이드 파트(가르마 깐머리)' },
     { id:'f5', sit:'interview', gender:'female', title:'면접 단정 룩',
       visual:{ outfit:'suit', c:{main:'#3a3f4a', line:'#2b2f38', shirt:'#f6f7f9', tie:''}, filter:'contrast(1.04) saturate(.88)', pos:'center 16%' },
+      markers:[{t:42, l:64}, {t:51, l:38}, {t:29, l:39}],
       outfitText:{main:'차콜 블레이저 + 화이트 블라우스', sub:'클래식 오피스 무드'}, hairText:'로우 포니테일' },
     { id:'f6', sit:'interview', gender:'male', title:'면접 비즈 캐주얼 룩',
       visual:{ outfit:'shirt', c:{main:'#dfe3e8', line:'#b6bec9'}, filter:'saturate(.94) brightness(1.03)', pos:'center 18%' },
+      markers:[{t:43, l:62}, {t:55, l:36}, {t:33, l:38}],
       outfitText:{main:'그레이 셔츠 (노타이)', sub:'단정하지만 딱딱하지 않게'}, hairText:'사이드 정돈' },
     /* 출근 */
     { id:'f7', sit:'work', gender:'male', title:'데일리 출근 룩',
       visual:{ outfit:'knit', c:{main:'#9aa3ad', line:'#7f8894'}, filter:'saturate(.88) brightness(1.02)', pos:'center 20%' },
+      markers:[{t:42, l:52}, {t:32, l:50}, {t:19, l:56}],
       outfitText:{main:'그레이 니트 + 화이트 이너', sub:'단정하지만 편한 데일리'}, hairText:'가벼운 덮머리' },
     { id:'f8', sit:'work', gender:'female', title:'출근 산뜻 룩',
       visual:{ outfit:'cardigan', c:{main:'#e2d5c2', line:'#c9b699'}, filter:'brightness(1.05) sepia(.04)', pos:'center 15%' },
+      markers:[{t:47, l:62}, {t:33, l:52}, {t:58, l:45}],
       outfitText:{main:'베이지 가디건 + 슬랙스', sub:'편안한 오피스 캐주얼'}, hairText:'로우 번' },
     { id:'f9', sit:'work', gender:'male', title:'출근 셔츠 룩',
       visual:{ outfit:'shirt', c:{main:'#5b6b85', line:'#465471'}, filter:'saturate(.95) contrast(1.03)', pos:'center 22%' },
+      markers:[{t:47, l:55}, {t:33, l:55}, {t:22, l:57}],
       outfitText:{main:'네이비 셔츠', sub:'차분하고 신뢰감 있는 톤'}, hairText:'단정한 사이드 파트' },
     /* 주말 약속 */
     { id:'f10', sit:'weekend', gender:'male', title:'주말 캐주얼 룩',
       visual:{ outfit:'hoodie', c:{main:'#2b2b2e', line:'#1e1e21', string:'#8f8f95'}, filter:'saturate(1.14) contrast(1.03)', pos:'center 26%' },
+      markers:[{t:48, l:62}, {t:33, l:50}, {t:58, l:42}],
       outfitText:{main:'블랙 후드 + 데님', sub:'꾸안꾸 캐주얼'}, hairText:'내추럴 애즈펌' },
     { id:'f11', sit:'weekend', gender:'female', title:'주말 데이트 룩',
       visual:{ outfit:'blouse', c:{main:'#d9c9b2', line:'#c4b096'}, filter:'brightness(1.04) sepia(.08) saturate(1.05)', pos:'center 16%' },
+      markers:[{t:53, l:62}, {t:68, l:52}, {t:56, l:47}],
       outfitText:{main:'베이지 보트넥 니트', sub:'편안한 데이트 무드'}, hairText:'로우 웨이브' },
     { id:'f12', sit:'weekend', gender:'male', title:'주말 액티브 룩',
       visual:{ outfit:'henley', c:{main:'#2e3440', line:'#232834'}, filter:'saturate(1.08) contrast(1.04)', pos:'center 24%' },
+      markers:[{t:47, l:68}, {t:33, l:62}, {t:60, l:55}],
       outfitText:{main:'다크 네이비 헨리넥', sub:'관리된 캐주얼'}, hairText:'가볍게 올린 앞머리' }
   ];
   /* 착장 합성 SVG — 2층 구조로 '입고 있는' 느낌을 만든다.
@@ -3944,10 +3957,12 @@ DEMO_HTML = """
       const asset = (window.LOOK_IMGS || {})[f.id];
       const img = asset || faceImg(f.gender);
       const imgStyle = asset ? '' : 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + (v.pos ? 'object-position:'+v.pos+';' : '') + '"';
-      /* 번호 = 실제 준비 순서(1 먼저 → 3 마지막), 위치 = 그 단계 제품이 닿는 부위(카드별 분산) */
+      /* 번호 = 실제 준비 순서(1 먼저 → 3 마지막).
+         카드에 markers(촬영 세트 기준 좌표)가 있으면 그대로, 없으면 부위 기반 자동 배치 */
       const steps = look.routine || [];
       const tags = steps.map((s,i)=>{
-        const pos = markerPos(s, f.id, i);
+        const m = f.markers && f.markers[i];
+        const pos = m ? { top:m.t + '%', left:m.l + '%' } : markerPos(s, f.id, i);
         return '<div class="feed-tag" style="top:'+pos.top+';left:'+pos.left+'" title="'+(i+1)+'. '+s.step+'">'+(i+1)+'</div>';
       }).join('');
       const outfitMain = (f.outfitText && f.outfitText.main) || look.outfit.main;
