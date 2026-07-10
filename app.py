@@ -354,6 +354,29 @@ DEMO_HTML = """
   .tpo-combo-head .tc-title{font-size:19px;font-weight:800;letter-spacing:-.02em;margin-top:4px;}
   .tpo-impression{display:flex;gap:6px;flex-wrap:wrap;}
   .tpo-impression span{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--gold-soft);color:var(--gold);}
+
+  /* ---------- WEATHER WIDGET (검정 카드 헤더) ---------- */
+  .wx-meta{font-size:13px;color:#c9c8c1;margin-top:6px;}
+  .wx-copy{font-size:13px;color:var(--gold);margin-top:9px;font-weight:600;}
+  .wx-refresh{
+    flex:none;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;
+    border:1.5px solid #3a3934;background:#201f1c;color:#c9c8c1;font-size:12px;font-weight:700;
+    font-family:inherit;cursor:pointer;transition:border-color .15s ease,color .15s ease;
+  }
+  .wx-refresh:hover{border-color:var(--gold);color:var(--gold);}
+  .wx-refresh[disabled]{opacity:.5;cursor:wait;}
+  .wx-reco{flex-basis:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;}
+  .wx-reco-item{background:rgba(255,255,255,.05);border:1px solid #3a3934;border-radius:10px;padding:9px 11px;}
+  .wx-reco-item b{display:block;font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:.06em;margin-bottom:3px;}
+  .wx-reco-item span{font-size:12px;color:#e6e4de;line-height:1.45;}
+  .wx-note{flex-basis:100%;font-size:11.5px;color:#c98a3c;margin-top:6px;}
+  .wx-loading .tc-title,.wx-loading .wx-meta{animation:wxpulse 1.2s ease-in-out infinite;}
+  @keyframes wxpulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+  @media (max-width:700px){ .wx-reco{grid-template-columns:1fr 1fr;} }
+  /* 상황(TPO) 타이틀은 헤더 대신 본문 첫 줄로 이동 */
+  .tpo-situ{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--bg);}
+  .tpo-situ .tpo-situ-title{font-size:15px;font-weight:800;color:var(--ink);}
+  .tpo-situ .tpo-impression span{background:var(--accent-soft);color:var(--accent);}
   .tpo-combo-body{display:grid;grid-template-columns:repeat(2,1fr);gap:0;}
   .tpo-slot{padding:18px 22px;border-top:1px solid var(--line);border-right:1px solid var(--line);}
   .tpo-slot:nth-child(2n){border-right:none;}
@@ -379,6 +402,8 @@ DEMO_HTML = """
   .feed-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(20,20,18,.10);}
   .feed-photo{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#e7e4dd;}
   .feed-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  /* 컨셉 착장 오버레이: 카드별 옷 종류·색으로 룩 분위기를 구분 */
+  .feed-outfit{position:absolute;left:0;bottom:0;width:100%;height:40%;z-index:1;pointer-events:none;filter:drop-shadow(0 -2px 6px rgba(0,0,0,.10));}
   .feed-situation{
     position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;padding:5px 11px;border-radius:999px;
     background:rgba(26,26,24,.78);color:#fff;backdrop-filter:blur(4px);z-index:2;
@@ -397,15 +422,20 @@ DEMO_HTML = """
   @media (max-width:760px){ .style-feed{grid-template-columns:1fr 1fr;} }
   @media (max-width:440px){ .style-feed{grid-template-columns:1fr 1fr;gap:10px;} }
 
-  /* ---------- STYLE BOTTOM SHEET ---------- */
-  .sheet{position:fixed;inset:0;z-index:220;display:flex;align-items:flex-end;justify-content:center;}
+  /* ---------- STYLE DETAIL MODAL ----------
+     iframe(높이=문서 전체) 환경에서도 스크롤 이동 없이 클릭한 위치에 바로 뜨도록,
+     하단 고정 시트 대신 클릭 좌표 기준으로 배치되는 모달을 쓴다. */
+  .sheet{position:fixed;inset:0;z-index:220;}
   .sheet[hidden]{display:none;}
   .sheet-backdrop{position:absolute;inset:0;background:rgba(20,20,18,.55);animation:fade .25s ease;}
   .sheet-card{
-    position:relative;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;background:var(--surface);
-    border-radius:22px 22px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,.3);animation:sheetUp .3s cubic-bezier(.2,.8,.2,1);
+    position:absolute;left:50%;transform:translateX(-50%);width:min(560px, calc(100% - 32px));
+    max-height:640px;overflow-y:auto;background:var(--surface);
+    border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.32);animation:sheetPop .28s cubic-bezier(.2,.8,.2,1);
   }
-  @keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  @keyframes sheetPop{from{opacity:0;transform:translateX(-50%) translateY(14px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+  .sheet-actions{display:flex;gap:10px;margin-top:20px;}
+  .sheet-actions .btn{flex:1;}
   .sheet-grip{width:40px;height:4px;border-radius:999px;background:var(--line);margin:10px auto 0;}
   .sheet-photo{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;}
   .sheet-photo img{width:100%;height:100%;object-fit:cover;object-position:center 28%;}
@@ -1707,7 +1737,20 @@ DEMO_HTML = """
     <p class="sub">피부 상태에 맞춰 화장품부터 옷·헤어까지. 오늘 어디 가는지만 고르면 조합을 정해드려요.</p>
 
     <div class="tpo-tabs" id="tpoTabs"></div>
-    <div class="tpo-combo" id="tpoCombo"></div>
+    <div class="tpo-combo">
+      <div class="tpo-combo-head" id="wxHead">
+        <div class="wx-main">
+          <div class="tc-badge">오늘의 날씨</div>
+          <div class="tc-title" id="wxTitle">날씨 불러오는 중…</div>
+          <div class="wx-meta" id="wxMeta"></div>
+          <div class="wx-copy" id="wxCopy"></div>
+        </div>
+        <button type="button" class="wx-refresh" id="wxRefresh">↻ 새로고침</button>
+        <div class="wx-reco" id="wxReco"></div>
+        <div class="wx-note" id="wxNote" hidden></div>
+      </div>
+      <div class="tpo-combo-body" id="tpoComboBody"></div>
+    </div>
 
     <div class="style-feed-head">
       <div>
@@ -3408,24 +3451,98 @@ DEMO_HTML = """
         hair:{main:'로우 웨이브', sub:'자연스럽게 풀어서'} }
     }
   };
+  /* visual: 카드 컨셉별 착장 오버레이(outfit)와 사진 톤(filter)·크롭(pos) — 같은 얼굴이라도 룩이 구분돼 보이게 */
   const STYLE_FEED = [
-    { id:'f1', sit:'date',      gender:'male',   title:'소개팅 클린 룩' },
-    { id:'f2', sit:'interview', gender:'male',   title:'면접 신뢰 룩' },
-    { id:'f3', sit:'work',      gender:'male',   title:'데일리 출근 룩' },
-    { id:'f4', sit:'date',      gender:'female', title:'소개팅 화사 룩' },
-    { id:'f5', sit:'weekend',   gender:'male',   title:'주말 캐주얼 룩' },
-    { id:'f6', sit:'weekend',   gender:'female', title:'주말 데이트 룩' }
+    { id:'f1', sit:'date',      gender:'male',   title:'소개팅 클린 룩',
+      visual:{ outfit:'shirt',  c:{main:'#cfe0ee', line:'#9db8cf'}, filter:'brightness(1.06) saturate(1.08)', pos:'center 16%' } },
+    { id:'f2', sit:'interview', gender:'male',   title:'면접 신뢰 룩',
+      visual:{ outfit:'blazer', c:{main:'#2e3a52', line:'#222b3e', shirt:'#f6f7f9', tie:'#8899b5'}, filter:'contrast(1.05) saturate(.9)', pos:'center 24%' } },
+    { id:'f3', sit:'work',      gender:'male',   title:'데일리 출근 룩',
+      visual:{ outfit:'knit',   c:{main:'#9aa3ad', line:'#7f8894'}, filter:'saturate(.88) brightness(1.02)', pos:'center 20%' } },
+    { id:'f4', sit:'date',      gender:'female', title:'소개팅 화사 룩',
+      visual:{ outfit:'knit',   c:{main:'#f0e9dd', line:'#dccfb9'}, filter:'brightness(1.07) saturate(1.1) sepia(.05)', pos:'center 14%' } },
+    { id:'f5', sit:'weekend',   gender:'male',   title:'주말 캐주얼 룩',
+      visual:{ outfit:'hoodie', c:{main:'#2b2b2e', line:'#1e1e21', string:'#8f8f95'}, filter:'saturate(1.14) contrast(1.03)', pos:'center 26%' } },
+    { id:'f6', sit:'weekend',   gender:'female', title:'주말 데이트 룩',
+      visual:{ outfit:'knit',   c:{main:'#d9c9b2', line:'#c4b096'}, filter:'brightness(1.04) sepia(.08) saturate(1.05)', pos:'center 18%' } }
   ];
+  /* 컨셉 착장 오버레이 SVG — 옷 종류·색으로 카드 분위기를 구분 */
+  function outfitSvg(v){
+    if(!v || !v.outfit) return '';
+    const c = v.c || {};
+    const main = c.main || '#dfe4ea', line = c.line || 'rgba(0,0,0,.18)';
+    const open = '<svg class="feed-outfit" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">';
+    if(v.outfit === 'shirt'){
+      return open +
+        '<path d="M0 40 V17 Q16 9 34 6.5 L43 5 50 13 57 5 66 6.5 Q84 9 100 17 V40 Z" fill="'+main+'"/>' +
+        '<path d="M43 5 50 13 45.5 17.5 39 8.5 Z" fill="#fdfdfd"/>' +
+        '<path d="M57 5 50 13 54.5 17.5 61 8.5 Z" fill="#fdfdfd"/>' +
+        '<path d="M50 13 V40" stroke="'+line+'" stroke-width=".7"/>' +
+        '<circle cx="50" cy="19" r=".9" fill="'+line+'"/><circle cx="50" cy="25" r=".9" fill="'+line+'"/><circle cx="50" cy="31" r=".9" fill="'+line+'"/></svg>';
+    }
+    if(v.outfit === 'blazer'){
+      return open +
+        '<path d="M44 4.5 L50 20 56 4.5 Q50 8.5 44 4.5 Z" fill="'+(c.shirt||'#fff')+'"/>' +
+        '<path d="M0 40 V16 Q17 8 35 6 L43 4.5 46 40 Z" fill="'+main+'"/>' +
+        '<path d="M100 40 V16 Q83 8 65 6 L57 4.5 54 40 Z" fill="'+main+'"/>' +
+        '<path d="M43 4.5 L50 20 44 26 39 8 Z" fill="'+line+'"/>' +
+        '<path d="M57 4.5 L50 20 56 26 61 8 Z" fill="'+line+'"/>' +
+        '<path d="M48.6 18 h2.8 l-.6 3.4 h-1.6 Z" fill="'+(c.tie||'#8899b5')+'"/>' +
+        '<path d="M50 21.4 L47.6 27 50 38 52.4 27 Z" fill="'+(c.tie||'#8899b5')+'"/></svg>';
+    }
+    if(v.outfit === 'hoodie'){
+      return open +
+        '<path d="M32 14 Q50 -3 68 14 Q59 9 50 9 Q41 9 32 14 Z" fill="'+line+'"/>' +
+        '<path d="M0 40 V19 Q16 10 35 7.5 Q42 6.5 45 9 Q50 15 55 9 Q58 6.5 65 7.5 Q84 10 100 19 V40 Z" fill="'+main+'"/>' +
+        '<path d="M44 9 Q50 15.5 56 9" fill="none" stroke="'+line+'" stroke-width="1.8"/>' +
+        '<path d="M46.5 12 V23" stroke="'+(c.string||'#999')+'" stroke-width=".9"/>' +
+        '<path d="M53.5 12 V23" stroke="'+(c.string||'#999')+'" stroke-width=".9"/></svg>';
+    }
+    /* knit / tee */
+    return open +
+      '<path d="M0 40 V18 Q16 9.5 35 7 Q42 6 45 8 Q50 14.5 55 8 Q58 6 65 7 Q84 9.5 100 18 V40 Z" fill="'+main+'"/>' +
+      '<path d="M43.5 7.5 Q50 15.5 56.5 7.5" fill="none" stroke="'+line+'" stroke-width="1.6"/>' +
+      '<path d="M0 36.5 H100" stroke="'+line+'" stroke-width=".5" opacity=".5"/></svg>';
+  }
   const TAG_POS = [{top:'32%',left:'40%'},{top:'50%',left:'62%'},{top:'66%',left:'42%'}];
-  /* 준비 단계 종류(k)별 사진 위 번호 위치 — 번호는 실제 준비 순서, 위치는 해당 부위를 가리킨다 */
-  const STEP_POS = {
-    skin:  {top:'50%', left:'62%'},   /* 볼 — 스킨케어 */
-    sun:   {top:'30%', left:'55%'},   /* 이마 — 선케어 */
-    base:  {top:'66%', left:'42%'},   /* 턱선 — 피부 표현 */
-    brow:  {top:'32%', left:'40%'},   /* 눈썹 */
-    point: {top:'58%', left:'48%'},   /* 입술 — 포인트 */
-    hair:  {top:'12%', left:'52%'}    /* 헤어 */
+  /* 제품 카테고리별 마커 기준 부위 — 번호는 준비 순서, 위치는 그 제품이 닿는 부위 */
+  const KIND_POS = {
+    sun:       {t:27, l:50},   /* 선크림·톤업 — 이마 */
+    suncheek:  {t:50, l:33},   /* 선케어 보조 — 볼 */
+    base:      {t:64, l:42},   /* 쿠션·파운데이션 — 턱선·피부 */
+    concealer: {t:43, l:59},   /* 컨실러 — 눈 밑 */
+    lip:       {t:59, l:49},   /* 립밤·틴트 — 입술 */
+    brow:      {t:31, l:41},   /* 아이브로우 — 눈썹 */
+    blush:     {t:51, l:64},   /* 블러셔 — 볼 */
+    shade:     {t:70, l:35},   /* 쉐이딩 — 턱선 */
+    spot:      {t:56, l:67},   /* 스팟·트러블 케어 — 볼·턱 */
+    skin:      {t:48, l:61},   /* 스킨케어 — 볼 */
+    point:     {t:59, l:49},   /* 포인트 — 입술 */
+    hair:      {t:11, l:52}    /* 헤어 — 머리 */
   };
+  /* 단계의 실제 제품명에서 더 구체적인 카테고리를 추론 → 부위 매칭 */
+  function inferMarkerKind(step){
+    const txt = (step.items || []).join(' ');
+    if(/컨실러/.test(txt)) return 'concealer';
+    if(/틴트|립밤|립 /.test(txt)) return 'lip';
+    if(/브로우|눈썹/.test(txt)) return 'brow';
+    if(/블러셔/.test(txt)) return 'blush';
+    if(/쉐이딩/.test(txt)) return 'shade';
+    if(/트러블|스팟|블레미쉬/.test(txt)) return 'spot';
+    if(/선크림|선스틱|선세럼|톤업/.test(txt)) return 'sun';
+    if(/쿠션|파운데이션/.test(txt)) return 'base';
+    return step.k;
+  }
+  /* 카드(id)+단계(index) 기반 결정적 지터: 카드마다 같은 좌표가 재사용되지 않게 ±3~4% 분산 */
+  function markerPos(step, feedId, idx){
+    const p = KIND_POS[inferMarkerKind(step)] || KIND_POS[step.k] || KIND_POS.skin;
+    let h = 0;
+    const s = feedId + ':' + idx + ':' + (step.step || '');
+    for(let i=0; i<s.length; i++){ h = (h * 31 + s.charCodeAt(i)) & 0xffff; }
+    const jt = ((h % 11) - 5) * 1.0;
+    const jl = (((h >> 5) % 11) - 5) * 1.1;
+    return { top:(p.t + jt).toFixed(1) + '%', left:(p.l + jl).toFixed(1) + '%' };
+  }
   const IC_SKIN  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M8.5 15a4 4 0 0 0 7 0"/></svg>';
   const IC_COS   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6v4l1 3v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V9l1-3z"/><path d="M9 9h6"/></svg>';
   const IC_SHIRT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3l4 3-3 3-1-1v11H8V8L7 8 4 6l4-3 2 2h4z"/></svg>';
@@ -3440,18 +3557,125 @@ DEMO_HTML = """
     const t = TPO[sit];
     const slot = (icon,label,content)=>
       '<div class="tpo-slot"><div class="tpo-slot-label">'+icon+label+'</div>'+content+'</div>';
-    document.getElementById('tpoCombo').innerHTML =
-      '<div class="tpo-combo-head">' +
-        '<div><div class="tc-badge">오늘은 이 조합으로 가세요</div>' +
-        '<div class="tc-title">'+t.emoji+' '+t.label+' 추천 룩</div></div>' +
+    /* 헤더는 날씨 위젯이 상주하므로, 상황(TPO) 타이틀은 본문 첫 줄로 렌더링 */
+    document.getElementById('tpoComboBody').innerHTML =
+      '<div class="tpo-slot full tpo-situ">' +
+        '<div class="tpo-situ-title">'+t.emoji+' '+t.label+' 추천 룩</div>' +
         '<div class="tpo-impression">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
       '</div>' +
-      '<div class="tpo-combo-body">' +
-        slot(IC_SKIN,'피부 포인트','<div class="tpo-slot-sub">'+look.skin+'</div>') +
-        slot(IC_COS,'화장품','<ul class="tpo-slot-list">'+look.cosmetics.map(c=>'<li>'+c+'</li>').join('')+'</ul>') +
-        slot(IC_SHIRT,'옷','<div class="tpo-slot-main">'+look.outfit.main+'</div><div class="tpo-slot-sub">'+look.outfit.sub+'</div>') +
-        slot(IC_HAIR,'헤어','<div class="tpo-slot-main">'+look.hair.main+'</div><div class="tpo-slot-sub">'+look.hair.sub+'</div>') +
-      '</div>';
+      slot(IC_SKIN,'피부 포인트','<div class="tpo-slot-sub">'+look.skin+'</div>') +
+      slot(IC_COS,'화장품','<ul class="tpo-slot-list">'+look.cosmetics.map(c=>'<li>'+c+'</li>').join('')+'</ul>') +
+      slot(IC_SHIRT,'옷','<div class="tpo-slot-main">'+look.outfit.main+'</div><div class="tpo-slot-sub">'+look.outfit.sub+'</div>') +
+      slot(IC_HAIR,'헤어','<div class="tpo-slot-main">'+look.hair.main+'</div><div class="tpo-slot-sub">'+look.hair.sub+'</div>');
+  }
+
+  /* ---------------- 오늘의 날씨 위젯 (Open-Meteo, API 키 불필요) ---------------- */
+  const WX_DEFAULT = { lat:37.5665, lon:126.9780, name:'서울' };
+  const WX_RECO = {
+    hot:   { copy:'햇살이 강한 날이에요. 유분만 잡으면 완벽해요.',
+             skin:'유분 조절 + 가벼운 수분', makeup:'가벼운 피부 표현, 무너짐 방지', outfit:'밝은 셔츠·통기성 좋은 소재', hair:'땀에 강한 깔끔한 세팅' },
+    rain:  { copy:'비가 오는 날엔 무너지지 않는 세팅이 핵심이에요.',
+             skin:'번들거림 방지, 산뜻한 마무리', makeup:'지속력 위주로 얇게', outfit:'어두운 톤 상의로 차분하게', hair:'습기에 강한 정돈된 스타일' },
+    cold:  { copy:'차고 건조한 날이에요. 보습이 8할입니다.',
+             skin:'보습 중심, 크림 든든하게', makeup:'각질 부각 없는 촉촉한 표현', outfit:'니트·아우터로 따뜻하게', hair:'부드러운 볼륨 스타일' },
+    cloudy:{ copy:'흐린 날엔 피부 컨디션 관리에 집중하세요.',
+             skin:'진정·장벽 보호 중심', makeup:'최소한만 가볍게', outfit:'차분한 톤 착장', hair:'힘 뺀 내추럴 스타일' },
+    mild:  { copy:'활동하기 좋은 날씨예요. 기본에 충실하면 충분해요.',
+             skin:'수분 밸런스 유지', makeup:'자연스러운 톤 정돈', outfit:'가벼운 레이어드', hair:'평소 스타일 유지' }
+  };
+  function wmoInfo(code){
+    if(code===0 || code===1) return {label:'맑음', emoji:'☀️'};
+    if(code===2) return {label:'구름 조금', emoji:'🌤️'};
+    if(code===3) return {label:'흐림', emoji:'☁️'};
+    if(code===45 || code===48) return {label:'안개', emoji:'🌫️'};
+    if(code>=51 && code<=67) return {label:'비', emoji:'🌧️'};
+    if((code>=71 && code<=77) || code===85 || code===86) return {label:'눈', emoji:'🌨️'};
+    if(code>=80 && code<=82) return {label:'소나기', emoji:'🌦️'};
+    if(code>=95) return {label:'뇌우', emoji:'⛈️'};
+    return {label:'보통', emoji:'🌤️'};
+  }
+  function pickWxReco(code, temp, hum){
+    const rainy = (code>=51 && code<=67) || (code>=80 && code<=99);
+    const snowy = (code>=71 && code<=77) || code===85 || code===86;
+    if(rainy || hum>=78) return 'rain';
+    if(snowy || temp<=5 || (temp<=12 && hum<=35)) return 'cold';
+    if(temp>=27 && code<=1) return 'hot';
+    if(code>=2) return 'cloudy';
+    if(temp>=26) return 'hot';
+    return 'mild';
+  }
+  function renderWx(d, note){
+    const head = document.getElementById('wxHead');
+    head.classList.remove('wx-loading');
+    const w = wmoInfo(d.code);
+    const key = pickWxReco(d.code, d.temp, d.hum);
+    const r = WX_RECO[key];
+    document.getElementById('wxTitle').textContent = w.emoji + ' ' + d.name + ' · ' + w.label + ' ' + Math.round(d.temp) + '°C';
+    document.getElementById('wxMeta').textContent = '체감 ' + Math.round(d.feels) + '°C · 습도 ' + Math.round(d.hum) + '%';
+    document.getElementById('wxCopy').textContent = '"' + r.copy + '"';
+    document.getElementById('wxReco').innerHTML = [
+      ['스킨케어', r.skin], ['메이크업', r.makeup], ['옷', r.outfit], ['헤어', r.hair]
+    ].map(x=>'<div class="wx-reco-item"><b>'+x[0]+'</b><span>'+x[1]+'</span></div>').join('');
+    const noteEl = document.getElementById('wxNote');
+    noteEl.hidden = !note;
+    noteEl.textContent = note || '';
+  }
+  function renderWxError(msg){
+    document.getElementById('wxHead').classList.remove('wx-loading');
+    document.getElementById('wxTitle').textContent = '날씨 정보를 가져오지 못했어요';
+    document.getElementById('wxMeta').textContent = '';
+    document.getElementById('wxCopy').textContent = '';
+    document.getElementById('wxReco').innerHTML = '';
+    const noteEl = document.getElementById('wxNote');
+    noteEl.hidden = false;
+    noteEl.textContent = msg;
+  }
+  async function fetchWx(lat, lon, fallbackName){
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code&timezone=auto';
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const c = j.current || {};
+    let name = fallbackName;
+    /* 지역명 역지오코딩(키 불필요) — 실패해도 날씨 표시엔 지장 없음 */
+    try{
+      const g = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=ko');
+      if(g.ok){ const gj = await g.json(); name = gj.city || gj.locality || gj.principalSubdivision || fallbackName; }
+    }catch(e){}
+    return { name:name, code:c.weather_code|0, temp:+c.temperature_2m, feels:+c.apparent_temperature, hum:+c.relative_humidity_2m };
+  }
+  let wxBusy = false;
+  function loadWx(){
+    if(wxBusy) return;
+    wxBusy = true;
+    const head = document.getElementById('wxHead');
+    const btn = document.getElementById('wxRefresh');
+    head.classList.add('wx-loading');
+    btn.disabled = true;
+    document.getElementById('wxTitle').textContent = '날씨 불러오는 중…';
+    document.getElementById('wxMeta').textContent = '현재 위치를 확인하고 있어요';
+    const finish = ()=>{ wxBusy = false; btn.disabled = false; };
+    const useDefault = ()=>{
+      fetchWx(WX_DEFAULT.lat, WX_DEFAULT.lon, WX_DEFAULT.name)
+        .then(d=>{ renderWx(d, '위치 권한이 없어 기본 지역(서울) 날씨를 표시합니다.'); })
+        .catch(()=> renderWxError('날씨 정보를 가져오지 못했습니다. 다시 시도해주세요.'))
+        .finally(finish);
+    };
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+        pos=>{
+          fetchWx(pos.coords.latitude, pos.coords.longitude, '내 위치')
+            .then(d=>{ renderWx(d, ''); })
+            .catch(useDefault)
+            .finally(finish);
+        },
+        useDefault,
+        { timeout:5000, maximumAge:600000 }
+      );
+    } else {
+      useDefault();
+    }
   }
 
   function renderFeed(){
@@ -3460,34 +3684,43 @@ DEMO_HTML = """
       const look = TPO_LOOKS[f.sit][f.gender];
       const t = TPO[f.sit];
       const img = faceImg(f.gender);
-      /* 번호 = 실제 준비 순서(1 먼저 → 3 마지막), 위치 = 그 단계가 닿는 부위 */
+      const v = f.visual || {};
+      const imgStyle = 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + (v.pos ? 'object-position:'+v.pos+';' : '') + '"';
+      /* 번호 = 실제 준비 순서(1 먼저 → 3 마지막), 위치 = 그 단계 제품이 닿는 부위(카드별 분산) */
       const steps = look.routine || [];
       const tags = steps.map((s,i)=>{
-        const pos = STEP_POS[s.k] || TAG_POS[i] || TAG_POS[0];
+        const pos = markerPos(s, f.id, i);
         return '<div class="feed-tag" style="top:'+pos.top+';left:'+pos.left+'" title="'+(i+1)+'. '+s.step+'">'+(i+1)+'</div>';
       }).join('');
       return '<div class="feed-card" data-feed="'+f.id+'">' +
-        '<div class="feed-photo">' + (img?'<img src="'+img+'" alt="'+f.title+'" />':'') +
+        '<div class="feed-photo">' + (img?'<img src="'+img+'" alt="'+f.title+'" '+imgStyle+' />':'') +
+          outfitSvg(v) +
           '<div class="feed-situation">'+t.emoji+' '+t.label+'</div>' + tags + '</div>' +
         '<div class="feed-foot"><div class="feed-look-title">'+f.title+'</div>' +
           '<div class="feed-keys">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div></div>' +
       '</div>';
     }).join('');
+    /* 클릭 좌표를 넘겨 모달이 스크롤 없이 그 자리에 바로 뜨게 한다 */
     feedEl.querySelectorAll('.feed-card').forEach(c=>
-      c.addEventListener('click', ()=> openSheet(c.dataset.feed)));
+      c.addEventListener('click', e=> openSheet(c.dataset.feed, e.clientY)));
   }
 
-  function openSheet(feedId){
+  const SAVED_KEY = 'forhim_saved_styles';
+  function loadSavedStyles(){ try{ return new Set(JSON.parse(localStorage.getItem(SAVED_KEY) || '[]')); }catch(e){ return new Set(); } }
+  function persistSavedStyles(set){ try{ localStorage.setItem(SAVED_KEY, JSON.stringify(Array.from(set))); }catch(e){} }
+
+  function openSheet(feedId, clickY){
     const f = STYLE_FEED.find(x=> x.id === feedId); if(!f) return;
     const look = TPO_LOOKS[f.sit][f.gender];
     const t = TPO[f.sit];
     const img = faceImg(f.gender);
+    const v = f.visual || {};
+    const imgStyle = 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + 'object-position:' + (v.pos || 'center 28%') + ';"';
     const sec = (icon,label,content)=>
       '<div class="sheet-sec"><div class="sheet-sec-label">'+icon+label+'</div>'+content+'</div>';
     document.getElementById('sheetCard').innerHTML =
-      '<div class="sheet-grip"></div>' +
       '<div class="sheet-photo"><button type="button" class="sheet-close" id="sheetClose">×</button>' +
-        (img?'<img src="'+img+'" alt="'+f.title+'" />':'') + '</div>' +
+        (img?'<img src="'+img+'" alt="'+f.title+'" '+imgStyle+' />':'') + outfitSvg(v) + '</div>' +
       '<div class="sheet-body">' +
         '<div class="sheet-situation">'+t.emoji+' '+t.label+'</div>' +
         '<div class="sheet-title">'+f.title+'</div>' +
@@ -3518,10 +3751,42 @@ DEMO_HTML = """
           '<div><div class="sheet-sec-label">'+IC_SHIRT+'추천 옷 스타일</div><div class="sheet-mini-main">'+look.outfit.main+'</div><div class="sheet-mini-sub">'+look.outfit.sub+'</div></div>' +
           '<div><div class="sheet-sec-label">'+IC_HAIR+'헤어 스타일</div><div class="sheet-mini-main">'+look.hair.main+'</div><div class="sheet-mini-sub">'+look.hair.sub+'</div></div>' +
         '</div></div>' +
+        '<div class="sheet-actions">' +
+          '<button type="button" class="btn btn-gold btn-sm" id="sheetSave"></button>' +
+          '<button type="button" class="btn btn-outline btn-sm" id="sheetCloseBtn">닫기</button>' +
+        '</div>' +
       '</div>';
     const sheet = document.getElementById('styleSheet');
     sheet.hidden = false;
+    /* 모달을 클릭한 위치에 바로 표시 — 하단으로 스크롤할 필요가 없다 */
+    const card = document.getElementById('sheetCard');
+    const y = (typeof clickY === 'number' && !isNaN(clickY)) ? clickY : 120;
+    let top = Math.max(16, y - 160);
+    card.style.top = top + 'px';
+    requestAnimationFrame(()=>{
+      const overflow = (card.offsetTop + card.offsetHeight) - (window.innerHeight - 16);
+      if(overflow > 0){ card.style.top = Math.max(16, card.offsetTop - overflow) + 'px'; }
+    });
+    /* 배경 스크롤 잠금 (독립 실행 환경 기준; iframe에선 부모가 스크롤을 관리) */
+    document.documentElement.style.overflow = 'hidden';
     document.getElementById('sheetClose').addEventListener('click', closeSheet);
+    document.getElementById('sheetCloseBtn').addEventListener('click', closeSheet);
+    /* 저장하기 */
+    const saveBtn = document.getElementById('sheetSave');
+    const saved = loadSavedStyles();
+    const syncSave = ()=>{ saveBtn.textContent = saved.has(f.id) ? '저장됨 ✓' : '이 스타일 저장하기'; };
+    syncSave();
+    saveBtn.addEventListener('click', ()=>{
+      if(saved.has(f.id)){ saved.delete(f.id); } else { saved.add(f.id); }
+      persistSavedStyles(saved);
+      syncSave();
+      const toast = document.getElementById('toast');
+      if(toast){
+        toast.textContent = saved.has(f.id) ? '스타일을 저장했어요' : '저장을 해제했어요';
+        toast.classList.add('show');
+        setTimeout(()=> toast.classList.remove('show'), 1800);
+      }
+    });
     /* 추가 추천 열기/닫기 — 기본은 접힌 상태로 가볍게 유지 */
     const moreBtn = document.getElementById('sheetMoreBtn');
     if(moreBtn){
@@ -3533,7 +3798,10 @@ DEMO_HTML = """
       });
     }
   }
-  function closeSheet(){ document.getElementById('styleSheet').hidden = true; }
+  function closeSheet(){
+    document.getElementById('styleSheet').hidden = true;
+    document.documentElement.style.overflow = '';
+  }
 
   function initStyle(){
     styleInitialized = true;
@@ -3548,6 +3816,11 @@ DEMO_HTML = """
       renderTpo(b.dataset.tpo);
     });
     document.getElementById('sheetBackdrop').addEventListener('click', closeSheet);
+    document.addEventListener('keydown', e=>{
+      if(e.key === 'Escape' && !document.getElementById('styleSheet').hidden){ closeSheet(); }
+    });
+    document.getElementById('wxRefresh').addEventListener('click', loadWx);
+    loadWx();
     renderTpo('date');
     renderFeed();
   }
