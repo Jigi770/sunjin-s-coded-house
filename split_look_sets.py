@@ -38,15 +38,18 @@ def find_card_columns(img: Image.Image):
     """배경색과 같은 세로줄(gutter)을 찾아 카드 x 구간 3개를 반환."""
     rgb = img.convert("RGB")
     w, h = rgb.size
-    bg = rgb.getpixel((2, 2))
+    # 배경 기준점: 좌상단은 헤더/여백 톤이 다를 수 있어 좌측 모서리 중앙에서 샘플
+    bg = rgb.getpixel((2, h // 2))
 
     def is_gutter(x):
-        # 세로로 균일하게 배경색이면 gutter로 판단
-        for y in range(int(h * 0.15), int(h * 0.85), max(1, h // 40)):
+        # 세로 샘플의 90% 이상이 배경색이면 gutter로 판단(헤더 텍스트 등 소량 관용)
+        bad = total = 0
+        for y in range(int(h * 0.2), int(h * 0.85), max(1, h // 60)):
+            total += 1
             p = rgb.getpixel((x, y))
             if sum(abs(a - b) for a, b in zip(p, bg)) > 30:
-                return False
-        return True
+                bad += 1
+        return total > 0 and bad <= total * 0.1
 
     cols, run = [], None
     for x in range(w):
@@ -71,14 +74,21 @@ def find_card_columns(img: Image.Image):
     return cards
 
 
-def find_card_top(img: Image.Image, x0: int, x1: int) -> int:
-    """카드 구간에서 배경이 아닌 첫 행(카드 상단)을 찾는다."""
+def find_cards_top(img: Image.Image, cards) -> int:
+    """세 카드의 중앙 열이 동시에 배경이 아니게 되는 첫 행 = 카드 상단.
+
+    페이지 헤더 텍스트는 일부 열에만 걸치므로(전체 카드 폭에 걸치지 않음)
+    세 열 동시 조건이면 헤더를 건너뛰고 카드 상단을 정확히 찾는다."""
     rgb = img.convert("RGB")
-    bg = rgb.getpixel((2, 2))
-    xm = (x0 + x1) // 2
+    bg = rgb.getpixel((2, rgb.size[1] // 2))
+    mids = [(x0 + x1) // 2 for x0, x1 in cards]
+
+    def nonbg(x, y):
+        p = rgb.getpixel((x, y))
+        return sum(abs(a - b) for a, b in zip(p, bg)) > 30
+
     for y in range(rgb.size[1]):
-        p = rgb.getpixel((xm, y))
-        if sum(abs(a - b) for a, b in zip(p, bg)) > 30:
+        if all(nonbg(x, y) for x in mids):
             return y
     return 0
 
@@ -98,15 +108,20 @@ def main() -> int:
             pad = int(w * 0.015)
             step = w // 3
             cards = [(i * step + pad, (i + 1) * step - pad) for i in range(3)]
+        top_all = find_cards_top(img, cards)
         for (x0, x1), cid in zip(cards, ids):
-            top = find_card_top(img, x0, x1)
+            top = top_all
             cw = x1 - x0 + 1
             ph = int(cw * PHOTO_ASPECT)
             box = (x0, top, x1 + 1, min(top + ph, img.size[1]))
-            out = HERE / f"look_{cid}.png"
-            img.crop(box).save(out)
+            crop = img.crop(box).convert("RGB")
+            # 카드 표시 크기(레티나 2배) 기준으로 축소 → data URI 임베드 용량 절약
+            if crop.size[0] > 720:
+                crop = crop.resize((720, int(crop.size[1] * 720 / crop.size[0])), Image.LANCZOS)
+            out = HERE / f"look_{cid}.jpg"
+            crop.save(out, "JPEG", quality=86)
             made += 1
-            print(f"[split] {fname} → {out.name} (w={cw}, h={box[3]-box[1]})")
+            print(f"[split] {fname} → {out.name} ({crop.size[0]}x{crop.size[1]}, {out.stat().st_size // 1024}KB)")
     if not made:
         print("[split] 처리된 세트가 없습니다. set_*.png 파일명을 확인하세요.")
         return 1

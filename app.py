@@ -26,16 +26,21 @@ face_female_uri = _img_data_uri("face_female.png")
 
 
 def _look_imgs() -> dict:
-    """스타일 피드 카드별 완성 촬영 이미지(look_<카드id>.png)가 있으면 로드.
+    """스타일 피드 카드별 완성 촬영 이미지(look_<카드id>.png|jpg|webp)가 있으면 로드.
 
-    예: look_f4.png 를 폴더에 넣으면 '면접 신뢰 룩' 카드가 SVG 착장 합성 대신
+    예: look_f4.jpg 를 폴더에 넣으면 '면접 신뢰 룩' 카드가 SVG 착장 합성 대신
     해당 실사 이미지를 사용한다. 파일이 없으면 빈 dict → 합성 방식 폴백.
     """
+    mime = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
     out = {}
-    for p in Path(__file__).parent.glob("look_*.png"):
-        uri = _img_data_uri(p.name)
-        if uri:
-            out[p.stem.replace("look_", "")] = uri
+    for p in Path(__file__).parent.glob("look_*.*"):
+        m = mime.get(p.suffix.lower())
+        if not m:
+            continue
+        try:
+            out[p.stem.replace("look_", "")] = f"data:{m};base64," + base64.b64encode(p.read_bytes()).decode("ascii")
+        except Exception:
+            pass
     return out
 
 
@@ -3958,9 +3963,10 @@ DEMO_HTML = """
       const img = asset || faceImg(f.gender);
       const imgStyle = asset ? '' : 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + (v.pos ? 'object-position:'+v.pos+';' : '') + '"';
       /* 번호 = 실제 준비 순서(1 먼저 → 3 마지막).
-         카드에 markers(촬영 세트 기준 좌표)가 있으면 그대로, 없으면 부위 기반 자동 배치 */
+         촬영 세트 에셋에는 배지·번호가 이미 사진에 포함돼 있어 중복으로 얹지 않는다.
+         합성 카드는 markers(세트 기준 좌표) 우선, 없으면 부위 기반 자동 배치 */
       const steps = look.routine || [];
-      const tags = steps.map((s,i)=>{
+      const tags = asset ? '' : steps.map((s,i)=>{
         const m = f.markers && f.markers[i];
         const pos = m ? { top:m.t + '%', left:m.l + '%' } : markerPos(s, f.id, i);
         return '<div class="feed-tag" style="top:'+pos.top+';left:'+pos.left+'" title="'+(i+1)+'. '+s.step+'">'+(i+1)+'</div>';
@@ -3970,7 +3976,7 @@ DEMO_HTML = """
       return '<div class="feed-card" data-feed="'+f.id+'">' +
         '<div class="feed-photo">' + (img?'<img src="'+img+'" alt="'+f.title+'" '+imgStyle+' />':'') +
           (asset ? '' : outfitSvg(v, f.id)) +
-          '<div class="feed-situation">'+t.emoji+' '+t.label+'</div>' + tags + '</div>' +
+          (asset ? '' : '<div class="feed-situation">'+t.emoji+' '+t.label+'</div>') + tags + '</div>' +
         '<div class="feed-foot"><div class="feed-look-title">'+f.title+'</div>' +
           '<div class="feed-keys">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
           '<div class="feed-style-line">'+outfitMain+' · '+hairMain+'</div></div>' +
