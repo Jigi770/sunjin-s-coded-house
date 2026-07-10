@@ -470,8 +470,11 @@ DEMO_HTML = """
   .feed-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(20,20,18,.10);}
   .feed-photo{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#e7e4dd;}
   .feed-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-  /* 컨셉 착장 합성: 카드별 옷 종류·색으로 룩 분위기를 구분 (실사 에셋이 있으면 미사용) */
-  .feed-outfit{position:absolute;left:0;bottom:0;width:100%;height:46%;z-index:1;pointer-events:none;filter:drop-shadow(0 -1px 4px rgba(0,0,0,.12));}
+  /* 컨셉 착장 합성: 카드별 옷 종류·색으로 룩 분위기를 구분 (실사 에셋이 있으면 미사용)
+     blend 레이어는 사진과 곱해져(multiply) 원본 옷의 주름·음영이 원단 위로 비친다 */
+  .feed-outfit{position:absolute;left:0;bottom:0;width:100%;height:46%;z-index:1;pointer-events:none;}
+  .feed-outfit.blend{mix-blend-mode:multiply;}
+  .feed-outfit.top{filter:drop-shadow(0 .5px 1.5px rgba(0,0,0,.18));}
   .feed-style-line{
     font-size:10.5px;color:var(--ink-soft);margin-top:7px;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -3613,109 +3616,117 @@ DEMO_HTML = """
       visual:{ outfit:'henley', c:{main:'#2e3440', line:'#232834'}, filter:'saturate(1.08) contrast(1.04)', pos:'center 24%' },
       outfitText:{main:'다크 네이비 헨리넥', sub:'관리된 캐주얼'}, hairText:'가볍게 올린 앞머리' }
   ];
-  /* 착장 합성 SVG — 그라디언트 음영·목 그림자·옷 주름으로 실제 입은 것처럼 자연스럽게.
+  /* 착장 합성 SVG — 2층 구조로 '입고 있는' 느낌을 만든다.
+     · blend 레이어(멀티플라이): 옷 몸판 색이 사진과 곱해져 원본 티셔츠의 실제 주름·음영이
+       원단 위로 그대로 비친다 → 얹힌 색면이 아니라 입은 옷처럼 보임
+     · top 레이어(불투명): 카라·타이·단추·트임 등 디테일 — 멀티플라이로 사라지지 않게 위에 얹음
      uid: 카드마다 그라디언트 id가 겹치지 않게 하는 접미사 */
   function outfitSvg(v, uid){
     if(!v || !v.outfit) return '';
     const c = v.c || {};
     const main = c.main || '#dfe4ea', line = c.line || 'rgba(0,0,0,.18)';
     const gid = 'og' + (uid || '0');
-    const open = '<svg class="feed-outfit" viewBox="0 0 100 46" preserveAspectRatio="none" aria-hidden="true">' +
+    const svgOpen = cls => '<svg class="feed-outfit ' + cls + '" viewBox="0 0 100 46" preserveAspectRatio="none" aria-hidden="true">';
+    const close = '</svg>';
+    const defs =
       '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">' +
-        '<stop offset="0" stop-color="#ffffff" stop-opacity=".22"/>' +
+        '<stop offset="0" stop-color="#ffffff" stop-opacity=".14"/>' +
         '<stop offset=".45" stop-color="#ffffff" stop-opacity="0"/>' +
-        '<stop offset="1" stop-color="#000000" stop-opacity=".16"/>' +
+        '<stop offset="1" stop-color="#000000" stop-opacity=".12"/>' +
       '</linearGradient>' +
       '<linearGradient id="'+gid+'s" x1="0" y1="0" x2="1" y2="0">' +
-        '<stop offset="0" stop-color="#000000" stop-opacity=".12"/>' +
+        '<stop offset="0" stop-color="#000000" stop-opacity=".10"/>' +
         '<stop offset=".2" stop-color="#000000" stop-opacity="0"/>' +
         '<stop offset=".8" stop-color="#000000" stop-opacity="0"/>' +
-        '<stop offset="1" stop-color="#000000" stop-opacity=".12"/>' +
+        '<stop offset="1" stop-color="#000000" stop-opacity=".10"/>' +
       '</linearGradient></defs>';
-    /* 공통 몸판 실루엣(어깨 곡선) + 음영 + 팔 라인 */
-    const body = (neckD)=>
-      '<path d="'+neckD+'" fill="'+main+'"/>' +
-      '<path d="'+neckD+'" fill="url(#'+gid+')"/>' +
-      '<path d="'+neckD+'" fill="url(#'+gid+'s)"/>' +
-      /* 팔 이음선 */
+    /* 몸판(블렌드 레이어): 실루엣 채움 + 상하/좌우 음영 */
+    const body = d =>
+      '<path d="'+d+'" fill="'+main+'"/>' +
+      '<path d="'+d+'" fill="url(#'+gid+')"/>' +
+      '<path d="'+d+'" fill="url(#'+gid+'s)"/>';
+    const seams =
       '<path d="M18 15 Q15 30 16 46" fill="none" stroke="rgba(0,0,0,.10)" stroke-width=".7"/>' +
       '<path d="M82 15 Q85 30 84 46" fill="none" stroke="rgba(0,0,0,.10)" stroke-width=".7"/>';
-    /* 목 아래 자연스러운 그림자 */
-    const neckShadow = '<ellipse cx="50" cy="10.5" rx="8.5" ry="2.6" fill="rgba(0,0,0,.13)"/>';
-    const close = '</svg>';
+    const neckShadow = '<ellipse cx="50" cy="9.5" rx="6.5" ry="1.8" fill="rgba(0,0,0,.06)"/>';
+    /* blendInner: 곱해질 몸판, topInner: 불투명 디테일 */
+    const compose = (blendInner, topInner) =>
+      svgOpen('blend') + defs + blendInner + close +
+      svgOpen('top') + (topInner || '') + close;
 
     if(v.outfit === 'shirt'){
-      const collar = c.collar || '#ffffff';
-      return open + neckShadow +
-        body('M0 46 V19 Q14 10 33 7.5 L43 6 50 14 57 6 67 7.5 Q86 10 100 19 V46 Z') +
-        '<path d="M43 6 50 14 45 19 38.5 9.5 Z" fill="'+collar+'"/>' +
-        '<path d="M57 6 50 14 55 19 61.5 9.5 Z" fill="'+collar+'"/>' +
-        '<path d="M43 6 50 14 45 19 38.5 9.5 Z" fill="url(#'+gid+')"/>' +
-        '<path d="M57 6 50 14 55 19 61.5 9.5 Z" fill="url(#'+gid+')"/>' +
-        '<path d="M50 14 V46" stroke="'+line+'" stroke-width=".7"/>' +
-        '<circle cx="50" cy="21" r=".8" fill="'+line+'"/><circle cx="50" cy="28" r=".8" fill="'+line+'"/><circle cx="50" cy="35" r=".8" fill="'+line+'"/><circle cx="50" cy="42" r=".8" fill="'+line+'"/>' +
-        '<path d="M30 24 Q32 30 30 38" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>' +
-        '<path d="M70 24 Q68 30 70 38" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>' + close;
+      const collar = c.collar || '#f2f4f7';
+      /* 네크라인을 목 바로 아래(y11)로 올려 카라가 목에 붙어 보이게 */
+      const bodyD = 'M0 46 V19 Q14 10 33 7 L43 4.5 50 11 57 4.5 67 7 Q86 10 100 19 V46 Z';
+      return compose(
+        neckShadow + body(bodyD) + seams +
+        '<path d="M30 24 Q32 30 30 38" fill="none" stroke="rgba(0,0,0,.08)" stroke-width=".8"/>' +
+        '<path d="M70 24 Q68 30 70 38" fill="none" stroke="rgba(0,0,0,.08)" stroke-width=".8"/>',
+        '<path d="M43 4.5 50 11 45.8 14.5 40 7 Z" fill="'+collar+'" stroke="rgba(0,0,0,.16)" stroke-width=".4"/>' +
+        '<path d="M57 4.5 50 11 54.2 14.5 60 7 Z" fill="'+collar+'" stroke="rgba(0,0,0,.16)" stroke-width=".4"/>' +
+        '<path d="M50 11 V46" stroke="'+line+'" stroke-width=".7"/>' +
+        '<circle cx="50" cy="17" r=".8" fill="'+line+'"/><circle cx="50" cy="25" r=".8" fill="'+line+'"/><circle cx="50" cy="33" r=".8" fill="'+line+'"/><circle cx="50" cy="41" r=".8" fill="'+line+'"/>');
     }
     if(v.outfit === 'suit'){
       const shirt = c.shirt || '#f6f7f9';
       const tie = c.tie || '';
-      return open +
-        '<path d="M42 5 L50 24 58 5 Q50 10 42 5 Z" fill="'+shirt+'"/>' + neckShadow +
-        '<path d="M0 46 V18 Q14 9 34 6.5 L42 5 47 46 H0 Z" fill="'+main+'"/>' +
-        '<path d="M100 46 V18 Q86 9 66 6.5 L58 5 53 46 H100 Z" fill="'+main+'"/>' +
-        '<path d="M0 46 V18 Q14 9 34 6.5 L42 5 47 46 H0 Z" fill="url(#'+gid+')"/>' +
-        '<path d="M100 46 V18 Q86 9 66 6.5 L58 5 53 46 H100 Z" fill="url(#'+gid+')"/>' +
+      const left = 'M0 46 V18 Q14 9 34 6.5 L42 5 47 46 H0 Z';
+      const right = 'M100 46 V18 Q86 9 66 6.5 L58 5 53 46 H100 Z';
+      return compose(
+        neckShadow + body(left) + body(right) +
         '<path d="M42 5 L50 24 43.5 31 37.5 9 Z" fill="'+line+'"/>' +
-        '<path d="M58 5 L50 24 56.5 31 62.5 9 Z" fill="'+line+'"/>' +
+        '<path d="M58 5 L50 24 56.5 31 62.5 9 Z" fill="'+line+'"/>',
+        /* 안쪽 셔츠가 재킷 사이 전체를 채워 원본 옷이 비치지 않게 */
+        '<path d="M42 5 L47.2 46 H52.8 L58 5 Q50 9.5 42 5 Z" fill="'+shirt+'"/>' +
         (tie
-          ? '<path d="M48.3 21 h3.4 l-.7 4 h-2 Z" fill="'+tie+'"/><path d="M50 25 L47.2 32 50 44 52.8 32 Z" fill="'+tie+'"/>' +
-            '<path d="M50 25 L47.2 32 50 44 52.8 32 Z" fill="url(#'+gid+')"/>'
-          : '<path d="M46 24 Q50 27 54 24" fill="none" stroke="rgba(0,0,0,.12)" stroke-width=".8"/>') +
-        '<circle cx="45.5" cy="38" r=".8" fill="rgba(0,0,0,.28)"/>' + close;
+          ? '<path d="M48.4 15.5 h3.2 l-.7 3.8 h-1.9 Z" fill="'+tie+'"/><path d="M50 19 L47.2 27 50 42 52.8 27 Z" fill="'+tie+'"/>'
+          : '<path d="M45.5 12 Q50 16 54.5 12" fill="none" stroke="rgba(0,0,0,.16)" stroke-width=".8"/>') +
+        '<circle cx="45.8" cy="38" r=".8" fill="rgba(255,255,255,.35)"/>');
     }
     if(v.outfit === 'hoodie'){
-      return open +
-        '<path d="M30 16 Q50 -4 70 16 Q60 10 50 10 Q40 10 30 16 Z" fill="'+line+'"/>' + neckShadow +
-        body('M0 46 V21 Q14 11 33 8.5 Q41 7.5 44 10 Q50 16.5 56 10 Q59 7.5 67 8.5 Q86 11 100 21 V46 Z') +
+      const bodyD = 'M0 46 V21 Q14 11 33 8.5 Q41 7.5 44 10 Q50 16.5 56 10 Q59 7.5 67 8.5 Q86 11 100 21 V46 Z';
+      return compose(
+        '<path d="M30 16 Q50 -4 70 16 Q60 10 50 10 Q40 10 30 16 Z" fill="'+line+'"/>' +
+        neckShadow + body(bodyD) + seams +
+        '<path d="M28 36 Q50 40 72 36" fill="none" stroke="rgba(0,0,0,.10)" stroke-width=".7"/>',
         '<path d="M43 10 Q50 17 57 10" fill="none" stroke="'+line+'" stroke-width="1.8"/>' +
         '<path d="M46.5 13 Q46 20 46.8 25" fill="none" stroke="'+(c.string||'#999')+'" stroke-width=".9"/>' +
-        '<path d="M53.5 13 Q54 20 53.2 25" fill="none" stroke="'+(c.string||'#999')+'" stroke-width=".9"/>' +
-        '<path d="M28 36 Q50 40 72 36" fill="none" stroke="rgba(0,0,0,.10)" stroke-width=".7"/>' + close;
+        '<path d="M53.5 13 Q54 20 53.2 25" fill="none" stroke="'+(c.string||'#999')+'" stroke-width=".9"/>');
     }
     if(v.outfit === 'cardigan'){
-      const inner = c.inner || '#ffffff';
-      return open +
-        '<path d="M41 7 L50 30 59 7 Q50 12 41 7 Z" fill="'+inner+'"/>' + neckShadow +
-        '<path d="M0 46 V19 Q14 10 34 7.5 L41 7 46.5 46 H0 Z" fill="'+main+'"/>' +
-        '<path d="M100 46 V19 Q86 10 66 7.5 L59 7 53.5 46 H100 Z" fill="'+main+'"/>' +
-        '<path d="M0 46 V19 Q14 10 34 7.5 L41 7 46.5 46 H0 Z" fill="url(#'+gid+')"/>' +
-        '<path d="M100 46 V19 Q86 10 66 7.5 L59 7 53.5 46 H100 Z" fill="url(#'+gid+')"/>' +
+      /* 가디건 사이로는 사진 속 실제 이너(흰 티)가 그대로 보이게 둔다 — 가장 자연스러움 */
+      const left = 'M0 46 V19 Q14 10 34 7.5 L41 7 46.5 46 H0 Z';
+      const right = 'M100 46 V19 Q86 10 66 7.5 L59 7 53.5 46 H100 Z';
+      return compose(
+        neckShadow + body(left) + body(right),
         '<path d="M41 7 L46.5 46" fill="none" stroke="'+line+'" stroke-width=".8"/>' +
         '<path d="M59 7 L53.5 46" fill="none" stroke="'+line+'" stroke-width=".8"/>' +
-        '<circle cx="45" cy="26" r=".9" fill="'+line+'"/><circle cx="45.7" cy="33" r=".9" fill="'+line+'"/><circle cx="46.3" cy="40" r=".9" fill="'+line+'"/>' + close;
+        '<circle cx="45" cy="26" r=".9" fill="'+line+'"/><circle cx="45.7" cy="33" r=".9" fill="'+line+'"/><circle cx="46.3" cy="40" r=".9" fill="'+line+'"/>');
     }
     if(v.outfit === 'henley'){
-      return open + neckShadow +
-        body('M0 46 V20 Q14 10.5 34 8 Q42 7 45 9 Q50 15 55 9 Q58 7 66 8 Q86 10.5 100 20 V46 Z') +
+      const bodyD = 'M0 46 V20 Q14 10.5 34 8 Q42 7 45 9 Q50 15 55 9 Q58 7 66 8 Q86 10.5 100 20 V46 Z';
+      return compose(
+        neckShadow + body(bodyD) + seams,
         '<path d="M44 9 Q50 16 56 9" fill="none" stroke="'+line+'" stroke-width="1.5"/>' +
         '<path d="M50 15 V28" stroke="'+line+'" stroke-width=".8"/>' +
-        '<circle cx="50" cy="19" r=".8" fill="rgba(255,255,255,.4)"/><circle cx="50" cy="24" r=".8" fill="rgba(255,255,255,.4)"/>' + close;
+        '<circle cx="50" cy="19" r=".8" fill="rgba(255,255,255,.5)"/><circle cx="50" cy="24" r=".8" fill="rgba(255,255,255,.5)"/>');
     }
     if(v.outfit === 'blouse'){
       /* 여성 보트넥/니트 블라우스: 넓고 완만한 네크라인 */
-      return open + neckShadow +
-        body('M0 46 V20 Q13 11 32 8.5 Q40 7.5 50 12.5 Q60 7.5 68 8.5 Q87 11 100 20 V46 Z') +
-        '<path d="M35 9.5 Q50 15.5 65 9.5" fill="none" stroke="'+line+'" stroke-width="1.2"/>' +
-        '<path d="M30 30 Q50 34 70 30" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>' + close;
+      const bodyD = 'M0 46 V20 Q13 11 32 8.5 Q40 7.5 50 12.5 Q60 7.5 68 8.5 Q87 11 100 20 V46 Z';
+      return compose(
+        neckShadow + body(bodyD) + seams +
+        '<path d="M30 30 Q50 34 70 30" fill="none" stroke="rgba(0,0,0,.08)" stroke-width=".8"/>',
+        '<path d="M35 9.5 Q50 15.5 65 9.5" fill="none" stroke="'+line+'" stroke-width="1.2"/>');
     }
     /* knit (라운드넥 니트) */
-    return open + neckShadow +
-      body('M0 46 V20 Q14 10.5 34 8 Q42 7 45 9 Q50 15.5 55 9 Q58 7 66 8 Q86 10.5 100 20 V46 Z') +
+    const bodyD = 'M0 46 V20 Q14 10.5 34 8 Q42 7 45 9 Q50 15.5 55 9 Q58 7 66 8 Q86 10.5 100 20 V46 Z';
+    return compose(
+      neckShadow + body(bodyD) + seams +
+      '<path d="M32 26 Q34 32 32 40" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>' +
+      '<path d="M68 26 Q66 32 68 40" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>',
       '<path d="M43.5 8.5 Q50 16.5 56.5 8.5" fill="none" stroke="'+line+'" stroke-width="1.6"/>' +
-      '<path d="M0 41.5 H100" stroke="'+line+'" stroke-width=".5" opacity=".5"/>' +
-      '<path d="M32 26 Q34 32 32 40" fill="none" stroke="rgba(0,0,0,.06)" stroke-width=".8"/>' +
-      '<path d="M68 26 Q66 32 68 40" fill="none" stroke="rgba(0,0,0,.06)" stroke-width=".8"/>' + close;
+      '<path d="M0 41.5 H100" stroke="'+line+'" stroke-width=".5" opacity=".4"/>');
   }
   const TAG_POS = [{top:'32%',left:'40%'},{top:'50%',left:'62%'},{top:'66%',left:'42%'}];
   /* 제품 카테고리별 마커 기준 부위 — 번호는 준비 순서, 위치는 그 제품이 닿는 부위 */
