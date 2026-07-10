@@ -406,8 +406,18 @@ DEMO_HTML = """
   .prod-brand{font-size:11.5px;font-weight:700;color:var(--ink-soft);}
   .prod-name{font-size:13.5px;font-weight:700;color:var(--ink);margin-top:4px;line-height:1.35;min-height:36px;}
   .prod-tag{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);}
-  .prod-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;margin-top:8px;}
-  .prod-tags .prod-tag{margin-top:0;}
+  /* 태그 행: 항상 가로 한 줄 고정(줄바꿈 금지) — 카드마다 배치가 달라지지 않게 통일.
+     긴 태그는 폰트 clamp·패딩 축소·말줄임으로 한 줄 안에 수용한다 */
+  .prod-tags{
+    display:flex;flex-direction:row;flex-wrap:nowrap;gap:6px;
+    justify-content:center;align-items:center;margin-top:8px;min-width:0;
+  }
+  .prod-tags .prod-tag,
+  .prod-tags .prod-match{
+    margin-top:0;white-space:nowrap;flex-shrink:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;
+    font-size:clamp(9px, 1.1vw, 10.5px);padding:3px 7px;
+  }
   .prod-match{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:#eef1e7;color:#54634a;}
   .prod-card.reco .prod-match{background:#f6ecd6;color:#9a7b3f;}
   /* 단계 안의 라인별(토너/앰플/로션/크림 등) 구분 */
