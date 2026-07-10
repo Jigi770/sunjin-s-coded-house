@@ -641,8 +641,17 @@ DEMO_HTML = """
   .cm-card-foot .avatar{width:24px;height:24px;font-size:10.5px;}
   .cm-author{font-size:11.5px;font-weight:700;color:var(--ink);}
   .cm-time{font-size:10px;color:var(--ink-soft);}
-  .cm-card-stats{margin-left:auto;display:flex;gap:10px;font-size:11px;color:var(--ink-soft);}
+  .cm-card-stats{margin-left:auto;display:flex;gap:10px;align-items:center;font-size:11px;color:var(--ink-soft);}
   .cm-card-stats span{display:flex;align-items:center;gap:4px;}
+  /* 추천(토글) 버튼: 내가 추천한 글은 색으로 구분 */
+  .cm-rec{
+    display:inline-flex;align-items:center;gap:4px;background:none;border:none;padding:2px 3px;cursor:pointer;
+    font-family:inherit;font-size:11px;font-weight:700;color:var(--ink-soft);
+    transition:color .15s ease,transform .12s ease;
+  }
+  .cm-rec svg{width:13px;height:13px;}
+  .cm-rec:hover{color:var(--accent);transform:scale(1.08);}
+  .cm-rec.on{color:var(--accent);}
   .cm-skintags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
   .cm-skintag{font-size:9.5px;font-weight:700;color:var(--ink-soft);background:var(--bg);border:1px solid var(--line);padding:2px 8px;border-radius:999px;}
   .cm-empty{text-align:center;color:var(--ink-soft);font-size:13.5px;padding:44px 0;}
@@ -4632,23 +4641,27 @@ DEMO_HTML = """
   const CM_STORE = 'forhim_community_posts_v2';
   const CM_FAV = 'forhim_community_favs';
   const CM_VOTE = 'forhim_community_votes';   /* 사용자가 투표한 항목 {postId: optionKey} */
+  const CM_REC_COUNT = 'forhim_community_rec_counts'; /* {postId: 추천 수} */
+  const CM_REC_MINE = 'forhim_community_my_recs';     /* 내가 추천한 postId 목록 (1인 1추천) */
+  const THUMB_SVG = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>';
+  const THUMB_FILL = '<svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>';
 
   function cmSeed(){
     const now = Date.now(); const H = 3600000, D = 86400000;
     const FM = (window.FACE_MALE || null), FF = (window.FACE_FEMALE || null);
     return [
-      {id:'v1', cat:'vote', type:'vote', title:'남좋메 vs 여좋메 — 데일리 톤업 어디까지?', body:'출근·소개팅 때 톤업 어디까지 하세요? 투표 부탁드려요 🙏', author:'톤업고민', skin:['oil'], createdAt:now-2*H,
+      {id:'v1', cat:'vote', type:'vote', title:'남좋메 vs 여좋메 — 데일리 톤업 어디까지?', body:'출근·소개팅 때 톤업 어디까지 하세요? 투표 부탁드려요 🙏', author:'톤업고민', skin:['oil'], createdAt:now-2*H, recs:32,
         options:[{key:'natural',label:'가볍게 톤업만 (남좋메)',votes:186},{key:'cover',label:'확실하게 커버 (여좋메)',votes:124}],
         comments:[{id:'cv1',author:'자연파',body:'저는 무조건 가볍게요. 과하면 부담스러워요.',createdAt:now-1*H}]},
-      {id:'b1', cat:'ba', type:'ba', title:'화농성 트러블 → 3개월 진정 루틴 비포·애프터', body:'3개월 기록 공유해요. 유분 잡고 진정 위주로 갔어요.', author:'3개월기록', skin:['acne','oil'], createdAt:now-4*H,
+      {id:'b1', cat:'ba', type:'ba', title:'화농성 트러블 → 3개월 진정 루틴 비포·애프터', body:'3개월 기록 공유해요. 유분 잡고 진정 위주로 갔어요.', author:'3개월기록', skin:['acne','oil'], createdAt:now-4*H, recs:41,
         beforePhoto:FM, afterPhoto:FM,
         products:['닥터지 레드 블레미쉬 클리어 수딩 토너','라운드랩 마데카 크림','메디힐 마데카소사이드 선세럼'],
         change:'붉은기와 유분이 눈에 띄게 가라앉고 피부 톤이 밝아졌어요. 트러블 빈도도 확 줄었습니다.',
         comments:[{id:'cb1',author:'트러블탈출',body:'와 진짜 달라지셨네요. 토너 바로 사러 갑니다!',createdAt:now-3*H},{id:'cb2',author:'진정중',body:'선세럼 저도 쓰는데 자극 없어서 좋아요.',createdAt:now-2*H}]},
-      {id:'v2', cat:'vote', type:'vote', title:'소개팅 날, 아이브로우 꼭 해야 할까?', body:'눈썹만 정리해도 인상이 산다는데… 다들 어떻게 생각하세요?', author:'소개팅D-1', skin:['pore'], createdAt:now-7*H,
+      {id:'v2', cat:'vote', type:'vote', title:'소개팅 날, 아이브로우 꼭 해야 할까?', body:'눈썹만 정리해도 인상이 산다는데… 다들 어떻게 생각하세요?', author:'소개팅D-1', skin:['pore'], createdAt:now-7*H, recs:18,
         options:[{key:'yes',label:'해야 인상이 산다',votes:212},{key:'no',label:'자연스러운 게 낫다',votes:97}],
         comments:[]},
-      {id:'b2', cat:'ba', type:'ba', title:'면접룩 메이크업 비포·애프터', body:'면접 전날 이렇게 준비했습니다. 과하지 않게 신뢰감 위주로.', author:'취준막바지', skin:['pore'], createdAt:now-1*D,
+      {id:'b2', cat:'ba', type:'ba', title:'면접룩 메이크업 비포·애프터', body:'면접 전날 이렇게 준비했습니다. 과하지 않게 신뢰감 위주로.', author:'취준막바지', skin:['pore'], createdAt:now-1*D, recs:27,
         beforePhoto:FM, afterPhoto:FM,
         products:['에스트라 아토베리어365 크림','헤라 블랙 쿠션','클리오 킬브로우 펜슬'],
         change:'톤 정리 + 자연스러운 커버로 또렷하고 단정한 인상이 됐어요.',
@@ -4882,6 +4895,32 @@ DEMO_HTML = """
   }
   function cmToggleFav(id){ if(cmFavs.has(id)) cmFavs.delete(id); else cmFavs.add(id); cmSaveFavs(cmFavs); }
 
+  /* ----- 추천 (localStorage 기반, 토글: 추천/취소, 1인 1추천) ----- */
+  function cmLoadRecCounts(){ try{ return JSON.parse(localStorage.getItem(CM_REC_COUNT) || '{}'); }catch(e){ return {}; } }
+  function cmLoadMyRecs(){ try{ return new Set(JSON.parse(localStorage.getItem(CM_REC_MINE) || '[]')); }catch(e){ return new Set(); } }
+  let cmRecCounts = cmLoadRecCounts();
+  let cmMyRecs = cmLoadMyRecs();
+  function cmSaveRecs(){
+    try{
+      localStorage.setItem(CM_REC_COUNT, JSON.stringify(cmRecCounts));
+      localStorage.setItem(CM_REC_MINE, JSON.stringify(Array.from(cmMyRecs)));
+    }catch(e){}
+  }
+  function cmRecCount(p){ return cmRecCounts[p.id] != null ? cmRecCounts[p.id] : (p.recs || 0); }
+  function cmToggleRec(id){
+    const p = cmPosts.find(function(x){ return x.id === id; });
+    if(!p) return;
+    const cur = cmRecCount(p);
+    if(cmMyRecs.has(id)){ cmMyRecs.delete(id); cmRecCounts[id] = Math.max(0, cur - 1); }
+    else { cmMyRecs.add(id); cmRecCounts[id] = cur + 1; }
+    cmSaveRecs();
+  }
+  function cmRecBtn(p, cls){
+    const on = cmMyRecs.has(p.id);
+    return '<button type="button" class="' + cls + (on ? ' on' : '') + '" data-rec="' + p.id + '" aria-label="추천">' +
+      (on ? THUMB_FILL : THUMB_SVG) + '<span>' + cmRecCount(p) + '</span></button>';
+  }
+
   /* ----- 투표(남좋메/여좋메) ----- */
   function cmVoteTotal(p){ return (p.options||[]).reduce(function(a,o){ return a + (o.votes||0); }, 0); }
   function cmVote(id, optKey){
@@ -4991,7 +5030,7 @@ DEMO_HTML = """
         '<div class="cm-card-foot">'+
           '<div class="avatar">'+esc((p.author||'익')[0])+'</div>'+
           '<div><div class="cm-author">'+esc(p.author||'익명')+'</div><div class="cm-time">'+cmAgo(p.createdAt)+'</div></div>'+
-          '<div class="cm-card-stats"><span>'+CHAT_SVG+(p.comments?p.comments.length:0)+'</span></div>'+
+          '<div class="cm-card-stats">'+cmRecBtn(p, 'cm-rec')+'<span>'+CHAT_SVG+(p.comments?p.comments.length:0)+'</span></div>'+
         '</div>'+
       '</article>';
     }).join('');
@@ -5035,6 +5074,8 @@ DEMO_HTML = """
       '<div class="cm-detail-head">'+
         cmCatChip(p.cat)+
         '<div class="cm-detail-actions">'+
+          '<button type="button" class="cm-icon-btn'+(cmMyRecs.has(p.id)?' on':'')+'" id="cmDetailRec">'+
+            (cmMyRecs.has(p.id)?THUMB_FILL:THUMB_SVG)+(cmMyRecs.has(p.id)?'추천함':'추천')+' '+cmRecCount(p)+'</button>'+
           '<button type="button" class="cm-icon-btn'+(fav?' on':'')+'" id="cmDetailFav">'+(fav?STAR_FILL:STAR_OUTLINE)+(fav?'저장됨':'즐겨찾기')+'</button>'+
           '<button type="button" class="cm-icon-btn" id="cmDetailEdit">'+EDIT_SVG+'수정</button>'+
         '</div>'+
@@ -5060,6 +5101,8 @@ DEMO_HTML = """
     document.getElementById('cmDetailCard').querySelectorAll('[data-vote-opt]').forEach(function(b){
       b.addEventListener('click', function(){ cmVote(p.id, b.dataset.voteOpt); cmRenderDetail(p.id); cmRenderList(); });
     });
+    /* 추천 토글: 상세 화면 즉시 갱신 + 목록도 함께 다시 그려 상태 동기화 */
+    document.getElementById('cmDetailRec').addEventListener('click', function(){ cmToggleRec(p.id); cmRenderDetail(p.id); cmRenderList(); });
     document.getElementById('cmDetailFav').addEventListener('click', function(){ cmToggleFav(p.id); cmRenderDetail(p.id); cmRenderCats(); });
     document.getElementById('cmDetailEdit').addEventListener('click', function(){ cmOpenWrite(p.id); });
     document.getElementById('cmCommentSubmit').addEventListener('click', function(){ cmAddComment(p.id); });
@@ -5212,6 +5255,8 @@ DEMO_HTML = """
     if(vopt){ e.stopPropagation(); const vp = vopt.closest('[data-vote-post]'); if(vp){ cmVote(vp.dataset.votePost, vopt.dataset.voteOpt); cmRenderList(); } return; }
     const fav = e.target.closest('.cm-fav');
     if(fav){ e.stopPropagation(); cmToggleFav(fav.dataset.fav); cmRenderCats(); cmRenderList(); return; }
+    const rec = e.target.closest('[data-rec]');
+    if(rec){ e.stopPropagation(); cmToggleRec(rec.dataset.rec); cmRenderList(); return; }
     const card = e.target.closest('.cm-card'); if(card){ cmOpenDetail(card.dataset.id); }
   });
   document.getElementById('cmWriteBtn').addEventListener('click', function(){ cmOpenWrite(null); });
