@@ -3257,7 +3257,7 @@ DEMO_HTML = """
         outfit:{main:'네이비 자켓 + 화이트 셔츠', sub:'기본에 충실한 신뢰형 조합'},
         hair:{main:'깐머리 (이마 오픈)', sub:'단정하게 넘겨 프로페셔널하게'} },
       female:{ impression:['단정','또렷','프로페셔널'],
-        skin:'매트한 베이스 + 또렷한 눈썹으로 신뢰감 있는 인상.',
+        skin:'번들거림 없는 깔끔한 피부 표현 + 또렷한 눈썹으로 신뢰감 있는 인상.',
         cosmetics:['에스트라 아토베리어365 크림','클리오 킬커버 쿠션','클리오 킬브로우 펜슬'],
         outfit:{main:'네이비 자켓 + 화이트 블라우스', sub:'클래식한 오피스 무드'},
         hair:{main:'로우 포니테일', sub:'깔끔하게 넘겨 단정하게'} }
@@ -3281,7 +3281,7 @@ DEMO_HTML = """
         outfit:{main:'블랙 후드 + 데님', sub:'꾸안꾸 캐주얼'},
         hair:{main:'내추럴 애즈펌', sub:'자연스러운 볼륨'} },
       female:{ impression:['편안','러블리','자연스러움'],
-        skin:'수분 위주 가벼운 베이스로 촉촉한 무드.',
+        skin:'수분 위주의 가벼운 피부 표현으로 촉촉한 무드.',
         cosmetics:['토리든 다이브인 세럼','메디큐브 PDRN 핑크 미스트','페리페라 틴트'],
         outfit:{main:'니트 + 데님', sub:'편안한 데이트 룩'},
         hair:{main:'로우 웨이브', sub:'자연스럽게 풀어서'} }
@@ -3390,7 +3390,11 @@ DEMO_HTML = """
   }
 
   /* ---------------- product card helper ---------------- */
-  function renderProductCards(list){
+  /* CTA 문구는 특정 판매처에 종속되지 않는 중립 문구를 기본값으로 두고,
+     판매 채널이 늘어나면 opts.ctaText로 호출부에서 교체할 수 있게 변수로 관리 */
+  const PROD_CTA_DEFAULT = '판매 페이지로 이동 →';
+  function renderProductCards(list, opts){
+    const ctaText = (opts && opts.ctaText) || PROD_CTA_DEFAULT;
     /* 인기 1위(구매량=pop 최고)와 추천(내 피부 매칭 1순위)을 배지로 구분 표기 */
     let topPop = -1, bestSellerId = null;
     list.forEach(p=>{ if((p.pop || 0) > topPop){ topPop = p.pop || 0; bestSellerId = p.id; } });
@@ -3411,7 +3415,7 @@ DEMO_HTML = """
           '<span class="prod-tag">' + p.tag + '</span>' +
           (p.match ? '<span class="prod-match">나와 ' + p.match + '% 매치</span>' : '') +
         '</div>' +
-        '<div class="prod-cart-btn">올리브영에서 담기 →</div>' +
+        '<div class="prod-cart-btn">' + ctaText + '</div>' +
       '</a>';
     }).join('');
   }
@@ -3601,10 +3605,63 @@ DEMO_HTML = """
   }
   loadCatalogFromSupabase();
 
+  /* ---- 1단계 스킨케어 설명 개인화 ----
+     설문(체감 상태) 결과로 피부타입/대표 고민을 도출하고,
+     {피부타입}_{고민} 조합별 문구 세트에서 골라 렌더링한다. 조합이 없으면 default로 폴백. */
+  const ROUTINE_MESSAGES = {
+    '지성_여드름트러블':'지성 피부에 트러블 케어가 필요한 당신에게는, 클렌징 후 진정 토너 → 저자극 앰플 → 산뜻한 로션 순서를 추천해요. 유분이 많은 날엔 크림은 생략해도 좋아요.',
+    '지성_모공블랙헤드':'지성 피부에 모공 케어가 필요한 당신에게는, 클렌징 후 모공 토너 → 피지 조절 앰플 → 산뜻한 로션 순서를 추천해요.',
+    '지성_칙칙함톤':'지성 피부의 칙칙함 개선이 필요한 당신에게는, 클렌징 후 결 정돈 토너 → 비타민 앰플 → 산뜻한 로션 순서를 추천해요.',
+    '지성_탄력주름':'지성 피부의 탄력 관리가 필요한 당신에게는, 클렌징 후 결 정돈 토너 → 탄력 앰플 → 산뜻한 로션 순서를 추천해요.',
+    '지성_건조함':'유분은 많지만 속은 건조한 당신에게는, 클렌징 후 수분 토너 → 수분 앰플 → 산뜻한 로션 순서를 추천해요.',
+    '건성_여드름트러블':'건성 피부에 트러블 케어가 필요한 당신에게는, 클렌징 후 진정 토너 → 저자극 앰플 → 로션 → 보습 크림 순서를 추천해요.',
+    '건성_모공블랙헤드':'건성 피부에 모공 케어가 필요한 당신에게는, 클렌징 후 수분 토너 → 모공 케어 앰플 → 로션 → 보습 크림 순서를 추천해요.',
+    '건성_칙칙함톤':'건성 피부의 칙칙함 개선을 위해서는, 클렌징 후 보습 토너 → 영양 앰플 → 로션 → 고보습 크림 순서가 효과적이에요.',
+    '건성_탄력주름':'건성 피부의 탄력 관리가 필요한 당신에게는, 클렌징 후 보습 토너 → 탄력 앰플 → 로션 → 영양 크림 순서를 추천해요.',
+    '건성_건조함':'건조함이 심한 당신에게는, 클렌징 후 보습 토너 → 수분 앰플을 두 번 겹쳐 바르고 → 로션 → 고보습 크림으로 마무리하는 순서를 추천해요.',
+    '복합성_여드름트러블':'복합성 피부에 트러블 케어가 필요한 당신에게는, 클렌징 후 진정 토너 → 저자극 앰플 → 가벼운 로션 순서를 추천해요. 건조한 볼에만 크림을 더해주세요.',
+    '복합성_모공블랙헤드':'복합성 피부에 모공 케어가 필요한 당신에게는, 클렌징 후 모공 토너 → 피지 조절 앰플 → 산뜻한 로션 순서를 추천해요.',
+    '복합성_칙칙함톤':'복합성 피부의 칙칙함 개선을 위해서는, 클렌징 후 결 정돈 토너 → 비타민 앰플 → 로션 순서가 효과적이에요.',
+    '복합성_탄력주름':'복합성 피부의 탄력 관리가 필요한 당신에게는, 클렌징 후 토너 → 탄력 앰플 → 로션 → 볼·눈가 위주로 크림 순서를 추천해요.',
+    '복합성_건조함':'겉은 번들거려도 속건조가 있는 당신에게는, 클렌징 후 수분 토너 → 수분 앰플 → 로션 순서를 추천해요. 당기는 부위엔 크림을 더해주세요.',
+    '민감성_여드름트러블':'민감성 피부에 트러블 케어가 필요한 당신에게는, 클렌징 후 진정 토너 → 저자극 진정 앰플 → 순한 로션 순서를 추천해요. 새 제품은 한 번에 하나씩만 늘려주세요.',
+    '민감성_모공블랙헤드':'민감성 피부에 모공 케어가 필요한 당신에게는, 클렌징 후 저자극 토너 → 순한 피지 조절 앰플 → 가벼운 로션 순서를 추천해요. 강한 필링은 피하는 게 좋아요.',
+    '민감성_칙칙함톤':'민감성 피부의 칙칙함 개선을 위해서는, 클렌징 후 저자극 토너 → 순한 브라이트닝 앰플 → 로션 → 장벽 크림 순서가 효과적이에요.',
+    '민감성_탄력주름':'민감성 피부의 탄력 관리가 필요한 당신에게는, 클렌징 후 저자극 토너 → 진정·탄력 앰플 → 로션 → 장벽 크림 순서를 추천해요.',
+    '민감성_건조함':'민감성 피부에 건조함까지 있는 당신에게는, 클렌징 후 저자극 보습 토너 → 진정 앰플 → 로션 → 장벽 크림 순서를 추천해요.',
+    'default':'클렌징 후 토너 → 앰플 → 로션 → 크림 순서로 피부 결과 컨디션을 정돈해요.'
+  };
+  function deriveSkinType(){
+    const sv = (window.appState && window.appState.survey) || {};
+    if(sv.sensitive==='high' || sv.atopy==='yes' || sv.redness==='high') return '민감성';
+    const oily = sv.oil==='high' || sv.trouble==='high';
+    const dry = sv.oil==='low' || sv.dryness==='high';
+    if(oily && dry) return '복합성';
+    if(oily) return '지성';
+    if(dry) return '건성';
+    if(sv.oil==='mid') return '복합성';
+    return null;   /* 설문 미완료 → 폴백 문구 사용 */
+  }
+  function deriveSkinConcern(){
+    const sv = (window.appState && window.appState.survey) || {};
+    const focusMap = { trouble:'여드름트러블', pore:'모공블랙헤드', pigment:'칙칙함톤', aging:'탄력주름', dry:'건조함' };
+    if(sv.focus && focusMap[sv.focus]) return focusMap[sv.focus];
+    const c = (window.appState && window.appState.concerns) || new Set();
+    if(c.has('acne')) return '여드름트러블';
+    if(c.has('pore') || c.has('oil')) return '모공블랙헤드';
+    if(c.has('scar')) return '칙칙함톤';
+    return null;
+  }
+  function getRoutineMessage(){
+    const type = deriveSkinType(), concern = deriveSkinConcern();
+    return (type && concern && ROUTINE_MESSAGES[type + '_' + concern]) || ROUTINE_MESSAGES['default'];
+  }
+
   /* 단계(step) → 그 안의 라인/세부 카테고리(lines). 각 라인은 카탈로그 cat으로 매칭. */
   const TIERS = [
     { key:'t1', label:'1단계', category:'스킨케어',
-      desc:'클렌징 후 토너 → 앰플 → 로션 → 크림 순서로 피부 결과 컨디션을 정돈해요.',
+      descFn:getRoutineMessage,
+      desc:ROUTINE_MESSAGES['default'],
       lines:[
         { label:'토너 라인', sub:'결 정돈·수분', cat:'toner' },
         { label:'앰플 라인', sub:'집중 케어', cat:'serum' },
@@ -3615,13 +3672,13 @@ DEMO_HTML = """
       desc:'기초 위에 피부 타입에 맞는 선케어로 노화·색소 자국을 예방해요.',
       lines:[ { label:'선케어 라인', sub:'자외선 차단', cat:'sun' } ] },
     { key:'t3', label:'3단계', category:'베이스 메이크업',
-      desc:'선케어에 이어 자연스러운 베이스로 피부 톤·결을 정리해요.',
-      lines:[ { label:'베이스 라인', sub:'톤·커버', cat:'cushion' } ] },
+      desc:'선케어에 이어 칙칙함 없이 깔끔한 피부로 톤과 결을 정돈해요.',
+      lines:[ { label:'피부 표현 라인', sub:'톤·결 보정', cat:'cushion' } ] },
     { key:'t4', label:'4단계', category:'아이메이크업',
-      desc:'아이브로우로 인상을 잡고, 아이섀도우로 분위기를 완성해요.',
+      desc:'눈썹 정리로 또렷한 인상을 만들고, 눈매를 자연스럽게 정돈해요.',
       lines:[
-        { label:'아이브로우', sub:'눈썹 정리', cat:'brow' },
-        { label:'아이섀도우', sub:'분위기 연출', cat:'eye' }
+        { label:'눈썹 정리', sub:'또렷한 인상', cat:'brow' },
+        { label:'눈매 연출', sub:'자연스러운 분위기', cat:'eye' }
       ] },
     { key:'t5', label:'5단계', category:'퍼퓸&바디',
       desc:'향과 바디케어로 하루의 마무리까지 완성해요.',
@@ -3655,7 +3712,8 @@ DEMO_HTML = """
 
   function renderTier(key){
     const tier = TIERS.find(t=>t.key===key);
-    document.getElementById('tierDesc').textContent = tier.desc;
+    /* descFn이 있으면 사용자 분석 결과 기반 개인화 문구를, 없으면 고정 문구를 표시 */
+    document.getElementById('tierDesc').textContent = tier.descFn ? tier.descFn() : tier.desc;
     const rows = tier.lines.map(line=>{
       const products = recommendForCat(line.cat, 3);
       if(!products.length) return '';
@@ -3729,6 +3787,21 @@ DEMO_HTML = """
   ];
   const CM_CAT_LABEL = {};
   CM_CATS.forEach(c=>{ CM_CAT_LABEL[c.key] = c.label; });
+  /* 카테고리별 고유 색상: 상단 필터 탭의 dot 색(CM_CATS.color)을 단일 소스로 재사용해
+     게시글 카드의 카테고리 라벨과 항상 일치하도록 관리 */
+  const CM_CAT_COLOR = {};
+  CM_CATS.forEach(c=>{ if(c.color) CM_CAT_COLOR[c.key] = c.color; });
+  /* 배경 밝기에 따라 라벨 글자색 자동 결정(밝은 배경→진한 글자, 어두운 배경→흰 글자) */
+  function cmCatTextColor(hex){
+    const n = parseInt(hex.slice(1), 16);
+    const r = (n>>16)&255, g = (n>>8)&255, b = n&255;
+    return (0.299*r + 0.587*g + 0.114*b) > 160 ? '#1a1a18' : '#fff';
+  }
+  function cmCatChip(key){
+    const bg = CM_CAT_COLOR[key];
+    const style = bg ? ' style="background:'+bg+';color:'+cmCatTextColor(bg)+'"' : '';
+    return '<span class="cm-cat-chip"'+style+'>'+esc(CM_CAT_LABEL[key]||key)+'</span>';
+  }
   const CM_SKIN_LABEL = {scar:'흉터',pore:'모공',oil:'유분',acne:'여드름',sensitive:'민감성',dry:'건조',elastic:'탄력'};
 
   const CM_STORE = 'forhim_community_posts_v2';
@@ -4084,7 +4157,7 @@ DEMO_HTML = """
       else { mid = (p.photo ? '<img class="cm-card-thumb" src="'+p.photo+'" alt="" />' : '') + '<div class="cm-card-body">'+esc(p.body)+'</div>'; }
       return '<article class="cm-card" data-id="'+p.id+'">'+
         '<div class="cm-card-top">'+
-          '<span class="cm-cat-chip">'+esc(CM_CAT_LABEL[p.cat]||p.cat)+'</span>'+ typeBadge +
+          cmCatChip(p.cat)+ typeBadge +
           '<button type="button" class="cm-fav'+(fav?' on':'')+'" data-fav="'+p.id+'" aria-label="즐겨찾기">'+(fav?STAR_FILL:STAR_OUTLINE)+'</button>'+
         '</div>'+
         '<div class="cm-card-title">'+esc(p.title)+'</div>'+
@@ -4135,7 +4208,7 @@ DEMO_HTML = """
     const fav = cmFavs.has(p.id);
     document.getElementById('cmDetailCard').innerHTML =
       '<div class="cm-detail-head">'+
-        '<span class="cm-cat-chip">'+esc(CM_CAT_LABEL[p.cat]||p.cat)+'</span>'+
+        cmCatChip(p.cat)+
         '<div class="cm-detail-actions">'+
           '<button type="button" class="cm-icon-btn'+(fav?' on':'')+'" id="cmDetailFav">'+(fav?STAR_FILL:STAR_OUTLINE)+(fav?'저장됨':'즐겨찾기')+'</button>'+
           '<button type="button" class="cm-icon-btn" id="cmDetailEdit">'+EDIT_SVG+'수정</button>'+
