@@ -542,6 +542,11 @@ DEMO_HTML = """
   .sheet-grip{width:40px;height:4px;border-radius:999px;background:var(--line);margin:10px auto 0;}
   .sheet-photo{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;}
   .sheet-photo img{width:100%;height:100%;object-fit:cover;object-position:center 28%;}
+  /* 실사 촬영 카드: 얼굴 확대 크롭 없이 카드에서 본 전체 구도를 그대로 보여준다
+     (원본 비율 유지 — contain + 사진 배경과 어울리는 밝은 여백) */
+  .sheet-photo.full{aspect-ratio:auto;height:420px;background:#f4f4f2;}
+  .sheet-photo.full img{object-fit:contain;object-position:center;}
+  @media (max-width:560px){ .sheet-photo.full{height:340px;} }
   .sheet-close{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:none;cursor:pointer;background:rgba(26,26,24,.7);color:#fff;font-size:20px;line-height:1;z-index:3;}
   .sheet-body{padding:20px 22px 26px;}
   .sheet-situation{font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);}
@@ -4015,7 +4020,8 @@ DEMO_HTML = """
     const sec = (icon,label,content)=>
       '<div class="sheet-sec"><div class="sheet-sec-label">'+icon+label+'</div>'+content+'</div>';
     document.getElementById('sheetCard').innerHTML =
-      '<div class="sheet-photo"><button type="button" class="sheet-close" id="sheetClose">×</button>' +
+      /* 실사 에셋은 .full — 자동 얼굴 줌 없이 원본 전체 구도 유지 */
+      '<div class="sheet-photo' + (asset ? ' full' : '') + '"><button type="button" class="sheet-close" id="sheetClose">×</button>' +
         (sheetImg?'<img src="'+sheetImg+'" alt="'+f.title+'" '+imgStyle+' />':'') + (asset ? '' : outfitSvg(v, 'sheet-'+f.id)) + '</div>' +
       '<div class="sheet-body">' +
         '<div class="sheet-situation">'+t.emoji+' '+t.label+'</div>' +
