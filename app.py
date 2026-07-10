@@ -6,6 +6,38 @@ import streamlit as st
 
 st.set_page_config(page_title="FOR HIM - Men's Beauty AI Demo", layout="wide")
 
+# Streamlit 기본 크롬 숨김: 우측 상단 메뉴·Deploy/Share 버튼·헤더·푸터·툴바·상태 위젯.
+# 앱 기능(사이드바 화면 전환 포함)은 그대로 유지하고, 상단 빈 여백도 줄인다.
+st.markdown(
+    """
+    <style>
+      #MainMenu,
+      header[data-testid="stHeader"],
+      footer,
+      div[data-testid="stToolbar"],
+      div[data-testid="stDecoration"],
+      div[data-testid="stStatusWidget"],
+      .stDeployButton,
+      [data-testid="stAppDeployButton"] {
+        display: none !important;
+        visibility: hidden !important;
+      }
+      /* 데모 배경과 톤을 맞춰 흰 테두리 느낌 제거 */
+      .stApp { background: #f6f5f2; }
+      /* 헤더 제거 후 상단 여백 축소 + 좌우 여백 최소화 */
+      .block-container {
+        padding-top: 0.6rem !important;
+        padding-bottom: 0 !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+        max-width: 100% !important;
+      }
+      iframe { border: none !important; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 logo_path = Path(__file__).parent / "로고.png"
 logo_data_uri = "data:image/png;base64," + base64.b64encode(logo_path.read_bytes()).decode("ascii")
 
@@ -340,6 +372,19 @@ DEMO_HTML = """
   .fill-bad{background:var(--bad);}
   .summary{margin-top:26px;padding:20px 22px;background:var(--accent-soft);border-radius:var(--radius);font-size:14.5px;color:#3c4636;}
   .result-actions{margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;}
+  /* 항목별 짧은 분석 설명 */
+  .metric-note{font-size:11px;color:var(--ink-soft);margin-top:4px;line-height:1.45;}
+  /* 선택한 페인포인트 중심 리포트 */
+  .rpt-title{margin-top:24px;font-size:13px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+  .rpt-title span{font-size:11px;font-weight:700;color:var(--ink-soft);}
+  .rpt-item{margin-top:12px;padding:16px 18px;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);}
+  .rpt-item-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .rpt-item-head b{font-size:14px;color:var(--ink);}
+  .rpt-item-head span{font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:3px 9px;border-radius:999px;}
+  .rpt-item p{margin:8px 0 0;font-size:13px;color:#4a4944;line-height:1.6;}
+  .rpt-item ul{margin:8px 0 0;padding-left:17px;}
+  .rpt-item li{font-size:12.5px;color:#4a4944;line-height:1.6;margin-top:3px;}
+  .rpt-src{margin-top:14px;font-size:11px;color:var(--ink-soft);line-height:1.65;}
 
   /* ---------- APP STEPS ---------- */
   section.app-step{display:none;padding:0;}
@@ -1855,6 +1900,7 @@ DEMO_HTML = """
           <div id="metrics"></div>
         </div>
         <div class="summary" id="summary"></div>
+        <div id="analysisReport"></div>
         <div class="result-actions">
           <button type="button" class="btn btn-dark btn-sm" id="toRecommend" data-step="recommend">맞춤 제품 추천 받기</button>
         </div>
@@ -3362,6 +3408,41 @@ DEMO_HTML = """
     state.analyzed = true;
   };
 
+  /* 항목별 짧은 분석 설명 — 점수 구간(band)에 따라 문구가 달라진다.
+     공공 건강정보 톤을 따르되 진단이 아닌 '참고용 상태 설명'으로 표현 */
+  const METRIC_NOTES = {
+    '수분': { good:'수분 보유 지표가 안정적인 편이에요. 현재 보습 루틴을 유지해 주세요.',
+              mid:'수분이 다소 부족한 구간이에요. 보습 단계를 한 겹 보강해 보세요.',
+              bad:'수분 부족이 두드러져요. 세안 직후 빠른 보습으로 수분 손실을 줄이는 것이 권장돼요.' },
+    '유분조절': { good:'유수분 균형이 좋은 편이에요.',
+              mid:'T존 중심으로 유분이 다소 많은 편이에요. 가벼운 제형이 유리해요.',
+              bad:'유분 분비가 많은 상태예요. 과도한 피지는 모공 확장·트러블과 연관될 수 있어 조절 관리가 필요해요.' },
+    '모공': { good:'모공 지표가 양호해요.',
+              mid:'모공이 약간 넓어진 편이에요. 피지·각질 관리로 개선 여지가 있어요.',
+              bad:'모공 확장이 눈에 띄어요. 피지 조절과 탄력 관리를 병행하는 방향이 권장돼요.' },
+    '트러블': { good:'트러블 부담이 적은 상태예요.',
+              mid:'간헐적 트러블 가능성이 있는 구간이에요. 자극을 줄이고 진정 위주로 관리하세요.',
+              bad:'트러블 관리 필요도가 높아요. 자극 최소화·피지 밸런스·진정 관리가 우선이에요.' },
+    '탄력': { good:'탄력 지표가 안정적이에요.',
+              mid:'탄력이 조금 낮아지는 구간이에요. 보습과 함께 탄력 성분을 더해 보세요.',
+              bad:'탄력 저하가 두드러져요. 탄력 케어와 자외선 차단을 함께 챙기는 것이 좋아요.' }
+  };
+  /* 선택한 페인포인트별 분석·관리 방향 — 고민 간 연관성(피지↔모공↔트러블 등)을 반영 */
+  const CONCERN_REPORT = {
+    scar: { name:'파인 흉터', focus:'피부 결·탄력 중심',
+      desc:'흉터 부위는 피부 결과 탄력 지표에 영향을 줄 수 있어요. 자국이 색소로 남지 않도록 자외선 차단과, 진정 이후의 결·재생 관리가 중요한 것으로 알려져 있어요.',
+      care:['자외선 차단제를 매일 사용해 색소 침착 진행을 예방', '진정이 끝난 부위에는 결 개선·재생 성분을 꾸준히 사용', '새로 생긴 트러블은 자극 없이 관리해 흉터로 남는 것을 최소화'] },
+    pore: { name:'넓은 모공', focus:'피지·세정·탄력 연관',
+      desc:'모공 확장은 피지 분비량, 세정 습관, 탄력 저하와 서로 연관되는 것으로 알려져 있어요. 피지 조절과 탄력 관리를 함께 가져가면 개선 체감이 커져요.',
+      care:['저자극 세안으로 모공 속 피지·노폐물을 규칙적으로 관리', '주 1~2회 각질 케어로 모공 주변 결 정돈', '탄력 관리를 병행해 모공이 늘어져 보이는 현상 완화'] },
+    oil: { name:'피지·유분', focus:'유분·모공·트러블 연관',
+      desc:'유분 과다는 번들거림뿐 아니라 모공 확장, 트러블 발생과 연관될 수 있어요. 유분을 무리하게 제거하기보다 유수분 균형을 맞추는 방향이 권장돼요.',
+      care:['하루 2회 약산성 클렌저로 과도한 유분만 부드럽게 제거', '무거운 크림 대신 가벼운 젤·로션 제형으로 균형 유지', '유분이 많은 날에도 보습은 생략하지 않기 (수분 부족 시 피지가 늘 수 있어요)'] },
+    acne: { name:'화농성 여드름', focus:'자극·피지 밸런스·진정',
+      desc:'화농성 트러블은 자극 관리, 피지 밸런스, 진정 관리가 핵심 축이에요. 손으로 만지거나 짜는 자극은 흉터·색소로 이어질 수 있어 피하는 것이 좋아요.',
+      care:['트러블 부위는 만지지 말고 저자극 진정 성분으로 케어', '피부에 닿는 물건(베개 커버·마스크 등)을 자주 세척', '반복·악화되는 경우 전문의 상담을 참고 옵션으로 고려'] }
+  };
+
   function renderResult(metrics){
     const values = Object.values(metrics);
     const overall = Math.round(values.reduce((a,b)=>a+b,0)/values.length);
@@ -3373,11 +3454,13 @@ DEMO_HTML = """
     metricsEl.innerHTML = '';
     Object.entries(metrics).forEach(([label, score])=>{
       const b = band(score);
+      const note = (METRIC_NOTES[label] || {})[b] || '';
       const row = document.createElement('div');
       row.className='metric';
       row.innerHTML = `
         <div class="metric-top"><span>${label}</span><span>${score}</span></div>
-        <div class="metric-track"><div class="metric-fill fill-${b}" style="width:0%"></div></div>`;
+        <div class="metric-track"><div class="metric-fill fill-${b}" style="width:0%"></div></div>
+        <div class="metric-note">${note}</div>`;
       metricsEl.appendChild(row);
       requestAnimationFrame(()=>{ row.querySelector('.metric-fill').style.width = score+'%'; });
     });
@@ -3389,6 +3472,26 @@ DEMO_HTML = """
                : '지금부터 관리를 시작하기 좋은 시점이에요. 무리하지 않고 기본부터 잡아볼게요.';
     document.getElementById('summary').textContent =
       `${listText} 고민을 중심으로 분석했어요. 종합 스코어는 ${overall}점이에요. ${tone}`;
+
+    /* 선택한 페인포인트 중심 리포트: 우선 관리 항목 + 관리 방향 + 근거 문구 */
+    const rpt = document.getElementById('analysisReport');
+    if(rpt){
+      const sel = [...state.concerns].filter(k=> CONCERN_REPORT[k]);
+      let html = '';
+      if(sel.length){
+        html += '<div class="rpt-title">우선 관리 항목 <span>· 선택한 고민 중심 분석</span></div>';
+        html += sel.map(k=>{
+          const r = CONCERN_REPORT[k];
+          return '<div class="rpt-item">' +
+            '<div class="rpt-item-head"><b>' + r.name + '</b><span>' + r.focus + '</span></div>' +
+            '<p>' + r.desc + '</p>' +
+            '<ul>' + r.care.map(c=>'<li>' + c + '</li>').join('') + '</ul>' +
+          '</div>';
+        }).join('');
+      }
+      html += '<div class="rpt-src">※ 본 결과는 의료 진단이 아닌 참고용 피부 평가 리포트예요. 항목별 설명은 건강보험심사평가원 피부질환 진료 통계, 국가건강정보포털·국민건강보험공단 건강정보, AI-Hub 피부질환 데이터셋 등 공공 자료를 참고해 구성했어요.</div>';
+      rpt.innerHTML = html;
+    }
   }
 
   /* ---------------- step navigation (hero/analysis/recommend/extra/community/rewards) ---------------- */
@@ -4344,6 +4447,24 @@ DEMO_HTML = """
   ];
   window.PRODUCTS = PRODUCTS;
 
+  /* ---- 제품명 → 실제 상품 이미지 URL 매핑 (안정적 방식) ----
+     올리브영 등 판매처 사이트는 봇 차단으로 이미지 자동 수집이 불가하므로,
+     확보한 공식 상품 이미지 URL을 아래에 채워 넣으면 카탈로그 출처(내장/Supabase)와
+     무관하게 브랜드+제품명 부분일치로 카드에 적용된다.
+     우선순위: 로컬 prod_<id> 파일 > 이 매핑 > 카탈로그 img > 카테고리 일러스트.
+     예: { brand:'아누아', name:'어성초 77 토너', img:'https://…상품이미지.jpg' }, */
+  const PROD_IMG_MAP = [];
+  function applyProdImgMap(){
+    if(!PROD_IMG_MAP.length) return;
+    PRODUCTS.forEach(p=>{
+      if(p.img) return;
+      const m = PROD_IMG_MAP.find(e=> normTxt(e.brand) === normTxt(p.brand) && e.name &&
+        (normTxt(p.name).indexOf(normTxt(e.name)) >= 0 || normTxt(e.name).indexOf(normTxt(p.name)) >= 0));
+      if(m && m.img){ p.img = m.img; }
+    });
+  }
+  applyProdImgMap();
+
   function buildUserProfile(){
     const c = (window.appState && window.appState.concerns) || new Set();
     const age = (window.appState && window.appState.age) ? window.appState.age : 29;
@@ -4445,6 +4566,7 @@ DEMO_HTML = """
         rows.map(normalizeProduct).forEach(p=>{ if(p && p.id) merged[p.id] = p; });
         PRODUCTS = Object.values(merged);
         window.PRODUCTS = PRODUCTS;
+        applyProdImgMap();   /* 원격 카탈로그에도 제품명 기반 이미지 매핑 적용 */
         /* 현재 열려 있는 추천 화면이 있으면 새 카탈로그로 다시 그린다 */
         if(typeof tierInitialized !== 'undefined' && tierInitialized){
           const active = document.querySelector('.tier-tab.active');
