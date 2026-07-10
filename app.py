@@ -41,6 +41,29 @@ def _look_imgs() -> dict:
 
 look_imgs = _look_imgs()
 
+
+def _prod_imgs() -> dict:
+    """제품 카드용 실제 상품 이미지(prod_<제품id>.png|jpg|webp)가 있으면 로드.
+
+    예: prod_anuaTuner.png 를 폴더에 넣으면 '어성초 77 토너' 카드가 SVG
+    플레이스홀더 대신 그 실물 사진을 사용한다. 공식 이미지 확보 시 파일만
+    추가하면 코드 수정 없이 카드에 반영된다.
+    """
+    mime = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp"}
+    out = {}
+    for p in Path(__file__).parent.glob("prod_*.*"):
+        m = mime.get(p.suffix.lower())
+        if not m:
+            continue
+        try:
+            out[p.stem.replace("prod_", "")] = f"data:{m};base64," + base64.b64encode(p.read_bytes()).decode("ascii")
+        except Exception:
+            pass
+    return out
+
+
+prod_imgs = _prod_imgs()
+
 # ---- 올리브영 랭킹 데이터 ----
 # fetch_oy_ranking.py 배치를 주기 실행(1일 1회 권장)하면 oy_ranking.json 이 갱신된다.
 # 파일이 없거나 읽기 실패 시 아래 시드 스냅샷을 쓴다(공개된 올리브영 베스트/어워즈
@@ -94,7 +117,7 @@ DEMO_HTML = """
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FOR HIM — Men's Beauty AI Demo</title>
-<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";window.OY_RANKING=__OY_RANKING__;window.LOOK_IMGS=__LOOK_IMGS__;</script>
+<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";window.OY_RANKING=__OY_RANKING__;window.LOOK_IMGS=__LOOK_IMGS__;window.PROD_IMGS=__PROD_IMGS__;</script>
 <style>
   :root{
     --bg:#f6f5f2;
@@ -1009,7 +1032,8 @@ DEMO_HTML = """
     position:absolute;inset:0;z-index:0;border-radius:22px;overflow:hidden;background:#f2e8d9;
     box-shadow:inset 0 0 0 1px #ece2d2, 0 8px 20px rgba(120,96,68,.10);
   }
-  .face-model img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  /* 얼굴 중심 확대 크롭: 상반신 비중을 줄이고 얼굴이 프레임을 채우게 (145% 줌) */
+  .face-model img{position:absolute;width:145%;height:145%;left:-22.5%;top:-8%;object-fit:cover;display:block;}
   .face-model svg{position:absolute;inset:0;width:100%;height:100%;display:block;}
   /* 피부 분석 맵 오버레이: 라인 기반 영역 구분 + 고민별 반투명 하이라이트 + 부위 점 표시 */
   .face-overlay{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;}
@@ -1023,8 +1047,8 @@ DEMO_HTML = """
     font-size:3.4px;font-weight:800;letter-spacing:.02em;
     paint-order:stroke;stroke:#fff;stroke-width:.9px;stroke-linejoin:round;
   }
-  /* 여성 사진은 얼굴이 더 위쪽 → 오버레이 전체 보정 */
-  .face-map.gf .face-overlay{transform:translateY(-3.2%);}
+  /* 여성 사진은 얼굴이 더 위쪽 → 오버레이 전체 보정(145% 줌 반영) */
+  .face-map.gf .face-overlay{transform:translateY(-4.6%);}
   .face-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;}
   .legend-item{
     display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:#b9b6ab;
@@ -1475,48 +1499,50 @@ DEMO_HTML = """
         <div class="face-map">
           <div class="face-model" id="faceModel"></div>
           <svg class="face-overlay" id="faceOverlay" viewBox="0 0 100 100" aria-hidden="true">
+            <!-- 좌표는 145% 줌 크롭 기준 얼굴 특징점(눈 35 · 코끝 50 · 입 58 · 턱 66)에 맞춤.
+                 viewBox 0-100 = %기반이라 카드 크기가 바뀌어도 비율 그대로 따라간다 -->
             <!-- 기본 영역 구분 라인(항상 표시): T존 / U존 -->
             <g class="fz-base">
-              <path class="fz-line" stroke="#b9ad99" d="M39 25 Q50 22 61 25 Q62 29 61 32 Q56 31 55 33 L55 50 Q55 54 50 54 Q45 54 45 50 L45 33 Q44 31 39 32 Q38 29 39 25 Z"/>
-              <path class="fz-line" stroke="#b9ad99" d="M29 40 Q29 60 50 65 Q71 60 71 40"/>
-              <text class="fz-label" fill="#a89a86" x="63" y="23">T존</text>
-              <text class="fz-label" fill="#a89a86" x="72.5" y="42">U존</text>
+              <path class="fz-line" stroke="#b9ad99" d="M34 14 Q50 11.5 66 14 Q67 19.5 66 25 Q57 23.5 55.5 26 L55.5 46 Q55.5 50.5 50 50.5 Q44.5 50.5 44.5 46 L44.5 26 Q43 23.5 34 25 Q33 19.5 34 14 Z"/>
+              <path class="fz-line" stroke="#b9ad99" d="M28 44 Q28.5 62 50 67.5 Q71.5 62 72 44"/>
+              <text class="fz-label" fill="#a89a86" x="68" y="16">T존</text>
+              <text class="fz-label" fill="#a89a86" x="74" y="42">U존</text>
             </g>
             <!-- 유분 → 이마·코 T존 -->
             <g class="fz" data-zone="oil">
-              <path class="fz-fill" fill="rgba(201,138,60,.16)" stroke="#c98a3c" d="M39 25 Q50 22 61 25 Q62 29 61 32 Q56 31 55 33 L55 50 Q55 54 50 54 Q45 54 45 50 L45 33 Q44 31 39 32 Q38 29 39 25 Z"/>
-              <circle class="fz-dot" fill="#c98a3c" cx="47" cy="28" r=".9"/><circle class="fz-dot" fill="#c98a3c" cx="53" cy="27.4" r=".9"/><circle class="fz-dot" fill="#c98a3c" cx="50" cy="44" r=".9"/>
-              <text class="fz-label" fill="#c98a3c" x="34" y="20">유분 · T존</text>
+              <path class="fz-fill" fill="rgba(201,138,60,.16)" stroke="#c98a3c" d="M34 14 Q50 11.5 66 14 Q67 19.5 66 25 Q57 23.5 55.5 26 L55.5 46 Q55.5 50.5 50 50.5 Q44.5 50.5 44.5 46 L44.5 26 Q43 23.5 34 25 Q33 19.5 34 14 Z"/>
+              <circle class="fz-dot" fill="#c98a3c" cx="45" cy="18.5" r=".9"/><circle class="fz-dot" fill="#c98a3c" cx="55" cy="18" r=".9"/><circle class="fz-dot" fill="#c98a3c" cx="50" cy="42" r=".9"/>
+              <text class="fz-label" fill="#c98a3c" x="13" y="15">유분 · T존</text>
             </g>
             <!-- 모공 → 양볼 -->
             <g class="fz" data-zone="pore">
-              <ellipse class="fz-fill" fill="rgba(200,110,70,.14)" stroke="#c86e46" cx="35" cy="46" rx="8" ry="5.6"/>
-              <ellipse class="fz-fill" fill="rgba(200,110,70,.14)" stroke="#c86e46" cx="65" cy="46" rx="8" ry="5.6"/>
-              <circle class="fz-dot" fill="#c86e46" cx="33" cy="45" r=".8"/><circle class="fz-dot" fill="#c86e46" cx="37" cy="47.5" r=".8"/>
-              <circle class="fz-dot" fill="#c86e46" cx="63.5" cy="47.2" r=".8"/><circle class="fz-dot" fill="#c86e46" cx="67" cy="45" r=".8"/>
-              <text class="fz-label" fill="#c86e46" x="16" y="46">모공 · 볼</text>
+              <ellipse class="fz-fill" fill="rgba(200,110,70,.14)" stroke="#c86e46" cx="33.5" cy="49.5" rx="7" ry="5"/>
+              <ellipse class="fz-fill" fill="rgba(200,110,70,.14)" stroke="#c86e46" cx="66.5" cy="49.5" rx="7" ry="5"/>
+              <circle class="fz-dot" fill="#c86e46" cx="31.5" cy="48.5" r=".8"/><circle class="fz-dot" fill="#c86e46" cx="35.5" cy="51" r=".8"/>
+              <circle class="fz-dot" fill="#c86e46" cx="64.5" cy="50.7" r=".8"/><circle class="fz-dot" fill="#c86e46" cx="68.5" cy="48.5" r=".8"/>
+              <text class="fz-label" fill="#c86e46" x="9" y="42">모공 · 볼</text>
             </g>
             <!-- 붉은기 → 볼 안쪽·코 -->
             <g class="fz" data-zone="redness">
-              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="42.5" cy="48.5" rx="4.6" ry="3.2"/>
-              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="57.5" cy="48.5" rx="4.6" ry="3.2"/>
-              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="50" cy="46" rx="3" ry="2.4"/>
-              <text class="fz-label" fill="#c1666b" x="59" y="56.5">붉은기</text>
+              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="42.5" cy="52" rx="4.4" ry="3"/>
+              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="57.5" cy="52" rx="4.4" ry="3"/>
+              <ellipse class="fz-fill" fill="rgba(193,102,107,.16)" stroke="#c1666b" cx="50" cy="47" rx="3.2" ry="2.4"/>
+              <text class="fz-label" fill="#c1666b" x="64" y="61.5">붉은기</text>
             </g>
             <!-- 흉터·색소 → 국소 부위(오른볼) -->
             <g class="fz" data-zone="scar">
-              <circle class="fz-fill" fill="rgba(150,90,150,.14)" stroke="#965a96" cx="62.5" cy="42.5" r="3.2"/>
-              <circle class="fz-dot" fill="#965a96" cx="62.5" cy="42.5" r=".9"/>
-              <circle class="fz-fill" fill="rgba(150,90,150,.14)" stroke="#965a96" cx="58" cy="46.5" r="2.2"/>
-              <circle class="fz-dot" fill="#965a96" cx="58" cy="46.5" r=".7"/>
-              <text class="fz-label" fill="#965a96" x="68" y="37">흉터 · 국소</text>
+              <circle class="fz-fill" fill="rgba(150,90,150,.14)" stroke="#965a96" cx="65" cy="48" r="3.2"/>
+              <circle class="fz-dot" fill="#965a96" cx="65" cy="48" r=".9"/>
+              <circle class="fz-fill" fill="rgba(150,90,150,.14)" stroke="#965a96" cx="61" cy="52.5" r="2.2"/>
+              <circle class="fz-dot" fill="#965a96" cx="61" cy="52.5" r=".7"/>
+              <text class="fz-label" fill="#965a96" x="72" y="36">흉터 · 국소</text>
             </g>
             <!-- 여드름 → 턱·볼 -->
             <g class="fz" data-zone="acne">
-              <ellipse class="fz-fill" fill="rgba(193,60,60,.13)" stroke="#c13c3c" cx="50" cy="59.5" rx="8.5" ry="4.4"/>
-              <circle class="fz-dot" fill="#c13c3c" cx="47.5" cy="58.6" r="1"/><circle class="fz-dot" fill="#c13c3c" cx="52.5" cy="60.4" r=".9"/><circle class="fz-dot" fill="#c13c3c" cx="50" cy="61.8" r=".8"/>
-              <circle class="fz-dot" fill="#c13c3c" cx="37.5" cy="49" r=".9"/>
-              <text class="fz-label" fill="#c13c3c" x="32" y="66">여드름 · 턱·볼</text>
+              <ellipse class="fz-fill" fill="rgba(193,60,60,.13)" stroke="#c13c3c" cx="50" cy="65" rx="7.5" ry="3.8"/>
+              <circle class="fz-dot" fill="#c13c3c" cx="47" cy="64" r="1"/><circle class="fz-dot" fill="#c13c3c" cx="53" cy="65.8" r=".9"/><circle class="fz-dot" fill="#c13c3c" cx="50" cy="67" r=".8"/>
+              <circle class="fz-dot" fill="#c13c3c" cx="34.5" cy="54.5" r=".9"/>
+              <text class="fz-label" fill="#c13c3c" x="31" y="74.5">여드름 · 턱·볼</text>
             </g>
           </svg>
         </div>
@@ -3021,6 +3047,7 @@ DEMO_HTML = """
 
     renderConcernTabs(metrics);
   }
+  window.renderDiagnosis = renderDiagnosis;   /* 데모/테스트 하니스 진입점 */
 
   /* ---------------- concern detail tabs ---------------- */
   const CONCERN_DETAIL = {
@@ -4172,11 +4199,13 @@ DEMO_HTML = """
       /* 랭킹 뱃지: 올리브영 랭킹 데이터에 1위로 매칭될 때만 노출 */
       const rankText = rankBadgeFor(p);
       const isReco = p.rank === 1;                    /* 내 피부 매칭 최상 → '추천' */
+      /* 실물 사진 우선순위: 로컬 prod_<id> 파일 → 카탈로그 img URL → 카테고리 일러스트 */
+      const photo = (window.PROD_IMGS || {})[p.id] || p.img;
       return '<a class="prod-card' + (isReco ? ' reco' : '') + '" href="' + url + '" target="_blank" rel="noopener noreferrer">' +
         (rankText ? '<div class="prod-rank">' + rankText + '</div>' : '') +
         (isReco ? '<div class="prod-reco">추천</div>' : '') +
-        (p.img
-          ? '<div class="prod-photo"><img src="' + p.img + '" alt="' + p.name + '" loading="lazy" /></div>'
+        (photo
+          ? '<div class="prod-photo"><img src="' + photo + '" alt="' + p.name + '" loading="lazy" /></div>'
           : '<div class="prod-photo prod-photo-ph">' + prodShapeSvg(p) + '</div>') +
         '<div class="prod-brand">' + p.brand + '</div>' +
         '<div class="prod-name">' + p.name + '</div>' +
@@ -5269,6 +5298,7 @@ DEMO_HTML = DEMO_HTML.replace("__FACE_MALE__", face_male_uri)
 DEMO_HTML = DEMO_HTML.replace("__FACE_FEMALE__", face_female_uri)
 DEMO_HTML = DEMO_HTML.replace("__OY_RANKING__", json.dumps(oy_ranking, ensure_ascii=False))
 DEMO_HTML = DEMO_HTML.replace("__LOOK_IMGS__", json.dumps(look_imgs))
+DEMO_HTML = DEMO_HTML.replace("__PROD_IMGS__", json.dumps(prod_imgs))
 
 # Sidebar view switch: main demo vs. the face-model preview page. The preview
 # reuses the standalone face-model-preview.html (same faceSVG code as the demo).
