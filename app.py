@@ -24,6 +24,23 @@ def _img_data_uri(name: str) -> str:
 face_male_uri = _img_data_uri("face_male.png")
 face_female_uri = _img_data_uri("face_female.png")
 
+
+def _look_imgs() -> dict:
+    """스타일 피드 카드별 완성 촬영 이미지(look_<카드id>.png)가 있으면 로드.
+
+    예: look_f4.png 를 폴더에 넣으면 '면접 신뢰 룩' 카드가 SVG 착장 합성 대신
+    해당 실사 이미지를 사용한다. 파일이 없으면 빈 dict → 합성 방식 폴백.
+    """
+    out = {}
+    for p in Path(__file__).parent.glob("look_*.png"):
+        uri = _img_data_uri(p.name)
+        if uri:
+            out[p.stem.replace("look_", "")] = uri
+    return out
+
+
+look_imgs = _look_imgs()
+
 # ---- 올리브영 랭킹 데이터 ----
 # fetch_oy_ranking.py 배치를 주기 실행(1일 1회 권장)하면 oy_ranking.json 이 갱신된다.
 # 파일이 없거나 읽기 실패 시 아래 시드 스냅샷을 쓴다(공개된 올리브영 베스트/어워즈
@@ -77,7 +94,7 @@ DEMO_HTML = """
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>FOR HIM — Men's Beauty AI Demo</title>
-<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";window.OY_RANKING=__OY_RANKING__;</script>
+<script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";window.OY_RANKING=__OY_RANKING__;window.LOOK_IMGS=__LOOK_IMGS__;</script>
 <style>
   :root{
     --bg:#f6f5f2;
@@ -453,8 +470,12 @@ DEMO_HTML = """
   .feed-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(20,20,18,.10);}
   .feed-photo{position:relative;width:100%;aspect-ratio:4/5;overflow:hidden;background:#e7e4dd;}
   .feed-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-  /* 컨셉 착장 오버레이: 카드별 옷 종류·색으로 룩 분위기를 구분 */
-  .feed-outfit{position:absolute;left:0;bottom:0;width:100%;height:40%;z-index:1;pointer-events:none;filter:drop-shadow(0 -2px 6px rgba(0,0,0,.10));}
+  /* 컨셉 착장 합성: 카드별 옷 종류·색으로 룩 분위기를 구분 (실사 에셋이 있으면 미사용) */
+  .feed-outfit{position:absolute;left:0;bottom:0;width:100%;height:46%;z-index:1;pointer-events:none;filter:drop-shadow(0 -1px 4px rgba(0,0,0,.12));}
+  .feed-style-line{
+    font-size:10.5px;color:var(--ink-soft);margin-top:7px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
   .feed-situation{
     position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;padding:5px 11px;border-radius:999px;
     background:rgba(26,26,24,.78);color:#fff;backdrop-filter:blur(4px);z-index:2;
@@ -2073,11 +2094,11 @@ DEMO_HTML = """
     state.nickname = nickname;
     state.concerns = new Set(saved.concerns && saved.concerns.length ? saved.concerns : ['scar','pore','oil','acne']);
 
-    appScreen.style.display = 'none';
-    [splash, intro, camera, simpleResult, diagnosis].forEach(s=> s.classList.add('hidden'));
-    choice.classList.remove('hidden');
-    requestAnimationFrame(()=> choice.classList.add('visible'));
-    window.scrollTo(0,0);
+    /* 이력·선택 화면을 거치지 않고, 상단 탭이 있는 메인 앱의 분석 결과 화면으로 바로 진입.
+       enterAppStep이 멤버 화면을 모두 닫고 앱을 열며, showAnalysisResult가
+       저장된 최근 분석 상태를 결과 UI로 즉시 렌더링한다. */
+    enterAppStep('analysis');
+    if(window.showAnalysisResult){ window.showAnalysisResult(); }
   }
 
   function initRecallEntryPoints(){
@@ -3266,6 +3287,22 @@ DEMO_HTML = """
   const toRecoBtn = document.getElementById('toRecommend');
   if(toRecoBtn){ toRecoBtn.addEventListener('click', ()=>{ if(window.recordRecommend){ window.recordRecommend(); } }); }
 
+  /* '최근 분석 결과 다시 보기' 진입점: 저장된 state.concerns 기준으로
+     칩 UI를 동기화하고 결과를 즉시 렌더링한다(분석 로딩 없이 바로 표시). */
+  window.showAnalysisResult = function(){
+    chipRow.querySelectorAll('.chip').forEach(chip=>{
+      const key = chip.dataset.key;
+      const on = state.concerns.has(key);
+      chip.classList.toggle('active', on);
+      chip.innerHTML = (on ? CHECK_SVG : '') + CONCERNS[key].label;
+    });
+    hintEl.textContent = '';
+    loadingEl.classList.remove('show');
+    renderResult(computeMetrics());
+    resultEl.classList.add('show');
+    state.analyzed = true;
+  };
+
   function renderResult(metrics){
     const values = Object.values(metrics);
     const overall = Math.round(values.reduce((a,b)=>a+b,0)/values.length);
@@ -3531,58 +3568,154 @@ DEMO_HTML = """
         hair:{main:'로우 웨이브', sub:'자연스럽게 풀어서'} }
     }
   };
-  /* visual: 카드 컨셉별 착장 오버레이(outfit)와 사진 톤(filter)·크롭(pos) — 같은 얼굴이라도 룩이 구분돼 보이게 */
+  /* 상황(TPO)별 스타일 피드 카드 세트 — 탭 전환 시 해당 상황 카드로 전체 교체.
+     visual: 착장 합성(outfit)·사진 톤(filter)·크롭(pos), outfitText/hairText: 카드별 착장·헤어 설명 오버라이드.
+     window.LOOK_IMGS 에 look_<id>.png 실사 에셋이 있으면 그 이미지를 우선 사용(합성 생략). */
   const STYLE_FEED = [
-    { id:'f1', sit:'date',      gender:'male',   title:'소개팅 클린 룩',
-      visual:{ outfit:'shirt',  c:{main:'#cfe0ee', line:'#9db8cf'}, filter:'brightness(1.06) saturate(1.08)', pos:'center 16%' } },
-    { id:'f2', sit:'interview', gender:'male',   title:'면접 신뢰 룩',
-      visual:{ outfit:'blazer', c:{main:'#2e3a52', line:'#222b3e', shirt:'#f6f7f9', tie:'#8899b5'}, filter:'contrast(1.05) saturate(.9)', pos:'center 24%' } },
-    { id:'f3', sit:'work',      gender:'male',   title:'데일리 출근 룩',
-      visual:{ outfit:'knit',   c:{main:'#9aa3ad', line:'#7f8894'}, filter:'saturate(.88) brightness(1.02)', pos:'center 20%' } },
-    { id:'f4', sit:'date',      gender:'female', title:'소개팅 화사 룩',
-      visual:{ outfit:'knit',   c:{main:'#f0e9dd', line:'#dccfb9'}, filter:'brightness(1.07) saturate(1.1) sepia(.05)', pos:'center 14%' } },
-    { id:'f5', sit:'weekend',   gender:'male',   title:'주말 캐주얼 룩',
-      visual:{ outfit:'hoodie', c:{main:'#2b2b2e', line:'#1e1e21', string:'#8f8f95'}, filter:'saturate(1.14) contrast(1.03)', pos:'center 26%' } },
-    { id:'f6', sit:'weekend',   gender:'female', title:'주말 데이트 룩',
-      visual:{ outfit:'knit',   c:{main:'#d9c9b2', line:'#c4b096'}, filter:'brightness(1.04) sepia(.08) saturate(1.05)', pos:'center 18%' } }
+    /* 소개팅 */
+    { id:'f1', sit:'date', gender:'male', title:'소개팅 클린 룩',
+      visual:{ outfit:'shirt', c:{main:'#c9ddf0', line:'#8fb3d4'}, filter:'brightness(1.06) saturate(1.08)', pos:'center 16%' },
+      outfitText:{main:'라이트 블루 셔츠', sub:'밝고 호감 가는 첫인상'}, hairText:'내추럴 덮머리' },
+    { id:'f2', sit:'date', gender:'female', title:'소개팅 화사 룩',
+      visual:{ outfit:'blouse', c:{main:'#efe6d8', line:'#d9c9b2'}, filter:'brightness(1.07) saturate(1.1) sepia(.05)', pos:'center 14%' },
+      outfitText:{main:'아이보리 니트 블라우스', sub:'부드러운 파스텔 무드'}, hairText:'웨이브 반묶음' },
+    { id:'f3', sit:'date', gender:'male', title:'소개팅 세미 캐주얼 룩',
+      visual:{ outfit:'cardigan', c:{main:'#d8cbb6', line:'#c0ae92'}, filter:'brightness(1.04) sepia(.06)', pos:'center 20%' },
+      outfitText:{main:'베이지 가디건 + 화이트 이너', sub:'편안하지만 정돈된 분위기'}, hairText:'내추럴 가르마' },
+    /* 면접 */
+    { id:'f4', sit:'interview', gender:'male', title:'면접 신뢰 룩',
+      visual:{ outfit:'suit', c:{main:'#2e3a52', line:'#222b3e', shirt:'#f6f7f9', tie:'#5f7396'}, filter:'contrast(1.05) saturate(.9)', pos:'center 22%' },
+      outfitText:{main:'네이비 수트 + 타이', sub:'기본에 충실한 신뢰형'}, hairText:'깐머리 (이마 오픈)' },
+    { id:'f5', sit:'interview', gender:'female', title:'면접 단정 룩',
+      visual:{ outfit:'suit', c:{main:'#3a3f4a', line:'#2b2f38', shirt:'#f6f7f9', tie:''}, filter:'contrast(1.04) saturate(.88)', pos:'center 16%' },
+      outfitText:{main:'차콜 블레이저 + 화이트 블라우스', sub:'클래식 오피스 무드'}, hairText:'로우 포니테일' },
+    { id:'f6', sit:'interview', gender:'male', title:'면접 비즈 캐주얼 룩',
+      visual:{ outfit:'shirt', c:{main:'#dfe3e8', line:'#b6bec9'}, filter:'saturate(.94) brightness(1.03)', pos:'center 18%' },
+      outfitText:{main:'그레이 셔츠 (노타이)', sub:'단정하지만 딱딱하지 않게'}, hairText:'사이드 정돈' },
+    /* 출근 */
+    { id:'f7', sit:'work', gender:'male', title:'데일리 출근 룩',
+      visual:{ outfit:'knit', c:{main:'#9aa3ad', line:'#7f8894'}, filter:'saturate(.88) brightness(1.02)', pos:'center 20%' },
+      outfitText:{main:'그레이 니트 + 화이트 이너', sub:'단정하지만 편한 데일리'}, hairText:'가벼운 덮머리' },
+    { id:'f8', sit:'work', gender:'female', title:'출근 산뜻 룩',
+      visual:{ outfit:'cardigan', c:{main:'#e2d5c2', line:'#c9b699'}, filter:'brightness(1.05) sepia(.04)', pos:'center 15%' },
+      outfitText:{main:'베이지 가디건 + 슬랙스', sub:'편안한 오피스 캐주얼'}, hairText:'로우 번' },
+    { id:'f9', sit:'work', gender:'male', title:'출근 셔츠 룩',
+      visual:{ outfit:'shirt', c:{main:'#5b6b85', line:'#465471'}, filter:'saturate(.95) contrast(1.03)', pos:'center 22%' },
+      outfitText:{main:'네이비 셔츠', sub:'차분하고 신뢰감 있는 톤'}, hairText:'단정한 사이드 파트' },
+    /* 주말 약속 */
+    { id:'f10', sit:'weekend', gender:'male', title:'주말 캐주얼 룩',
+      visual:{ outfit:'hoodie', c:{main:'#2b2b2e', line:'#1e1e21', string:'#8f8f95'}, filter:'saturate(1.14) contrast(1.03)', pos:'center 26%' },
+      outfitText:{main:'블랙 후드 + 데님', sub:'꾸안꾸 캐주얼'}, hairText:'내추럴 애즈펌' },
+    { id:'f11', sit:'weekend', gender:'female', title:'주말 데이트 룩',
+      visual:{ outfit:'blouse', c:{main:'#d9c9b2', line:'#c4b096'}, filter:'brightness(1.04) sepia(.08) saturate(1.05)', pos:'center 16%' },
+      outfitText:{main:'베이지 보트넥 니트', sub:'편안한 데이트 무드'}, hairText:'로우 웨이브' },
+    { id:'f12', sit:'weekend', gender:'male', title:'주말 액티브 룩',
+      visual:{ outfit:'henley', c:{main:'#2e3440', line:'#232834'}, filter:'saturate(1.08) contrast(1.04)', pos:'center 24%' },
+      outfitText:{main:'다크 네이비 헨리넥', sub:'관리된 캐주얼'}, hairText:'가볍게 올린 앞머리' }
   ];
-  /* 컨셉 착장 오버레이 SVG — 옷 종류·색으로 카드 분위기를 구분 */
-  function outfitSvg(v){
+  /* 착장 합성 SVG — 그라디언트 음영·목 그림자·옷 주름으로 실제 입은 것처럼 자연스럽게.
+     uid: 카드마다 그라디언트 id가 겹치지 않게 하는 접미사 */
+  function outfitSvg(v, uid){
     if(!v || !v.outfit) return '';
     const c = v.c || {};
     const main = c.main || '#dfe4ea', line = c.line || 'rgba(0,0,0,.18)';
-    const open = '<svg class="feed-outfit" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">';
+    const gid = 'og' + (uid || '0');
+    const open = '<svg class="feed-outfit" viewBox="0 0 100 46" preserveAspectRatio="none" aria-hidden="true">' +
+      '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="#ffffff" stop-opacity=".22"/>' +
+        '<stop offset=".45" stop-color="#ffffff" stop-opacity="0"/>' +
+        '<stop offset="1" stop-color="#000000" stop-opacity=".16"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="'+gid+'s" x1="0" y1="0" x2="1" y2="0">' +
+        '<stop offset="0" stop-color="#000000" stop-opacity=".12"/>' +
+        '<stop offset=".2" stop-color="#000000" stop-opacity="0"/>' +
+        '<stop offset=".8" stop-color="#000000" stop-opacity="0"/>' +
+        '<stop offset="1" stop-color="#000000" stop-opacity=".12"/>' +
+      '</linearGradient></defs>';
+    /* 공통 몸판 실루엣(어깨 곡선) + 음영 + 팔 라인 */
+    const body = (neckD)=>
+      '<path d="'+neckD+'" fill="'+main+'"/>' +
+      '<path d="'+neckD+'" fill="url(#'+gid+')"/>' +
+      '<path d="'+neckD+'" fill="url(#'+gid+'s)"/>' +
+      /* 팔 이음선 */
+      '<path d="M18 15 Q15 30 16 46" fill="none" stroke="rgba(0,0,0,.10)" stroke-width=".7"/>' +
+      '<path d="M82 15 Q85 30 84 46" fill="none" stroke="rgba(0,0,0,.10)" stroke-width=".7"/>';
+    /* 목 아래 자연스러운 그림자 */
+    const neckShadow = '<ellipse cx="50" cy="10.5" rx="8.5" ry="2.6" fill="rgba(0,0,0,.13)"/>';
+    const close = '</svg>';
+
     if(v.outfit === 'shirt'){
-      return open +
-        '<path d="M0 40 V17 Q16 9 34 6.5 L43 5 50 13 57 5 66 6.5 Q84 9 100 17 V40 Z" fill="'+main+'"/>' +
-        '<path d="M43 5 50 13 45.5 17.5 39 8.5 Z" fill="#fdfdfd"/>' +
-        '<path d="M57 5 50 13 54.5 17.5 61 8.5 Z" fill="#fdfdfd"/>' +
-        '<path d="M50 13 V40" stroke="'+line+'" stroke-width=".7"/>' +
-        '<circle cx="50" cy="19" r=".9" fill="'+line+'"/><circle cx="50" cy="25" r=".9" fill="'+line+'"/><circle cx="50" cy="31" r=".9" fill="'+line+'"/></svg>';
+      const collar = c.collar || '#ffffff';
+      return open + neckShadow +
+        body('M0 46 V19 Q14 10 33 7.5 L43 6 50 14 57 6 67 7.5 Q86 10 100 19 V46 Z') +
+        '<path d="M43 6 50 14 45 19 38.5 9.5 Z" fill="'+collar+'"/>' +
+        '<path d="M57 6 50 14 55 19 61.5 9.5 Z" fill="'+collar+'"/>' +
+        '<path d="M43 6 50 14 45 19 38.5 9.5 Z" fill="url(#'+gid+')"/>' +
+        '<path d="M57 6 50 14 55 19 61.5 9.5 Z" fill="url(#'+gid+')"/>' +
+        '<path d="M50 14 V46" stroke="'+line+'" stroke-width=".7"/>' +
+        '<circle cx="50" cy="21" r=".8" fill="'+line+'"/><circle cx="50" cy="28" r=".8" fill="'+line+'"/><circle cx="50" cy="35" r=".8" fill="'+line+'"/><circle cx="50" cy="42" r=".8" fill="'+line+'"/>' +
+        '<path d="M30 24 Q32 30 30 38" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>' +
+        '<path d="M70 24 Q68 30 70 38" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>' + close;
     }
-    if(v.outfit === 'blazer'){
+    if(v.outfit === 'suit'){
+      const shirt = c.shirt || '#f6f7f9';
+      const tie = c.tie || '';
       return open +
-        '<path d="M44 4.5 L50 20 56 4.5 Q50 8.5 44 4.5 Z" fill="'+(c.shirt||'#fff')+'"/>' +
-        '<path d="M0 40 V16 Q17 8 35 6 L43 4.5 46 40 Z" fill="'+main+'"/>' +
-        '<path d="M100 40 V16 Q83 8 65 6 L57 4.5 54 40 Z" fill="'+main+'"/>' +
-        '<path d="M43 4.5 L50 20 44 26 39 8 Z" fill="'+line+'"/>' +
-        '<path d="M57 4.5 L50 20 56 26 61 8 Z" fill="'+line+'"/>' +
-        '<path d="M48.6 18 h2.8 l-.6 3.4 h-1.6 Z" fill="'+(c.tie||'#8899b5')+'"/>' +
-        '<path d="M50 21.4 L47.6 27 50 38 52.4 27 Z" fill="'+(c.tie||'#8899b5')+'"/></svg>';
+        '<path d="M42 5 L50 24 58 5 Q50 10 42 5 Z" fill="'+shirt+'"/>' + neckShadow +
+        '<path d="M0 46 V18 Q14 9 34 6.5 L42 5 47 46 H0 Z" fill="'+main+'"/>' +
+        '<path d="M100 46 V18 Q86 9 66 6.5 L58 5 53 46 H100 Z" fill="'+main+'"/>' +
+        '<path d="M0 46 V18 Q14 9 34 6.5 L42 5 47 46 H0 Z" fill="url(#'+gid+')"/>' +
+        '<path d="M100 46 V18 Q86 9 66 6.5 L58 5 53 46 H100 Z" fill="url(#'+gid+')"/>' +
+        '<path d="M42 5 L50 24 43.5 31 37.5 9 Z" fill="'+line+'"/>' +
+        '<path d="M58 5 L50 24 56.5 31 62.5 9 Z" fill="'+line+'"/>' +
+        (tie
+          ? '<path d="M48.3 21 h3.4 l-.7 4 h-2 Z" fill="'+tie+'"/><path d="M50 25 L47.2 32 50 44 52.8 32 Z" fill="'+tie+'"/>' +
+            '<path d="M50 25 L47.2 32 50 44 52.8 32 Z" fill="url(#'+gid+')"/>'
+          : '<path d="M46 24 Q50 27 54 24" fill="none" stroke="rgba(0,0,0,.12)" stroke-width=".8"/>') +
+        '<circle cx="45.5" cy="38" r=".8" fill="rgba(0,0,0,.28)"/>' + close;
     }
     if(v.outfit === 'hoodie'){
       return open +
-        '<path d="M32 14 Q50 -3 68 14 Q59 9 50 9 Q41 9 32 14 Z" fill="'+line+'"/>' +
-        '<path d="M0 40 V19 Q16 10 35 7.5 Q42 6.5 45 9 Q50 15 55 9 Q58 6.5 65 7.5 Q84 10 100 19 V40 Z" fill="'+main+'"/>' +
-        '<path d="M44 9 Q50 15.5 56 9" fill="none" stroke="'+line+'" stroke-width="1.8"/>' +
-        '<path d="M46.5 12 V23" stroke="'+(c.string||'#999')+'" stroke-width=".9"/>' +
-        '<path d="M53.5 12 V23" stroke="'+(c.string||'#999')+'" stroke-width=".9"/></svg>';
+        '<path d="M30 16 Q50 -4 70 16 Q60 10 50 10 Q40 10 30 16 Z" fill="'+line+'"/>' + neckShadow +
+        body('M0 46 V21 Q14 11 33 8.5 Q41 7.5 44 10 Q50 16.5 56 10 Q59 7.5 67 8.5 Q86 11 100 21 V46 Z') +
+        '<path d="M43 10 Q50 17 57 10" fill="none" stroke="'+line+'" stroke-width="1.8"/>' +
+        '<path d="M46.5 13 Q46 20 46.8 25" fill="none" stroke="'+(c.string||'#999')+'" stroke-width=".9"/>' +
+        '<path d="M53.5 13 Q54 20 53.2 25" fill="none" stroke="'+(c.string||'#999')+'" stroke-width=".9"/>' +
+        '<path d="M28 36 Q50 40 72 36" fill="none" stroke="rgba(0,0,0,.10)" stroke-width=".7"/>' + close;
     }
-    /* knit / tee */
-    return open +
-      '<path d="M0 40 V18 Q16 9.5 35 7 Q42 6 45 8 Q50 14.5 55 8 Q58 6 65 7 Q84 9.5 100 18 V40 Z" fill="'+main+'"/>' +
-      '<path d="M43.5 7.5 Q50 15.5 56.5 7.5" fill="none" stroke="'+line+'" stroke-width="1.6"/>' +
-      '<path d="M0 36.5 H100" stroke="'+line+'" stroke-width=".5" opacity=".5"/></svg>';
+    if(v.outfit === 'cardigan'){
+      const inner = c.inner || '#ffffff';
+      return open +
+        '<path d="M41 7 L50 30 59 7 Q50 12 41 7 Z" fill="'+inner+'"/>' + neckShadow +
+        '<path d="M0 46 V19 Q14 10 34 7.5 L41 7 46.5 46 H0 Z" fill="'+main+'"/>' +
+        '<path d="M100 46 V19 Q86 10 66 7.5 L59 7 53.5 46 H100 Z" fill="'+main+'"/>' +
+        '<path d="M0 46 V19 Q14 10 34 7.5 L41 7 46.5 46 H0 Z" fill="url(#'+gid+')"/>' +
+        '<path d="M100 46 V19 Q86 10 66 7.5 L59 7 53.5 46 H100 Z" fill="url(#'+gid+')"/>' +
+        '<path d="M41 7 L46.5 46" fill="none" stroke="'+line+'" stroke-width=".8"/>' +
+        '<path d="M59 7 L53.5 46" fill="none" stroke="'+line+'" stroke-width=".8"/>' +
+        '<circle cx="45" cy="26" r=".9" fill="'+line+'"/><circle cx="45.7" cy="33" r=".9" fill="'+line+'"/><circle cx="46.3" cy="40" r=".9" fill="'+line+'"/>' + close;
+    }
+    if(v.outfit === 'henley'){
+      return open + neckShadow +
+        body('M0 46 V20 Q14 10.5 34 8 Q42 7 45 9 Q50 15 55 9 Q58 7 66 8 Q86 10.5 100 20 V46 Z') +
+        '<path d="M44 9 Q50 16 56 9" fill="none" stroke="'+line+'" stroke-width="1.5"/>' +
+        '<path d="M50 15 V28" stroke="'+line+'" stroke-width=".8"/>' +
+        '<circle cx="50" cy="19" r=".8" fill="rgba(255,255,255,.4)"/><circle cx="50" cy="24" r=".8" fill="rgba(255,255,255,.4)"/>' + close;
+    }
+    if(v.outfit === 'blouse'){
+      /* 여성 보트넥/니트 블라우스: 넓고 완만한 네크라인 */
+      return open + neckShadow +
+        body('M0 46 V20 Q13 11 32 8.5 Q40 7.5 50 12.5 Q60 7.5 68 8.5 Q87 11 100 20 V46 Z') +
+        '<path d="M35 9.5 Q50 15.5 65 9.5" fill="none" stroke="'+line+'" stroke-width="1.2"/>' +
+        '<path d="M30 30 Q50 34 70 30" fill="none" stroke="rgba(0,0,0,.07)" stroke-width=".8"/>' + close;
+    }
+    /* knit (라운드넥 니트) */
+    return open + neckShadow +
+      body('M0 46 V20 Q14 10.5 34 8 Q42 7 45 9 Q50 15.5 55 9 Q58 7 66 8 Q86 10.5 100 20 V46 Z') +
+      '<path d="M43.5 8.5 Q50 16.5 56.5 8.5" fill="none" stroke="'+line+'" stroke-width="1.6"/>' +
+      '<path d="M0 41.5 H100" stroke="'+line+'" stroke-width=".5" opacity=".5"/>' +
+      '<path d="M32 26 Q34 32 32 40" fill="none" stroke="rgba(0,0,0,.06)" stroke-width=".8"/>' +
+      '<path d="M68 26 Q66 32 68 40" fill="none" stroke="rgba(0,0,0,.06)" stroke-width=".8"/>' + close;
   }
   const TAG_POS = [{top:'32%',left:'40%'},{top:'50%',left:'62%'},{top:'66%',left:'42%'}];
   /* 제품 카테고리별 마커 기준 부위 — 번호는 준비 순서, 위치는 그 제품이 닿는 부위 */
@@ -3758,26 +3891,36 @@ DEMO_HTML = """
     }
   }
 
-  function renderFeed(){
+  let activeFeedSit = 'date';
+  function renderFeed(sit){
+    if(sit){ activeFeedSit = sit; }
     const feedEl = document.getElementById('styleFeed');
-    feedEl.innerHTML = STYLE_FEED.map(f=>{
+    /* 피드 헤더에 현재 상황을 표시해 탭과 피드가 연결돼 있음을 분명히 한다 */
+    const subEl = document.querySelector('.style-feed-sub');
+    if(subEl){ subEl.textContent = TPO[activeFeedSit].emoji + ' ' + TPO[activeFeedSit].label + ' 상황 추천 룩 — 사진 속 번호는 준비 순서예요'; }
+    feedEl.innerHTML = STYLE_FEED.filter(f=> f.sit === activeFeedSit).map(f=>{
       const look = TPO_LOOKS[f.sit][f.gender];
       const t = TPO[f.sit];
-      const img = faceImg(f.gender);
       const v = f.visual || {};
-      const imgStyle = 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + (v.pos ? 'object-position:'+v.pos+';' : '') + '"';
+      /* look_<id>.png 실사 에셋이 있으면 우선 사용(필터·합성 생략) */
+      const asset = (window.LOOK_IMGS || {})[f.id];
+      const img = asset || faceImg(f.gender);
+      const imgStyle = asset ? '' : 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + (v.pos ? 'object-position:'+v.pos+';' : '') + '"';
       /* 번호 = 실제 준비 순서(1 먼저 → 3 마지막), 위치 = 그 단계 제품이 닿는 부위(카드별 분산) */
       const steps = look.routine || [];
       const tags = steps.map((s,i)=>{
         const pos = markerPos(s, f.id, i);
         return '<div class="feed-tag" style="top:'+pos.top+';left:'+pos.left+'" title="'+(i+1)+'. '+s.step+'">'+(i+1)+'</div>';
       }).join('');
+      const outfitMain = (f.outfitText && f.outfitText.main) || look.outfit.main;
+      const hairMain = f.hairText || look.hair.main;
       return '<div class="feed-card" data-feed="'+f.id+'">' +
         '<div class="feed-photo">' + (img?'<img src="'+img+'" alt="'+f.title+'" '+imgStyle+' />':'') +
-          outfitSvg(v) +
+          (asset ? '' : outfitSvg(v, f.id)) +
           '<div class="feed-situation">'+t.emoji+' '+t.label+'</div>' + tags + '</div>' +
         '<div class="feed-foot"><div class="feed-look-title">'+f.title+'</div>' +
-          '<div class="feed-keys">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div></div>' +
+          '<div class="feed-keys">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
+          '<div class="feed-style-line">'+outfitMain+' · '+hairMain+'</div></div>' +
       '</div>';
     }).join('');
     /* 클릭 좌표를 넘겨 모달이 스크롤 없이 그 자리에 바로 뜨게 한다 */
@@ -3795,12 +3938,17 @@ DEMO_HTML = """
     const t = TPO[f.sit];
     const img = faceImg(f.gender);
     const v = f.visual || {};
-    const imgStyle = 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + 'object-position:' + (v.pos || 'center 28%') + ';"';
+    const asset = (window.LOOK_IMGS || {})[f.id];
+    const sheetImg = asset || img;
+    const imgStyle = asset ? '' : 'style="' + (v.filter ? 'filter:'+v.filter+';' : '') + 'object-position:' + (v.pos || 'center 28%') + ';"';
+    /* 카드별 착장·헤어 오버라이드가 있으면 시트에도 동일하게 반영 */
+    const outfitInfo = f.outfitText || look.outfit;
+    const hairInfo = f.hairText ? { main:f.hairText, sub:look.hair.sub } : look.hair;
     const sec = (icon,label,content)=>
       '<div class="sheet-sec"><div class="sheet-sec-label">'+icon+label+'</div>'+content+'</div>';
     document.getElementById('sheetCard').innerHTML =
       '<div class="sheet-photo"><button type="button" class="sheet-close" id="sheetClose">×</button>' +
-        (img?'<img src="'+img+'" alt="'+f.title+'" '+imgStyle+' />':'') + outfitSvg(v) + '</div>' +
+        (sheetImg?'<img src="'+sheetImg+'" alt="'+f.title+'" '+imgStyle+' />':'') + (asset ? '' : outfitSvg(v, 'sheet-'+f.id)) + '</div>' +
       '<div class="sheet-body">' +
         '<div class="sheet-situation">'+t.emoji+' '+t.label+'</div>' +
         '<div class="sheet-title">'+f.title+'</div>' +
@@ -3828,8 +3976,8 @@ DEMO_HTML = """
           : sec(IC_COS,'사용 화장품', look.cosmetics.map((c,i)=>
               '<div class="sheet-prod"><div class="sheet-prod-no">'+(i+1)+'</div><div class="sheet-prod-txt"><b>'+c+'</b></div></div>').join(''))) +
         '<div class="sheet-sec"><div class="sheet-two">' +
-          '<div><div class="sheet-sec-label">'+IC_SHIRT+'추천 옷 스타일</div><div class="sheet-mini-main">'+look.outfit.main+'</div><div class="sheet-mini-sub">'+look.outfit.sub+'</div></div>' +
-          '<div><div class="sheet-sec-label">'+IC_HAIR+'헤어 스타일</div><div class="sheet-mini-main">'+look.hair.main+'</div><div class="sheet-mini-sub">'+look.hair.sub+'</div></div>' +
+          '<div><div class="sheet-sec-label">'+IC_SHIRT+'추천 옷 스타일</div><div class="sheet-mini-main">'+outfitInfo.main+'</div><div class="sheet-mini-sub">'+(outfitInfo.sub||'')+'</div></div>' +
+          '<div><div class="sheet-sec-label">'+IC_HAIR+'헤어 스타일</div><div class="sheet-mini-main">'+hairInfo.main+'</div><div class="sheet-mini-sub">'+(hairInfo.sub||'')+'</div></div>' +
         '</div></div>' +
         '<div class="sheet-actions">' +
           '<button type="button" class="btn btn-gold btn-sm" id="sheetSave"></button>' +
@@ -3893,7 +4041,9 @@ DEMO_HTML = """
       const b = e.target.closest('.tpo-tab'); if(!b) return;
       tabsEl.querySelectorAll('.tpo-tab').forEach(x=> x.classList.remove('active'));
       b.classList.add('active');
+      /* 탭 전환 시 상단 추천 조합과 하단 스타일 피드를 함께 해당 상황으로 교체 */
       renderTpo(b.dataset.tpo);
+      renderFeed(b.dataset.tpo);
     });
     document.getElementById('sheetBackdrop').addEventListener('click', closeSheet);
     document.addEventListener('keydown', e=>{
@@ -3901,8 +4051,9 @@ DEMO_HTML = """
     });
     document.getElementById('wxRefresh').addEventListener('click', loadWx);
     loadWx();
+    /* 기본 진입 시에도 활성 탭(소개팅)에 맞는 추천과 피드가 함께 보인다 */
     renderTpo('date');
-    renderFeed();
+    renderFeed('date');
   }
 
   /* ---------------- 올리브영 랭킹 뱃지 ----------------
@@ -5106,6 +5257,7 @@ DEMO_HTML = DEMO_HTML.replace("__APP_URL__", json.dumps(app_url))
 DEMO_HTML = DEMO_HTML.replace("__FACE_MALE__", face_male_uri)
 DEMO_HTML = DEMO_HTML.replace("__FACE_FEMALE__", face_female_uri)
 DEMO_HTML = DEMO_HTML.replace("__OY_RANKING__", json.dumps(oy_ranking, ensure_ascii=False))
+DEMO_HTML = DEMO_HTML.replace("__LOOK_IMGS__", json.dumps(look_imgs))
 
 # Sidebar view switch: main demo vs. the face-model preview page. The preview
 # reuses the standalone face-model-preview.html (same faceSVG code as the demo).
