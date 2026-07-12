@@ -2177,7 +2177,8 @@ DEMO_HTML = """
   function saveLastResult(){
     try {
       localStorage.setItem(RECALL_KEY, JSON.stringify({
-        nickname: nickname, age: enteredAge, concerns: Array.from(state.concerns), savedAt: Date.now()
+        nickname: nickname, age: enteredAge, concerns: Array.from(state.concerns),
+        scan: (state.scan && state.scan.ok) ? state.scan : null, savedAt: Date.now()
       }));
     } catch(e){}
   }
@@ -2197,6 +2198,7 @@ DEMO_HTML = """
     state.age = enteredAge;
     state.nickname = nickname;
     state.concerns = new Set(saved.concerns && saved.concerns.length ? saved.concerns : ['scar','pore','oil','acne']);
+    state.scan = saved.scan || null;   /* 저장된 실측 점수도 복원해 결과·추천에 그대로 반영 */
 
     /* 이력·선택 화면을 거치지 않고, 상단 탭이 있는 메인 앱의 분석 결과 화면으로 바로 진입.
        enterAppStep이 멤버 화면을 모두 닫고 앱을 열며, showAnalysisResult가
@@ -2660,7 +2662,140 @@ DEMO_HTML = """
   ];
   let stream = null;
 
+  /* ---- 실측 피부 분석 엔진 ----
+     방향 안내 중 캡처한 프레임의 픽셀을 직접 분석해 항목별 점수를 만든다.
+     YCbCr 피부 마스크로 얼굴 영역을 찾고, 부위(ROI)별로
+     유분(정반사 하이라이트 비율)·모공/결(고주파 에너지)·붉은기(Cr 편차)·
+     트러블(어두운 적색 픽셀 비율)·색소침착(비적색 저휘도 반점)·주름(이마 수평 에지)을 계측한다.
+     결과는 state.scan에 담겨 진단 점수(computeDiagnosis)와 추천(buildUserProfile)의 기준값이 된다. */
+  const capCanvas = document.createElement('canvas');
+  const capCtx = capCanvas.getContext('2d', { willReadFrequently:true });
+  let capturedFrames = [];
+
+  function captureFrame(dir){
+    if(!stream || !camVideo.videoWidth) return;
+    const W = 320, H = Math.max(2, Math.round(camVideo.videoHeight / camVideo.videoWidth * 320));
+    capCanvas.width = W; capCanvas.height = H;
+    try {
+      capCtx.drawImage(camVideo, 0, 0, W, H);
+      capturedFrames.push({ dir:dir, img:capCtx.getImageData(0, 0, W, H) });
+    } catch(e){}
+  }
+
+  function analyzeFrame(img){
+    const d = img.data, W = img.width, H = img.height, N = W*H;
+    const lum = new Float32Array(N), cr = new Float32Array(N), sat = new Float32Array(N);
+    const skin = new Uint8Array(N);
+    const colHist = new Int32Array(W), rowHist = new Int32Array(H);
+    let skinN = 0, lumSum = 0, crSum = 0;
+    for(let i=0;i<N;i++){
+      const o = i*4, r=d[o], g=d[o+1], b=d[o+2];
+      const yv = .299*r + .587*g + .114*b;
+      const cbv = 128 - .168736*r - .331264*g + .5*b;
+      const crv = 128 + .5*r - .418688*g - .081312*b;
+      lum[i]=yv; cr[i]=crv;
+      sat[i] = Math.max(r,g,b) - Math.min(r,g,b);
+      if(cbv>=77 && cbv<=127 && crv>=133 && crv<=177 && r>g && yv>40){
+        skin[i]=1; skinN++; lumSum+=yv; crSum+=crv;
+        colHist[i%W]++; rowHist[(i/W)|0]++;
+      }
+    }
+    if(skinN < N*0.06) return null;   /* 얼굴(피부)이 충분히 안 잡힌 프레임은 버림 */
+    const meanL = lumSum/skinN, meanCr = crSum/skinN;
+
+    /* 피부 픽셀 열/행 히스토그램으로 얼굴 박스 추정 */
+    function span(hist, len){
+      let a=-1, b=-1, mx=0;
+      for(let i=0;i<len;i++){ if(hist[i]>mx) mx=hist[i]; }
+      for(let i=0;i<len;i++){ if(hist[i] > mx*0.25){ if(a<0) a=i; b=i; } }
+      return [a,b];
+    }
+    const cs = span(colHist, W), rs = span(rowHist, H);
+    const fx0=cs[0], fw=cs[1]-cs[0], fy0=rs[0], fh=rs[1]-rs[0];
+    if(fw < W*0.2 || fh < H*0.25) return null;
+
+    /* 부위 ROI(얼굴 박스 비율 좌표): 눈·눈썹·입을 피해 이마/코/양볼/턱만 계측 */
+    const roi = (x0,x1,y0,y1)=>({ x0:(fx0+fw*x0)|0, x1:(fx0+fw*x1)|0, y0:(fy0+fh*y0)|0, y1:(fy0+fh*y1)|0 });
+    const R = {
+      forehead: roi(.28,.72,.10,.26),
+      nose:     roi(.42,.58,.38,.62),
+      cheekL:   roi(.13,.34,.45,.68),
+      cheekR:   roi(.66,.87,.45,.68),
+      chin:     roi(.38,.62,.78,.92)
+    };
+
+    /* ROI 안 픽셀 평균 계측. skinOnly=false면 마스크 없이 ROI 전체를 본다 */
+    function stat(rois, fn, skinOnly){
+      if(skinOnly === undefined) skinOnly = true;
+      let s=0, n=0;
+      for(let k=0;k<rois.length;k++){
+        const rr = rois[k];
+        for(let y=rr.y0;y<=rr.y1;y++) for(let x=rr.x0;x<=rr.x1;x++){
+          const i=y*W+x; if(skinOnly && !skin[i]) continue;
+          s += fn(i, x, y); n++;
+        }
+      }
+      return n ? s/n : 0;
+    }
+
+    /* 유분: T존(이마+코)에서 밝고 채도 낮은(정반사) 픽셀 비율.
+       강한 하이라이트는 과노출로 피부 마스크에서 빠지므로 마스크 없이 ROI 전체에서 센다 */
+    const shine = stat([R.forehead, R.nose], function(i){ return (lum[i] > meanL*1.30 && sat[i] < 34) ? 1 : 0; }, false);
+    /* 모공·결: 볼+코의 라플라시안(고주파) 에너지, 밝기로 정규화 */
+    const texture = stat([R.cheekL, R.cheekR, R.nose], function(i,x,y){
+      if(x<1||x>=W-1||y<1||y>=H-1) return 0;
+      return Math.abs(4*lum[i] - lum[i-1] - lum[i+1] - lum[i-W] - lum[i+W]);
+    }) / Math.max(1, meanL) * 100;
+    /* 붉은기: 볼·코·턱에서 얼굴 평균 대비 Cr 초과분 */
+    const redness = stat([R.cheekL, R.cheekR, R.nose, R.chin], function(i){ return Math.max(0, cr[i]-meanCr); });
+    /* 트러블: 평균보다 뚜렷이 붉으면서 어두운(염증성) 픽셀 비율 */
+    const trouble = stat([R.forehead, R.nose, R.cheekL, R.cheekR, R.chin], function(i){ return (cr[i] > meanCr+11 && lum[i] < meanL*0.95) ? 1 : 0; });
+    /* 색소침착: 붉지 않으면서 뚜렷하게 어두운 반점 비율 */
+    const pigment = stat([R.forehead, R.cheekL, R.cheekR, R.chin], function(i){ return (lum[i] < meanL*0.74 && cr[i] < meanCr+6) ? 1 : 0; });
+    /* 주름: 이마의 수평 방향 에지 밀도 */
+    const wrinkle = stat([R.forehead], function(i,x,y){
+      if(y<1||y>=H-1) return 0;
+      return Math.abs(lum[i+W]-lum[i-W]) > 14 ? 1 : 0;
+    });
+
+    return { shine:shine, texture:texture, redness:redness, trouble:trouble,
+             pigment:pigment, wrinkle:wrinkle, meanL:meanL, skinFrac:skinN/N };
+  }
+
+  /* 원시 계측값 → 0~10 점수. scale은 '심각' 기준값(그 이상이면 0점대). */
+  function toScore(raw, scale){ return clamp10(10 - (raw/scale)*10); }
+
+  function analyzeCaptured(){
+    const per = [];
+    capturedFrames.forEach(function(f){
+      const m = analyzeFrame(f.img);
+      if(m) per.push({ m:m, w: f.dir==='center' ? 2 : 1 });
+    });
+    if(!per.length) return { ok:false };
+    const wSum = per.reduce(function(a,p){ return a+p.w; }, 0);
+    const avg = function(key){ return per.reduce(function(a,p){ return a+p.m[key]*p.w; }, 0) / wSum; };
+    const meanL = avg('meanL');
+    /* 주름은 단일 RGB 카메라 계측이 거칠어 나이 사전값과 절반씩 섞는다 */
+    const agePrior = clamp10(8.2 - Math.max(0, (enteredAge||29)-25)*0.12);
+    return {
+      ok: true,
+      frames: per.length,
+      dim: meanL < 70,
+      bright: meanL > 215,
+      scores: {
+        oil:     toScore(avg('shine'),   0.16),
+        pore:    toScore(avg('texture'), 14),
+        redness: toScore(avg('redness'), 11),
+        trouble: toScore(avg('trouble'), 0.10),
+        pigment: toScore(avg('pigment'), 0.12),
+        wrinkle: clamp10(toScore(avg('wrinkle'), 0.5)*0.5 + agePrior*0.5)
+      }
+    };
+  }
+
   function startCamera(){
+    state.scan = null;          /* 새 촬영: 이전 실측값 폐기 */
+    capturedFrames = [];
     if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
       navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user' }, audio:false })
         .then(s=>{ stream = s; camVideo.srcObject = s; runSteps(); })
@@ -2704,6 +2839,9 @@ DEMO_HTML = """
         camProgressFill.style.transition = 'width 2.9s linear';
         camProgressFill.style.width = '100%';
       });
+      /* 자세가 안정되는 중반 시점에 실측용 프레임을 캡처 */
+      setTimeout(()=> captureFrame(d.dir), 1600);
+      if(d.dir === 'center'){ setTimeout(()=> captureFrame('center'), 2500); }
       i++;
       /* 방향별 안내를 각 1초씩 더 길게 유지해 인식 흐름을 안정적으로 느끼게 함 */
       setTimeout(step, 3000);
@@ -2717,7 +2855,18 @@ DEMO_HTML = """
     camArrow.className = 'cam-arrow dir-center';
     camArrow.textContent = '✓';
     camSteps.textContent = '';
-    if(state.concerns.size === 0){
+    /* 캡처된 프레임을 실측 분석 → 결과가 점수·추천의 기준값이 된다 */
+    state.scan = analyzeCaptured();
+    capturedFrames = [];
+    if(state.scan.ok){
+      /* 실측 점수가 낮은 항목을 고민으로 자동 등록해 부위 하이라이트·추천이 측정을 따라가게 함 */
+      const sc = state.scan.scores;
+      if(sc.oil < 6) state.concerns.add('oil');
+      if(sc.pore < 6) state.concerns.add('pore');
+      if(sc.trouble < 6.5) state.concerns.add('acne');
+      if(sc.pigment < 6.5) state.concerns.add('scar');
+    } else if(state.concerns.size === 0){
+      /* 카메라 스킵·분석 실패 시에만 기존 기본값으로 폴백 */
       ['scar','pore','oil','acne'].forEach(k=> state.concerns.add(k));
     }
     /* 스캔 직후 바로 결과로 넘기지 않고 로딩 브릿지 → 설문 단계로 이어짐 */
@@ -2898,6 +3047,11 @@ DEMO_HTML = """
   function surveyCorrectionNote(){
     const sv = state.survey || {};
     const pts = [];
+    if(state.scan && state.scan.ok){
+      pts.push('카메라 실측 ' + state.scan.frames + '프레임 분석 반영');
+      if(state.scan.dim) pts.push('조명이 어두워 정확도가 낮을 수 있어요');
+      if(state.scan.bright) pts.push('과노출로 정확도가 낮을 수 있어요');
+    }
     if(sv.sensitive === 'high') pts.push('예민 피부 반영');
     if(sv.atopy === 'yes') pts.push('아토피·피부염 이력 반영');
     if(sv.redness === 'high') pts.push('붉어짐·자극 민감 반영');
@@ -3043,6 +3197,18 @@ DEMO_HTML = """
     /* 영상 분석 점수에 설문(체감 상태) 보정을 더한다. */
     const sv = state.survey || {};
     const sens = (sv.sensitive === 'high') || (sv.atopy === 'yes');
+    /* 카메라 실측이 있으면 그 점수를 기본값으로 쓰고 설문은 보정으로만 반영 */
+    const sc = (state.scan && state.scan.ok) ? state.scan.scores : null;
+    if(sc){
+      return [
+        { key:'wrinkle', label:'주름', score: clamp10(sc.wrinkle - ((sv.focus==='aging'||goalHas(sv,'firm'))?0.4:0)) },
+        { key:'pigment', label:'색소침착', score: clamp10(sc.pigment - (sv.focus==='pigment'?0.5:0)) },
+        { key:'redness', label:'붉은기', score: clamp10(sc.redness - (sens?0.9:0) - (sv.redness==='high'?0.7:0)) },
+        { key:'pore', label:'모공', score: clamp10(sc.pore - (sv.oil==='high'?0.4:0)) },
+        { key:'oil', label:'피지', score: clamp10(sc.oil - (sv.oil==='high'?0.7:0) + (sv.oil==='low'?0.5:0)) },
+        { key:'trouble', label:'트러블', score: clamp10(sc.trouble - (sv.trouble==='high'?0.8:0) + (sv.trouble==='low'?0.3:0)) }
+      ];
+    }
     return [
       { key:'wrinkle', label:'주름', score: clamp10(8.2 - Math.max(0, enteredAge-25)*0.12 - ((sv.focus==='aging'||goalHas(sv,'firm'))?0.6:0)) },
       { key:'pigment', label:'색소침착', score: clamp10(7.6 - (c.has('scar')?3.4:0) - (sv.focus==='pigment'?0.8:0)) },
@@ -3059,7 +3225,13 @@ DEMO_HTML = """
     const skinAge = Math.max(18, Math.round(enteredAge + (8-overall)*1.4));
     const worst = metrics.reduce((a,b)=> a.score<b.score?a:b);
     const best = metrics.reduce((a,b)=> a.score>b.score?a:b);
-    const skinType = state.concerns.has('oil') ? '지성'
+    const scanScores = (state.scan && state.scan.ok) ? state.scan.scores : null;
+    const svType = state.survey || {};
+    const skinType = scanScores
+      ? (scanScores.oil < 5 ? '지성'
+        : scanScores.oil < 7 ? '복합성'
+        : (svType.dryness === 'high' || svType.oil === 'low') ? '건성' : '중성')
+      : state.concerns.has('oil') ? '지성'
       : (state.concerns.has('pore') || state.concerns.has('scar')) ? '복합성' : '중성';
 
     document.getElementById('diagAge').innerHTML = skinAge + '<i> 세</i>';
@@ -4478,6 +4650,20 @@ DEMO_HTML = """
     if(c.has('scar')){ bump('scar',.95); bump('pigment',.8); bump('spot',.6); bump('tone',.6); bump('texture',.55); }
     if(age>=30){ bump('elastic',.6); bump('wrinkle',.6); bump('darkcircle',.5); bump('dull',.5); bump('dryness',.5); }
     if(age>=40){ bump('elastic',.85); bump('wrinkle',.85); bump('pigment',.6); }
+
+    /* 카메라 실측 반영: 점수가 낮은(부족한) 항목일수록 해당 태그 심각도를 올려
+       그 항목을 보완하는 제품(aff 가중치 보유)이 추천 상위로 오게 한다 */
+    const scan = window.appState && window.appState.scan;
+    if(scan && scan.ok){
+      const SCAN_TAGS = {
+        oil:['oil','blackhead'], pore:['pore','texture','blackhead'], redness:['redness'],
+        trouble:['acne','blemish'], pigment:['pigment','spot','tone'], wrinkle:['wrinkle','elastic']
+      };
+      for(const k in SCAN_TAGS){
+        const need = Math.min(1, Math.max(0, (10 - scan.scores[k]) / 10));
+        if(need > 0.3){ SCAN_TAGS[k].forEach((t,j)=> bump(t, j ? need*0.75 : need)); }
+      }
+    }
 
     /* 추가 설문(체감 상태)을 프로파일에 반영 → 영상 분석 + 설문 통합 추천 */
     const sv = (window.appState && window.appState.survey) || {};
