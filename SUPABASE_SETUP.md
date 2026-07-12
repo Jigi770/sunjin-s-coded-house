@@ -5,7 +5,8 @@
 ## 1. 프로젝트 만들기
 1. https://supabase.com 에서 프로젝트 생성
 2. **SQL Editor** 열기 → [`supabase_schema.sql`](supabase_schema.sql) 전체를 붙여넣고 실행
-   - 테이블(products / profiles / analyses / posts / comments) + RLS + 제품 28개 시드가 한 번에 생성됩니다.
+   - 테이블(products / profiles / analyses / posts / comments) + RLS + 제품 100개 시드 + Realtime 설정이 한 번에 생성됩니다.
+   - 구버전 시드를 실행했던 프로젝트도 재실행하면 100개 카탈로그로 갱신되고, 미입점·데모용 구제품은 정리됩니다.
 
 ## 2. 키 넣기 (Streamlit secrets)
 `Project Settings > API` 에서 **Project URL** 과 **anon public** 키를 복사한 뒤,
@@ -88,6 +89,5 @@ server_metadata_url = "https://accounts.google.com/.well-known/openid-configurat
   → secrets가 없으면 카탈로그는 내장 배열, 커뮤니티는 localStorage로 자동 폴백.
 - **적용됨(실시간)**: 커뮤니티 글·댓글 자동 반영 — Realtime 구독 + 12초 폴링 폴백 (4-1 참고).
 - **스키마만 준비됨**: `profiles`(프로필) · `analyses`(분석 이력) — 필요 시 연결.
-- **주의**: `supabase_schema.sql`의 products 시드는 예전 28개 카탈로그 기준입니다. 원격 카탈로그는
-  같은 id의 내장 항목을 덮어쓰므로, 시드를 실행했던 프로젝트라면 최신 100개 카탈로그와 어긋날 수
-  있습니다(미실행 시 무관 — 내장 카탈로그 사용).
+- `supabase_schema.sql`의 products 시드는 내장 카탈로그(100개)와 동일하며, 카탈로그를 바꾸면
+  같은 시드 섹션을 다시 실행해 동기화하면 됩니다 (`on conflict do update`로 안전하게 갱신).
