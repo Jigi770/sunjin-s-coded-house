@@ -5673,6 +5673,11 @@ DEMO_HTML = """
   setInterval(function(){   /* 연결돼 있어도 놓친 이벤트 대비 60초 안전망 */
     if(SB_ON && cmRtConnected) cmLiveRefresh();
   }, 60000);
+  /* 백그라운드 탭은 이벤트를 건너뛰므로, 탭으로 돌아오는 순간 한 번 동기화 */
+  document.addEventListener('visibilitychange', function(){
+    if(SB_ON && !document.hidden) cmLiveRefresh();
+  });
+  window.addEventListener('focus', function(){ if(SB_ON) cmLiveRefresh(); });
 
   /* ----- write / edit ----- */
   function cmPopulateCatSelect(){
