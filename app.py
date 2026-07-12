@@ -5642,7 +5642,8 @@ DEMO_HTML = """
     cmRefreshQueued = true;
     setTimeout(async function(){
       cmRefreshQueued = false;
-      if(!cmCommunityVisible()) return;
+      if(!cmCommunityVisible()){ console.log('[cm-live] skip: community not visible'); return; }
+      console.log('[cm-live] refresh', cmRtConnected ? '(realtime)' : '(polling)');
       await cmRefresh();
       if(!cmViews.detail.hidden && cmLastDetailId &&
          cmPosts.some(function(p){ return p.id === cmLastDetailId; })){
@@ -5660,10 +5661,13 @@ DEMO_HTML = """
         client.channel('community-live')
           .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, cmLiveRefresh)
           .on('postgres_changes', { event:'*', schema:'public', table:'comments' }, cmLiveRefresh)
-          .subscribe(function(status){ cmRtConnected = (status === 'SUBSCRIBED'); });
-      }catch(e){ /* 실패 시 아래 폴링이 커버 */ }
+          .subscribe(function(status){
+            cmRtConnected = (status === 'SUBSCRIBED');
+            console.log('[cm-live] realtime status:', status);
+          });
+      }catch(e){ console.log('[cm-live] realtime init failed → polling', e); }
     };
-    s.onerror = function(){ /* CDN 차단 등 — 폴링 폴백 */ };
+    s.onerror = function(){ console.log('[cm-live] supabase-js CDN load failed → polling'); };
     document.head.appendChild(s);
   }
   cmStartRealtime();
