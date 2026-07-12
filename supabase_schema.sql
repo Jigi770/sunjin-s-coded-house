@@ -134,3 +134,15 @@ insert into public.products (id, brand, name, cats, pop, tag, img_url, color, af
 on conflict (id) do update set
   brand=excluded.brand, name=excluded.name, cats=excluded.cats, pop=excluded.pop,
   tag=excluded.tag, img_url=excluded.img_url, color=excluded.color, aff=excluded.aff;
+
+-- ---------------------------------------------------------------
+-- 커뮤니티 실시간 반영 (Supabase Realtime)
+-- posts/comments 변경 이벤트를 웹소켓으로 구독할 수 있게 publication에 추가.
+-- (앱은 이 설정이 없으면 12초 폴링으로 자동 폴백하므로 선택 사항)
+-- 이미 추가된 상태에서 재실행해도 오류가 나지 않게 예외를 무시한다.
+do $$ begin
+  alter publication supabase_realtime add table posts;
+exception when duplicate_object then null; end $$;
+do $$ begin
+  alter publication supabase_realtime add table comments;
+exception when duplicate_object then null; end $$;

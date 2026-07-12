@@ -5624,7 +5624,55 @@ DEMO_HTML = """
     document.getElementById('cmCommentSubmit').addEventListener('click', function(){ cmAddComment(p.id); });
     document.getElementById('cmCommentInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){ cmAddComment(p.id); } });
   }
-  function cmOpenDetail(id){ cmRenderDetail(id); cmShow('detail'); }
+  let cmLastDetailId = null;   /* 실시간 갱신 시 지금 보는 글의 댓글도 다시 그리기 위한 추적 */
+  function cmOpenDetail(id){ cmLastDetailId = id; cmRenderDetail(id); cmShow('detail'); }
+
+  /* ---- 커뮤니티 실시간 반영 ----
+     1순위: Supabase Realtime(웹소켓) 구독 — posts/comments 변경을 즉시 반영.
+     대시보드에서 Realtime이 꺼져 있거나 구독이 실패하면 12초 폴링으로 자동 폴백.
+     어느 쪽이든 커뮤니티 화면이 실제로 보일 때만 동작해 불필요한 요청을 막는다. */
+  let cmRtConnected = false;
+  let cmRefreshQueued = false;
+  function cmCommunityVisible(){
+    const sec = document.getElementById('community');
+    return !!(sec && sec.offsetParent !== null) && !document.hidden;
+  }
+  function cmLiveRefresh(){
+    if(cmRefreshQueued) return;   /* 연속 이벤트는 1회 갱신으로 합침 */
+    cmRefreshQueued = true;
+    setTimeout(async function(){
+      cmRefreshQueued = false;
+      if(!cmCommunityVisible()) return;
+      await cmRefresh();
+      if(!cmViews.detail.hidden && cmLastDetailId &&
+         cmPosts.some(function(p){ return p.id === cmLastDetailId; })){
+        cmRenderDetail(cmLastDetailId);
+      }
+    }, 400);
+  }
+  function cmStartRealtime(){
+    if(!SB_ON) return;
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.onload = function(){
+      try{
+        const client = window.supabase.createClient(window.SB_URL, window.SB_KEY);
+        client.channel('community-live')
+          .on('postgres_changes', { event:'*', schema:'public', table:'posts' }, cmLiveRefresh)
+          .on('postgres_changes', { event:'*', schema:'public', table:'comments' }, cmLiveRefresh)
+          .subscribe(function(status){ cmRtConnected = (status === 'SUBSCRIBED'); });
+      }catch(e){ /* 실패 시 아래 폴링이 커버 */ }
+    };
+    s.onerror = function(){ /* CDN 차단 등 — 폴링 폴백 */ };
+    document.head.appendChild(s);
+  }
+  cmStartRealtime();
+  setInterval(function(){   /* Realtime 미연결 시 12초 폴링 */
+    if(SB_ON && !cmRtConnected) cmLiveRefresh();
+  }, 12000);
+  setInterval(function(){   /* 연결돼 있어도 놓친 이벤트 대비 60초 안전망 */
+    if(SB_ON && cmRtConnected) cmLiveRefresh();
+  }, 60000);
 
   /* ----- write / edit ----- */
   function cmPopulateCatSelect(){

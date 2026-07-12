@@ -34,7 +34,16 @@ SUPABASE_ANON_KEY = "eyJhbGciOi..."   # anon public 키
    - 데모에서 이메일 인증 메일 없이 바로 가입·로그인되게 하려면 꺼야 합니다.
    - 켜두면 가입 후 메일의 링크를 눌러야 로그인됩니다.
 3. 앱 커뮤니티 우측 상단 **로그인** 버튼으로 가입/로그인 → 글·댓글 작성 가능
-   - 작성 즉시 `posts`/`comments` 테이블에 저장되고, 다른 사용자는 **화면을 열거나 새로고침하면** 보입니다.
+   - 작성 즉시 `posts`/`comments` 테이블에 저장되고, 다른 사용자 화면에도 **자동 반영**됩니다(아래 4-1 참고).
+
+### 4-1. 실시간 반영 (Realtime)
+앱은 두 단계로 다른 사용자의 글·댓글을 자동 반영합니다:
+- **Supabase Realtime(웹소켓)**: `posts`/`comments` 변경 이벤트를 구독해 **즉시** 갱신.
+  활성화하려면 SQL Editor에서 `supabase_schema.sql` 하단의
+  `alter publication supabase_realtime add table posts, comments` 블록을 실행하거나,
+  대시보드 **Database > Replication** 에서 두 테이블의 Realtime을 켜세요.
+- **폴링 폴백**: Realtime이 꺼져 있거나 웹소켓이 차단된 환경에서는 커뮤니티 화면이
+  열려 있는 동안 12초 간격으로 자동 재조회합니다. 별도 설정이 필요 없습니다.
 
 > 참고: 로그인 안 한 사용자도 글·댓글 **읽기**는 가능합니다(공개). 쓰기만 로그인 필요.
 > 액세스 토큰은 약 1시간 후 만료됩니다. 만료 후 저장 실패 시 다시 로그인하세요.
@@ -77,5 +86,8 @@ server_metadata_url = "https://accounts.google.com/.well-known/openid-configurat
 ## 현재 적용 범위
 - **적용됨(코드)**: 제품 카탈로그 읽기(`products`) + 커뮤니티 글·댓글 읽기/쓰기(`posts`/`comments`) + 이메일 로그인.
   → secrets가 없으면 카탈로그는 내장 배열, 커뮤니티는 localStorage로 자동 폴백.
+- **적용됨(실시간)**: 커뮤니티 글·댓글 자동 반영 — Realtime 구독 + 12초 폴링 폴백 (4-1 참고).
 - **스키마만 준비됨**: `profiles`(프로필) · `analyses`(분석 이력) — 필요 시 연결.
-- **실시간(새로고침 없이 자동 반영)**이 필요하면 Supabase Realtime 구독을 추가로 붙이면 됩니다.
+- **주의**: `supabase_schema.sql`의 products 시드는 예전 28개 카탈로그 기준입니다. 원격 카탈로그는
+  같은 id의 내장 항목을 덮어쓰므로, 시드를 실행했던 프로젝트라면 최신 100개 카탈로그와 어긋날 수
+  있습니다(미실행 시 무관 — 내장 카탈로그 사용).
