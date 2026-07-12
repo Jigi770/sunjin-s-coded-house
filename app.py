@@ -465,6 +465,9 @@ DEMO_HTML = """
   }
   .prod-match{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:#eef1e7;color:#54634a;}
   .prod-card.reco .prod-match{background:#f6ecd6;color:#9a7b3f;}
+  /* 추천 이유(어떤 결핍을 어떤 성분으로 보완하는지) 한 줄 표기 */
+  .prod-why{margin-top:6px;font-size:10.5px;line-height:1.45;color:#8a8578;}
+  .prod-why b{color:#6f6a5c;font-weight:700;}
   /* 단계 안의 라인별(토너/앰플/로션/크림 등) 구분 */
   .tier-lines{margin-top:6px;}
   .tier-line{margin-top:22px;}
@@ -4516,7 +4519,8 @@ DEMO_HTML = """
     const ctaText = (opts && opts.ctaText) || PROD_CTA_DEFAULT;
     return list.map(p=>{
       const query = encodeURIComponent(p.brand + ' ' + p.name);
-      const url = 'https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=' + query;
+      /* 상세페이지 URL(oy)이 확보된 제품은 바로 상세로, 없으면 검색 결과로 폴백 */
+      const url = p.oy || ('https://www.oliveyoung.co.kr/store/search/getSearchMain.do?query=' + query);
       /* 랭킹 뱃지: 올리브영 랭킹 데이터에 1위로 매칭될 때만 노출 */
       const rankText = rankBadgeFor(p);
       const isReco = p.rank === 1;                    /* 내 피부 매칭 최상 → '추천' */
@@ -4534,6 +4538,7 @@ DEMO_HTML = """
           '<span class="prod-tag">' + p.tag + '</span>' +
           (p.match ? '<span class="prod-match">나와 ' + p.match + '% 매치</span>' : '') +
         '</div>' +
+        (p.why ? '<div class="prod-why">' + p.why + '</div>' : '') +
         '<div class="prod-cart-btn">' + ctaText + '</div>' +
       '</a>';
     }).join('');
@@ -4566,14 +4571,14 @@ DEMO_HTML = """
     'tone','blackhead','darkcircle','shave','ingrown','dull','dryness','redness','pigment','flake','wrinkle','cover'];
 
   let PRODUCTS = [
-    {id:'cosrx', brand:'코스알엑스', name:'더 6 펩타이드 스킨 부스터 세럼', img:PIMG.cosrx, color:'#8b6f47', cats:['serum'], pop:96, tag:'결·컨디션 개선', aff:{pore:2,texture:3,acne:2,blemish:2,pigment:2,dull:2,spot:1,scar:1}},
-    {id:'toriden', brand:'토리든', name:'다이브인 저분자 히알루론산 세럼', img:PIMG.toriden, color:'#5c7a8b', cats:['serum'], pop:94, tag:'저분자 수분 진정', aff:{dryness:3,texture:2,redness:2,flake:2,darkcircle:1}},
-    {id:'anua', brand:'아누아', name:'PDRN 히알루론산 캡슐 100 세럼', img:PIMG.anua, color:'#7a8b5c', cats:['serum'], pop:90, tag:'PDRN 재생 케어', aff:{scar:3,pigment:2,elastic:2,tone:2,darkcircle:1,spot:2}},
-    {id:'anuaTuner', brand:'아누아', name:'어성초 77 토너', color:'#7a8b5c', cats:['toner'], pop:82, tag:'모공·진정 토너', aff:{pore:3,oil:2,acne:2,ingrown:2,flake:2,texture:2,blackhead:2}},
-    {id:'mediheal', brand:'메디힐', name:'마데카소사이드 수분 선세럼', img:PIMG.mediheal, color:'#6b8b6f', cats:['sun'], pop:85, tag:'저자극 선케어', aff:{oil:2,redness:2,acne:2}},
+    {id:'cosrx', brand:'코스알엑스', name:'더 6 펩타이드 스킨 부스터 세럼', img:PIMG.cosrx, color:'#8b6f47', cats:['serum'], pop:96, tag:'결·컨디션 개선', ing:['펩타이드','나이아신아마이드'], aff:{pore:2,texture:3,acne:2,blemish:2,pigment:2,dull:2,spot:1,scar:1}},
+    {id:'toriden', brand:'토리든', name:'다이브인 저분자 히알루론산 세럼', img:PIMG.toriden, color:'#5c7a8b', cats:['serum'], pop:94, tag:'저분자 수분 진정', ing:['히알루론산','판테놀'], aff:{dryness:3,texture:2,redness:2,flake:2,darkcircle:1}},
+    {id:'anua', brand:'아누아', name:'PDRN 히알루론산 캡슐 100 세럼', img:PIMG.anua, color:'#7a8b5c', cats:['serum'], pop:90, tag:'PDRN 재생 케어', ing:['PDRN','히알루론산'], aff:{scar:3,pigment:2,elastic:2,tone:2,darkcircle:1,spot:2}},
+    {id:'anuaTuner', brand:'아누아', name:'어성초 77 토너', color:'#7a8b5c', cats:['toner'], pop:82, tag:'모공·진정 토너', ing:['어성초'], aff:{pore:3,oil:2,acne:2,ingrown:2,flake:2,texture:2,blackhead:2}},
+    {id:'mediheal', brand:'메디힐', name:'마데카소사이드 수분 선세럼', img:PIMG.mediheal, color:'#6b8b6f', cats:['sun'], pop:85, tag:'저자극 선케어', ing:['마데카소사이드'], aff:{oil:2,redness:2,acne:2}},
     {id:'ahc', brand:'AHC', name:'마스터즈 에어 리치 선스틱', img:PIMG.ahc, color:'#4a7a9b', cats:['sun'], pop:88, tag:'산뜻한 선스틱', aff:{oil:2,dull:1}},
-    {id:'goodalSun', brand:'구달', name:'맑은 어성초 진정 수분 선크림', img:PIMG.goodal, color:'#7a9b6f', cats:['sun'], pop:80, tag:'민감성 선크림', aff:{oil:2,redness:2,acne:2}},
-    {id:'goodalVitaC', brand:'구달', name:'청귤 비타C 잡티 세럼', color:'#c9915c', cats:['serum'], pop:87, tag:'비타민C 브라이트닝', aff:{spot:3,pigment:3,tone:2,dull:2,blemish:2}},
+    {id:'goodalSun', brand:'구달', name:'맑은 어성초 진정 수분 선크림', img:PIMG.goodal, color:'#7a9b6f', cats:['sun'], pop:80, tag:'민감성 선크림', ing:['어성초'], aff:{oil:2,redness:2,acne:2}},
+    {id:'goodalVitaC', brand:'구달', name:'청귤 비타C 잡티 세럼', color:'#c9915c', cats:['serum'], pop:87, tag:'비타민C 브라이트닝', ing:['비타민C'], aff:{spot:3,pigment:3,tone:2,dull:2,blemish:2}},
     {id:'jsm', brand:'정샘물', name:'에센셜 스킨 누더 쿠션', img:PIMG.jsm, color:'#c9915c', cats:['cushion'], pop:89, tag:'자연스러운 피부 보정', aff:{cover:3,tone:2,dull:1}},
     {id:'hera', brand:'헤라', name:'블랙 쿠션 파운데이션', img:PIMG.hera, color:'#9b7a4a', cats:['cushion'], pop:84, tag:'커버 + 지속력', aff:{cover:3,tone:2,scar:1}},
     {id:'clioCushion', brand:'클리오', name:'킬커버 파운웨어 쿠션', img:PIMG.clioCushion, color:'#b58b5c', cats:['cushion'], pop:83, tag:'모공 커버', aff:{cover:3,pore:1,tone:2}},
@@ -4583,33 +4588,33 @@ DEMO_HTML = """
     {id:'medicubeAger', brand:'메디큐브', name:'AGE-R 부스터 프로', color:'#5c6f8b', cats:['device'], pop:79, tag:'리프팅 디바이스', aff:{elastic:3,wrinkle:2,dull:1}},
     {id:'vflab', brand:'브이플랩', name:'브이토닝 디바이스', color:'#6f5c8b', cats:['device'], pop:70, tag:'얼굴 라인 관리', aff:{elastic:2}},
     {id:'wellbeing', brand:'웰빙시크릿', name:'4D 페이스 마사지기', color:'#5c8b7a', cats:['device'], pop:68, tag:'붓기 케어', aff:{darkcircle:2,elastic:1}},
-    {id:'estraCream', brand:'에스트라', name:'아토베리어365 크림', color:'#6b7a8b', cats:['cream'], pop:86, tag:'장벽 강화 크림', aff:{dryness:3,redness:2,elastic:2,flake:2}},
-    {id:'origins', brand:'오리진스', name:'메가 버섯 퍼스트 에센스', color:'#8b7a5c', cats:['serum'], pop:74, tag:'탄력 영양 에센스', aff:{elastic:2,dull:2,texture:2}},
-    {id:'medicubeMist', brand:'메디큐브', name:'PDRN 핑크 콜라겐 젤리 미스트 세럼', img:PIMG.medicubeMist, color:'#a86f7a', cats:['serum'], pop:81, tag:'PDRN 재생 미스트', aff:{elastic:2,darkcircle:2,dryness:2,dull:1,scar:1}},
-    {id:'esnature', brand:'에스네이처', name:'아쿠아 스쿠알란 수분크림', color:'#6b8b8b', cats:['cream'], pop:77, tag:'수분 진정 크림', aff:{dryness:3,redness:1,flake:1}},
-    {id:'drg', brand:'닥터지', name:'레드 블레미쉬 클리어 수딩 토너', img:PIMG.drg, color:'#a85c5c', cats:['toner'], pop:88, tag:'트러블 진정 토너', aff:{acne:3,blemish:2,redness:3,shave:2}},
-    {id:'roundlabMadeca', brand:'라운드랩', name:'마데카 크림', color:'#5c8b6f', cats:['cream'], pop:85, tag:'재생 진정 크림', aff:{redness:2,acne:2,shave:2,ingrown:2,elastic:1}},
-    {id:'cosrxBHA', brand:'코스알엑스', name:'BHA 블랙헤드 파워 리퀴드', color:'#8b6f47', cats:['toner'], pop:84, tag:'모공 각질 케어', aff:{blackhead:3,pore:2,flake:2,ingrown:2,texture:2}},
-    {id:'innisfree', brand:'이니스프리', name:'그린티 클렌징폼', color:'#5c8b6f', cats:['cleanser'], pop:75, tag:'산뜻한 세안', aff:{blackhead:2,oil:2}},
-    {id:'estraCleanser', brand:'에스트라', name:'아토베리어365 클렌징폼', color:'#6b7a8b', cats:['cleanser'], pop:76, tag:'저자극 클렌징', aff:{dryness:2,redness:1}},
-    {id:'roundlabBirch', brand:'라운드랩', name:'자작나무 수분크림', color:'#5c8b6f', cats:['cream'], pop:80, tag:'수분 진정', aff:{dryness:2,ingrown:1,redness:1}},
+    {id:'estraCream', brand:'에스트라', name:'아토베리어365 크림', color:'#6b7a8b', cats:['cream'], pop:86, tag:'장벽 강화 크림', ing:['세라마이드','판테놀'], aff:{dryness:3,redness:2,elastic:2,flake:2}},
+    {id:'origins', brand:'오리진스', name:'메가 버섯 퍼스트 에센스', color:'#8b7a5c', cats:['serum'], pop:74, tag:'탄력 영양 에센스', ing:['버섯 추출물'], aff:{elastic:2,dull:2,texture:2}},
+    {id:'medicubeMist', brand:'메디큐브', name:'PDRN 핑크 콜라겐 젤리 미스트 세럼', img:PIMG.medicubeMist, color:'#a86f7a', cats:['serum'], pop:81, tag:'PDRN 재생 미스트', ing:['PDRN','콜라겐'], aff:{elastic:2,darkcircle:2,dryness:2,dull:1,scar:1}},
+    {id:'esnature', brand:'에스네이처', name:'아쿠아 스쿠알란 수분크림', color:'#6b8b8b', cats:['cream'], pop:77, tag:'수분 진정 크림', ing:['스쿠알란','히알루론산'], aff:{dryness:3,redness:1,flake:1}},
+    {id:'drg', brand:'닥터지', name:'레드 블레미쉬 클리어 수딩 토너', img:PIMG.drg, color:'#a85c5c', cats:['toner'], pop:88, tag:'트러블 진정 토너', ing:['병풀(시카)','판테놀'], aff:{acne:3,blemish:2,redness:3,shave:2}},
+    {id:'roundlabMadeca', brand:'라운드랩', name:'마데카 크림', color:'#5c8b6f', cats:['cream'], pop:85, tag:'재생 진정 크림', ing:['마데카소사이드','병풀(시카)'], aff:{redness:2,acne:2,shave:2,ingrown:2,elastic:1}},
+    {id:'cosrxBHA', brand:'코스알엑스', name:'BHA 블랙헤드 파워 리퀴드', color:'#8b6f47', cats:['toner'], pop:84, tag:'모공 각질 케어', ing:['살리실산(BHA)'], aff:{blackhead:3,pore:2,flake:2,ingrown:2,texture:2}},
+    {id:'innisfree', brand:'이니스프리', name:'그린티 클렌징폼', color:'#5c8b6f', cats:['cleanser'], pop:75, tag:'산뜻한 세안', ing:['녹차'], aff:{blackhead:2,oil:2}},
+    {id:'estraCleanser', brand:'에스트라', name:'아토베리어365 클렌징폼', color:'#6b7a8b', cats:['cleanser'], pop:76, tag:'저자극 클렌징', ing:['세라마이드'], aff:{dryness:2,redness:1}},
+    {id:'roundlabBirch', brand:'라운드랩', name:'자작나무 수분크림', color:'#5c8b6f', cats:['cream'], pop:80, tag:'수분 진정', ing:['자작나무 수액'], aff:{dryness:2,ingrown:1,redness:1}},
     {id:'physiogel', brand:'피지오겔', name:'데일리 모이스쳐 테라피 에센스 인 토너', img:PIMG.physiogel, color:'#a86f6f', cats:['toner'], pop:78, tag:'저자극 수분 토너', aff:{dryness:2,redness:2,shave:2,darkcircle:1,flake:2}},
     /* --- 스킨케어 로션 라인 --- */
-    {id:'illiyoonLotion', brand:'일리윤', name:'세라마이드 아토 로션', color:'#8ba0b0', cats:['lotion'], pop:83, tag:'세라마이드 보습', aff:{dryness:3,flake:2,redness:1}},
-    {id:'cnpLotion', brand:'CNP', name:'프로폴리스 에너지 앰플 로션', color:'#c9a86a', cats:['lotion'], pop:78, tag:'영양 보습 로션', aff:{dryness:2,dull:2,elastic:1}},
+    {id:'illiyoonLotion', brand:'일리윤', name:'세라마이드 아토 로션', color:'#8ba0b0', cats:['lotion'], pop:83, tag:'세라마이드 보습', ing:['세라마이드'], aff:{dryness:3,flake:2,redness:1}},
+    {id:'cnpLotion', brand:'CNP', name:'프로폴리스 에너지 앰플 로션', color:'#c9a86a', cats:['lotion'], pop:78, tag:'영양 보습 로션', ing:['프로폴리스'], aff:{dryness:2,dull:2,elastic:1}},
     {id:'roundlabLotion', brand:'라운드랩', name:'1025 독도 로션', color:'#5c7a8b', cats:['lotion'], pop:84, tag:'약산성 수분 로션', aff:{dryness:2,redness:1,flake:1}},
     /* --- 아이 메이크업: 아이브로우 --- */
     {id:'clioBrow', brand:'클리오', name:'킬브로우 오토 하드 브로우 펜슬', color:'#6b5744', cats:['brow'], pop:88, tag:'자연스러운 눈썹', aff:{}},
     {id:'etudeBrow', brand:'에뛰드', name:'드로잉 아이브로우', color:'#7a6248', cats:['brow'], pop:82, tag:'입문용 브로우', aff:{}},
-    {id:'ridleBrow', brand:'롬앤', name:'한스텝 브로우 펜슬', color:'#5c4a38', cats:['brow'], pop:75, tag:'디테일 표현', aff:{}},
+    {id:'ridleBrow', brand:'롬앤', name:'한올 샤프 브로우', color:'#5c4a38', cats:['brow'], pop:75, tag:'디테일 표현', aff:{}},
     /* --- 퍼퓸 & 바디: 향수 --- */
     {id:'foretPerfume', brand:'포레', name:'우디 머스크 오 드 퍼퓸', color:'#5c5c7a', cats:['perfume'], pop:86, tag:'포근한 우디', aff:{}},
     {id:'tamburinsPerfume', brand:'탬버린즈', name:'베르가못 시트러스 오 드 퍼퓸', color:'#7a8b5c', cats:['perfume'], pop:84, tag:'상쾌한 시트러스', aff:{}},
     {id:'granhandPerfume', brand:'그랑핸드', name:'뉴트럴 오 드 퍼퓸', color:'#8b7a5c', cats:['perfume'], pop:79, tag:'데일리 은은함', aff:{}},
     /* --- 퍼퓸 & 바디: 바디 로션 --- */
-    {id:'aveenoBody', brand:'아비노', name:'데일리 모이스처라이징 바디로션', color:'#6b8b8b', cats:['bodylotion'], pop:85, tag:'귀리 보습', aff:{dryness:3,flake:2}},
-    {id:'ceraveBody', brand:'세라비', name:'모이스처라이징 바디 크림', color:'#5c7a8b', cats:['bodylotion'], pop:88, tag:'세라마이드 장벽', aff:{dryness:3,redness:1}},
-    {id:'sensodyneBody', brand:'존슨즈', name:'베이비 로션 바디', color:'#9b8b7a', cats:['bodylotion'], pop:74, tag:'순한 데일리 보습', aff:{dryness:2}},
+    {id:'aveenoBody', brand:'아비노', name:'데일리 모이스처라이징 바디로션', color:'#6b8b8b', cats:['bodylotion'], pop:85, tag:'귀리 보습', ing:['콜로이드 오트밀'], aff:{dryness:3,flake:2}},
+    {id:'ceraveBody', brand:'세라비', name:'모이스처라이징 바디 크림', color:'#5c7a8b', cats:['bodylotion'], pop:88, tag:'세라마이드 장벽', ing:['세라마이드'], aff:{dryness:3,redness:1}},
+    {id:'sensodyneBody', brand:'존슨즈', name:'베이비 핑크 로션', color:'#9b8b7a', cats:['bodylotion'], pop:74, tag:'순한 데일리 보습', aff:{dryness:2}},
     /* --- 퍼퓸 & 바디: 풋케어 --- */
     {id:'jejuFoot', brand:'제주마유', name:'풋 밸런스 크림', color:'#6b8b6f', cats:['foot'], pop:72, tag:'각질·건조 케어', aff:{dryness:2,flake:2}},
     {id:'scholFoot', brand:'닥터숄', name:'벨벳 스무스 풋 크림', color:'#8b6f5c', cats:['foot'], pop:76, tag:'매끈한 발뒤꿈치', aff:{flake:2,dryness:2}},
@@ -4618,6 +4623,89 @@ DEMO_HTML = """
     {id:'domeDeo', brand:'돔', name:'데오드란트 스틱 무향', color:'#7a7a8b', cats:['deo'], pop:78, tag:'무향 데오 스틱', aff:{}}
   ];
   window.PRODUCTS = PRODUCTS;
+
+  /* ---- 성분 → 효능 태그 매핑 ----
+     제품의 핵심 성분(ing)으로부터 효능 가중치를 자동 도출해 수기 aff를 보강한다.
+     수기 값과 성분 도출 값 중 큰 쪽을 쓰므로, 성분만 채워도 추천 대상이 된다. */
+  const ING_EFFECTS = {
+    '나이아신아마이드': {tone:2,pigment:2,spot:2,oil:1,pore:1,dull:2},
+    '살리실산(BHA)':   {blackhead:3,pore:2,acne:2,oil:2,texture:2},
+    '히알루론산':       {dryness:3,flake:1,texture:1},
+    '판테놀':           {redness:2,dryness:2,flake:1},
+    '세라마이드':       {dryness:3,flake:2,redness:1},
+    '펩타이드':         {elastic:2,wrinkle:2,texture:1},
+    '비타민C':          {spot:3,pigment:3,tone:2,dull:2},
+    'PDRN':             {scar:2,elastic:2,texture:1},
+    '병풀(시카)':       {redness:3,acne:2,scar:1,shave:2},
+    '어성초':           {acne:2,oil:2,pore:2,redness:2},
+    '마데카소사이드':   {redness:2,scar:2,acne:1},
+    '프로폴리스':       {dull:2,dryness:2,elastic:1},
+    '스쿠알란':         {dryness:2,flake:1},
+    '콜라겐':           {elastic:2,wrinkle:1},
+    '녹차':             {oil:1,redness:1},
+    '자작나무 수액':    {dryness:2,redness:1},
+    '버섯 추출물':      {redness:2,dull:1},
+    '콜로이드 오트밀':  {dryness:2,redness:2}
+  };
+  const TAG_LABELS = {
+    pore:'모공', oil:'피지', acne:'트러블', scar:'흉터', elastic:'탄력', texture:'피부결',
+    spot:'잡티', blemish:'자국', tone:'톤', blackhead:'블랙헤드', darkcircle:'다크서클',
+    shave:'면도 자극', ingrown:'인그로운', dull:'칙칙함', dryness:'건조', redness:'붉은기',
+    pigment:'색소침착', flake:'각질', wrinkle:'주름', cover:'커버'
+  };
+
+  function enrichAffFromIngredients(p){
+    if(!p.ing || !p.ing.length) return;
+    p.aff = Object.assign({}, p.aff);
+    p.ing.forEach(name=>{
+      const eff = ING_EFFECTS[name]; if(!eff) return;
+      for(const t in eff){ p.aff[t] = Math.max(p.aff[t] || 0, eff[t]); }
+    });
+  }
+  PRODUCTS.forEach(enrichAffFromIngredients);
+
+  /* ---- 올리브영 상세페이지 링크 + 공식 상품 이미지 ----
+     확보된 goodsNo 상세 URL은 카드 클릭 시 바로 상세페이지로 연결되고,
+     없는 제품은 기존 검색 결과 URL로 폴백한다. img는 기존 값이 없을 때만 채운다. */
+  const OY_DATA = {
+    cosrx:        { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000204071', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0020/A00000020407102ko.jpg' },
+    toriden:      { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000190326', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019032608ko.jpg' },
+    anua:         { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000210655', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021065501ko.jpg' },
+    anuaTuner:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000147339', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014733901ko.jpg' },
+    mediheal:     { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000223423', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0022/A00000022342306ko.jpg' },
+    ahc:          { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000182989', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A00000018298901ko.jpg' },
+    goodalSun:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000198527', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019852701ko.jpg' },
+    goodalVitaC:  { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000229790', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0022/A00000022979001ko.jpg' },
+    jsm:          { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000139063', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0013/A00000013906301ko.jpg' },
+    hera:         { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000202777', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0020/A00000020277702ko.jpg' },
+    clioCushion:  { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000232098', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0023/A00000023209802ko.jpg' },
+    innisfree:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000190590', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0019/A00000019059003ko.jpg' },
+    estraCleanser:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000245046', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0024/A00000024504601ko.jpg' },
+    roundlabBirch:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000145579', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014557901ko.jpg' },
+    physiogel:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148899', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014889901ko.jpg' },
+    illiyoonLotion:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000157820', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0015/A00000015782001ko.jpg' },
+    roundlabLotion:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000145576', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014557601ko.jpg' },
+    clioBrow:     { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000015597', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0001/A00000001559701ko.jpg' },
+    ridleBrow:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148249', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014824901ko.jpg' },
+    aveenoBody:   { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000191127', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019112701ko.jpg' },
+    sensodyneBody:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000000749', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0000/A00000000074901ko.jpg' },
+    lumir:        { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000208498', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0020/A00000020849862ko.jpg?l=ko' },
+    peripera:     { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000204450', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0020/A000000204450102ko.jpg?l=ko' },
+    clioEye:      { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000188988', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A000000188988149ko.jpg?l=ko' },
+    medicubeAger: { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000212959', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021295912ko.jpg?l=ko' },
+    estraCream:   { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000198320', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019832009ko.jpg?l=ko' },
+    medicubeMist: { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000233228', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0023/A00000023322801ko.jpg?l=ko' },
+    esnature:     { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000152046', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0015/A00000015204661ko.jpg?l=ko' },
+    drg:          { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000154177', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0015/A00000015417709ko.jpg?l=ko' }
+  };
+  function applyOyData(){
+    PRODUCTS.forEach(p=>{
+      const d = OY_DATA[p.id]; if(!d) return;
+      if(d.url && !p.oy) p.oy = d.url;
+      if(d.img && !p.img) p.img = d.img;
+    });
+  }
+  applyOyData();
 
   /* ---- 제품명 → 실제 상품 이미지 URL 매핑 (안정적 방식) ----
      올리브영 등 판매처 사이트는 봇 차단으로 이미지 자동 수집이 불가하므로,
@@ -4701,6 +4789,28 @@ DEMO_HTML = """
     return s;
   }
 
+  /* 추천 이유: 내 결핍(심각도)과 제품 효능이 겹치는 상위 태그 + 그 효능을 내는 성분 */
+  function buildWhy(p, profile){
+    const contrib = [];
+    for(const tag in p.aff){
+      const c = p.aff[tag] * (profile.sev[tag] || 0);
+      if(profile.sev[tag] >= 0.5 && p.aff[tag] >= 2 && TAG_LABELS[tag]){ contrib.push({tag:tag, c:c}); }
+    }
+    if(!contrib.length) return '';
+    contrib.sort((a,b)=> b.c - a.c);
+    const topTags = contrib.slice(0,2).map(x=>x.tag);
+    let why = '<b>' + topTags.map(t=>TAG_LABELS[t]).join('·') + ' 보완</b>';
+    if(p.ing && p.ing.length){
+      /* 그 태그 효능에 실제로 기여하는 성분만 노출 */
+      const ings = p.ing.filter(name=>{
+        const eff = ING_EFFECTS[name];
+        return eff && topTags.some(t=> eff[t]);
+      }).slice(0,2);
+      if(ings.length) why += ' · ' + ings.join('·');
+    }
+    return why;
+  }
+
   function recommendFrom(pool, N, focal){
     const profile = buildUserProfile();
     /* focal: 지금 보고 있는 고민 태그. 그 고민 특화 제품이 범용 제품보다 우선되도록 가중. */
@@ -4712,7 +4822,8 @@ DEMO_HTML = """
     scored.sort((a,b)=> b.s - a.s);
     return scored.slice(0, N).map((x,i)=> Object.assign({}, x.p, {
       rank: i+1,
-      match: Math.round(72 + 27 * (x.s / max))
+      match: Math.round(72 + 27 * (x.s / max)),
+      why: buildWhy(x.p, profile)
     }));
   }
   function recommendForConcern(tag, N){
@@ -4731,7 +4842,8 @@ DEMO_HTML = """
     return {
       id: row.id, brand: row.brand, name: row.name,
       cats: row.cats || [], pop: row.pop || 70, tag: row.tag || '',
-      img: row.img_url || null, color: row.color || '#8b6f47', aff: row.aff || {}
+      img: row.img_url || null, color: row.color || '#8b6f47', aff: row.aff || {},
+      ing: row.ing || [], oy: row.oy_url || null
     };
   }
   async function loadCatalogFromSupabase(){
@@ -4752,6 +4864,8 @@ DEMO_HTML = """
         rows.map(normalizeProduct).forEach(p=>{ if(p && p.id) merged[p.id] = p; });
         PRODUCTS = Object.values(merged);
         window.PRODUCTS = PRODUCTS;
+        PRODUCTS.forEach(enrichAffFromIngredients);   /* 원격 카탈로그도 성분 기반 aff 보강 */
+        applyOyData();       /* 원격 항목에도 상세페이지 링크·이미지 적용(원격 값 우선) */
         applyProdImgMap();   /* 원격 카탈로그에도 제품명 기반 이미지 매핑 적용 */
         /* 현재 열려 있는 추천 화면이 있으면 새 카탈로그로 다시 그린다 */
         if(typeof tierInitialized !== 'undefined' && tierInitialized){
