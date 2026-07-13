@@ -376,6 +376,10 @@ DEMO_HTML = """
   .metric-top{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:6px;}
   .metric-track{height:8px;border-radius:999px;background:var(--accent-soft);overflow:hidden;}
   .metric-fill{height:100%;border-radius:999px;width:0%;transition:width 1s cubic-bezier(.2,.8,.2,1);}
+  /* 접근성: 시스템에서 모션 최소화를 켜면 막대 채움 전환도 끈다 (JS 카운트업도 함께 비활성화됨) */
+  @media (prefers-reduced-motion: reduce){
+    .metric-fill{transition:none;}
+  }
   .fill-good{background:var(--good);}
   .fill-mid{background:var(--mid);}
   .fill-bad{background:var(--bad);}
@@ -3726,26 +3730,68 @@ DEMO_HTML = """
       care:['트러블 부위는 만지지 말고 저자극 진정 성분으로 케어', '피부에 닿는 물건(베개 커버·마스크 등)을 자주 세척', '반복·악화되는 경우 전문의 상담을 참고 옵션으로 고려'] }
   };
 
+  /* ---- 결과 그래프 애니메이션 ----
+     원형 게이지·막대가 0에서 최종값까지 ease-out으로 차오르고 숫자도 함께 카운트업.
+     · 같은 결과를 다시 그릴 때(최근 결과 다시 보기 재진입 등)는 재생 없이 최종 상태만 표시
+     · prefers-reduced-motion 환경에서는 애니메이션 없이 즉시 최종값 표시 */
+  const REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+  let lastResultKey = null;
+  /* 숫자 카운트업 + (ringEl이 있으면) conic-gradient 게이지를 같은 진행률로 갱신 */
+  function animateScore(numEl, target, dur, delay, ringEl){
+    const start = performance.now() + (delay || 0);
+    function frame(now){
+      const p = Math.min(1, Math.max(0, (now - start) / dur));
+      const v = target * easeOutCubic(p);
+      if(numEl) numEl.textContent = Math.round(v);
+      if(ringEl) ringEl.style.background =
+        'conic-gradient(var(--gold) ' + v + '%, var(--line) ' + v + '% 100%)';
+      if(p < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
   function renderResult(metrics){
     const values = Object.values(metrics);
     const overall = Math.round(values.reduce((a,b)=>a+b,0)/values.length);
-    document.getElementById('scoreNum').textContent = overall;
-    document.getElementById('ring').style.background =
-      `conic-gradient(var(--gold) ${overall}%, var(--line) ${overall}% 100%)`;
+    const ringEl = document.getElementById('ring');
+    const scoreEl = document.getElementById('scoreNum');
+    /* 동일 결과 재렌더 여부로 1회 실행 보장 */
+    const resultKey = overall + '|' + values.join(',');
+    const animate = !REDUCED_MOTION && resultKey !== lastResultKey;
+    lastResultKey = resultKey;
+
+    if(animate){
+      scoreEl.textContent = '0';
+      ringEl.style.background = 'conic-gradient(var(--gold) 0%, var(--line) 0% 100%)';
+      animateScore(scoreEl, overall, 950, 0, ringEl);
+    } else {
+      scoreEl.textContent = overall;
+      ringEl.style.background = `conic-gradient(var(--gold) ${overall}%, var(--line) ${overall}% 100%)`;
+    }
 
     const metricsEl = document.getElementById('metrics');
     metricsEl.innerHTML = '';
-    Object.entries(metrics).forEach(([label, score])=>{
+    Object.entries(metrics).forEach(([label, score], i)=>{
       const b = band(score);
       const note = (METRIC_NOTES[label] || {})[b] || '';
       const row = document.createElement('div');
       row.className='metric';
       row.innerHTML = `
-        <div class="metric-top"><span>${label}</span><span>${score}</span></div>
+        <div class="metric-top"><span>${label}</span><span class="metric-score">${animate ? 0 : score}</span></div>
         <div class="metric-track"><div class="metric-fill fill-${b}" style="width:0%"></div></div>
         <div class="metric-note">${note}</div>`;
       metricsEl.appendChild(row);
-      requestAnimationFrame(()=>{ row.querySelector('.metric-fill').style.width = score+'%'; });
+      const fill = row.querySelector('.metric-fill');
+      if(animate){
+        /* 막대는 CSS transition으로, 숫자는 rAF로 같은 타이밍에 — 행마다 90ms 순차 딜레이 */
+        fill.style.transitionDelay = (i * 90) + 'ms';
+        requestAnimationFrame(()=>{ fill.style.width = score + '%'; });
+        animateScore(row.querySelector('.metric-score'), score, 950, i * 90, null);
+      } else {
+        fill.style.transition = 'none';
+        fill.style.width = score + '%';
+      }
     });
 
     const labels = [...state.concerns].map(k=>CONCERNS[k].label);
@@ -4035,7 +4081,7 @@ DEMO_HTML = """
     { id:'f4', sit:'interview', gender:'male', title:'면접 신뢰 룩',
       visual:{ outfit:'suit', c:{main:'#2e3a52', line:'#222b3e', shirt:'#f6f7f9', tie:'#5f7396'}, filter:'contrast(1.05) saturate(.9)', pos:'center 22%' },
       markers:[{t:40, l:57}, {t:48, l:26}, {t:29, l:33}],
-      outfitText:{main:'네이비 수트 + 타이', sub:'기본에 충실한 신뢰형'}, hairText:'사이드 파트(가르마 깐머리)' },
+      outfitText:{main:'네이비 수트 + 타이', sub:'기본에 충실한 신뢰형'}, hairText:'포마드' },
     { id:'f5', sit:'interview', gender:'female', title:'면접 단정 룩',
       visual:{ outfit:'suit', c:{main:'#3a3f4a', line:'#2b2f38', shirt:'#f6f7f9', tie:''}, filter:'contrast(1.04) saturate(.88)', pos:'center 16%' },
       markers:[{t:42, l:64}, {t:51, l:38}, {t:29, l:39}],
@@ -4043,7 +4089,7 @@ DEMO_HTML = """
     { id:'f6', sit:'interview', gender:'male', title:'면접 비즈 캐주얼 룩',
       visual:{ outfit:'shirt', c:{main:'#dfe3e8', line:'#b6bec9'}, filter:'saturate(.94) brightness(1.03)', pos:'center 18%' },
       markers:[{t:43, l:62}, {t:55, l:36}, {t:33, l:38}],
-      outfitText:{main:'그레이 셔츠 (노타이)', sub:'단정하지만 딱딱하지 않게'}, hairText:'사이드 정돈' },
+      outfitText:{main:'그레이 셔츠 (노타이)', sub:'단정하지만 딱딱하지 않게'}, hairText:'포마드' },
     /* 출근 */
     { id:'f7', sit:'work', gender:'male', title:'데일리 출근 룩',
       visual:{ outfit:'knit', c:{main:'#9aa3ad', line:'#7f8894'}, filter:'saturate(.88) brightness(1.02)', pos:'center 20%' },
@@ -4056,7 +4102,7 @@ DEMO_HTML = """
     { id:'f9', sit:'work', gender:'male', title:'출근 셔츠 룩',
       visual:{ outfit:'shirt', c:{main:'#5b6b85', line:'#465471'}, filter:'saturate(.95) contrast(1.03)', pos:'center 22%' },
       markers:[{t:47, l:55}, {t:33, l:55}, {t:22, l:57}],
-      outfitText:{main:'네이비 셔츠', sub:'차분하고 신뢰감 있는 톤'}, hairText:'단정한 사이드 파트' },
+      outfitText:{main:'네이비 셔츠', sub:'차분하고 신뢰감 있는 톤'}, hairText:'포마드' },
     /* 주말 약속 */
     { id:'f10', sit:'weekend', gender:'male', title:'주말 캐주얼 룩',
       visual:{ outfit:'hoodie', c:{main:'#2b2b2e', line:'#1e1e21', string:'#8f8f95'}, filter:'saturate(1.14) contrast(1.03)', pos:'center 26%' },
@@ -4065,7 +4111,7 @@ DEMO_HTML = """
     { id:'f11', sit:'weekend', gender:'female', title:'주말 데이트 룩',
       visual:{ outfit:'blouse', c:{main:'#d9c9b2', line:'#c4b096'}, filter:'brightness(1.04) sepia(.08) saturate(1.05)', pos:'center 16%' },
       markers:[{t:53, l:62}, {t:68, l:52}, {t:56, l:47}],
-      outfitText:{main:'베이지 보트넥 니트', sub:'편안한 데이트 무드'}, hairText:'로우 웨이브' },
+      outfitText:{main:'베이지 보트넥 니트', sub:'편안한 데이트 무드'}, hairText:'네추럴 웨이브' },
     { id:'f12', sit:'weekend', gender:'male', title:'주말 액티브 룩',
       visual:{ outfit:'henley', c:{main:'#2e3440', line:'#232834'}, filter:'saturate(1.08) contrast(1.04)', pos:'center 24%' },
       markers:[{t:47, l:68}, {t:33, l:62}, {t:60, l:55}],
