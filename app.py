@@ -4,7 +4,7 @@ from pathlib import Path
 
 import streamlit as st
 
-st.set_page_config(page_title="FOR HIM - Men's Beauty AI Demo", layout="wide")
+st.set_page_config(page_title="MEN ARE COOL - Men's Beauty AI Demo", layout="wide")
 
 # Streamlit 기본 크롬 숨김: 우측 상단 메뉴·Deploy/Share 버튼·헤더·푸터·툴바·상태 위젯.
 # 앱 기능(사이드바 화면 전환 포함)은 그대로 유지하고, 상단 빈 여백도 줄인다.
@@ -21,6 +21,14 @@ st.markdown(
       [data-testid="stAppDeployButton"] {
         display: none !important;
         visibility: hidden !important;
+      }
+      /* 좌측 사이드바 완전 제거: 요소와 접기(<<) 컨트롤을 없애 메인이 전체 폭 사용 */
+      section[data-testid="stSidebar"],
+      div[data-testid="stSidebarCollapsedControl"],
+      [data-testid="collapsedControl"] {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
       }
       /* 데모 배경과 톤을 맞춰 흰 테두리 느낌 제거 */
       .stApp { background: #f6f5f2; }
@@ -153,7 +161,7 @@ DEMO_HTML = """
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>FOR HIM — Men's Beauty AI Demo</title>
+<title>MEN ARE COOL — Men's Beauty AI Demo</title>
 <script>window.SB_URL="__SUPABASE_URL__";window.SB_KEY="__SUPABASE_KEY__";window.AUTH_ON=__AUTH_ON__;window.USER_LOGGED_IN=__USER_LOGGED_IN__;window.USER_EMAIL=__USER_EMAIL__;window.USER_NAME=__USER_NAME__;window.APP_URL=__APP_URL__;window.FACE_MALE="__FACE_MALE__";window.FACE_FEMALE="__FACE_FEMALE__";window.OY_RANKING=__OY_RANKING__;window.LOOK_IMGS=__LOOK_IMGS__;window.PROD_IMGS=__PROD_IMGS__;</script>
 <style>
   :root{
@@ -219,7 +227,8 @@ DEMO_HTML = """
   .nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;}
   .brand{display:flex;flex-direction:column;line-height:1.1;}
   .brand b{font-size:19px;letter-spacing:-.02em;}
-  .brand span{font-size:10.5px;letter-spacing:.16em;color:var(--ink-soft);text-transform:uppercase;margin-top:2px;}
+  /* 서브텍스트가 길어져(curation platform) 자간만 줄여 한 줄 유지 — 그 외 스타일 동일 */
+  .brand span{font-size:10px;letter-spacing:.08em;color:var(--ink-soft);text-transform:uppercase;margin-top:2px;white-space:nowrap;}
   .nav-links{display:flex;gap:28px;font-size:14.5px;font-weight:600;color:var(--ink-soft);}
   .nav-links a:hover{color:var(--ink);}
   .nav-links a.active{color:var(--ink);text-decoration:underline;text-underline-offset:7px;text-decoration-color:var(--gold);text-decoration-thickness:2px;}
@@ -427,6 +436,24 @@ DEMO_HTML = """
     font-size:11.5px;font-weight:700;
   }
   .prod-card.reco .prod-cart-btn{background:var(--gold);color:#1a1a18;}
+  /* 카드 하단 액션 행: [위시리스트에 담기(좁게)] [판매 페이지로 이동(기존 그대로)] */
+  .prod-actions{display:flex;gap:6px;margin-top:14px;align-items:stretch;min-width:0;}
+  .prod-actions .prod-cart-btn{
+    margin-top:0;flex:1 1 auto;min-width:0;
+    display:flex;align-items:center;justify-content:center;white-space:nowrap;
+  }
+  .wish-btn{
+    flex:0 0 38%;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:3px;
+    padding:0 4px;border-radius:999px;border:1.5px solid var(--line);background:transparent;
+    color:var(--ink-soft);font-size:9px;font-weight:700;font-family:inherit;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .wish-btn:hover{border-color:var(--gold);color:var(--ink);}
+  .wish-btn .wish-ic{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;}
+  .wish-btn .wish-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .wish-btn.on{background:var(--gold);border-color:var(--gold);color:#1a1a18;font-size:11px;}
+  .wish-btn.on .wish-ic{fill:currentColor;}
+  .prod-card.reco .wish-btn.on{background:var(--dark);border-color:var(--dark);color:#fff;}
   /* 배지: 왼쪽 상단 랭킹(올리브영 랭킹 데이터 기반) · 오른쪽 상단 '추천'(내 피부 매칭)
      문구가 길어져도 한 줄 유지(nowrap) + 폰트 90% 축소, 위치·색·형태는 기존 그대로 */
   .prod-rank{
@@ -861,10 +888,10 @@ DEMO_HTML = """
   }
   .toast{
     position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(120%);
-    background:var(--dark);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;
-    box-shadow:var(--shadow);transition:transform .25s ease;z-index:100;
+    background:rgba(28,28,26,.92);color:#fff;padding:13px 22px;border-radius:999px;font-size:13.5px;font-weight:600;
+    box-shadow:var(--shadow);opacity:0;transition:transform .25s ease,opacity .25s ease;z-index:100;
   }
-  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
 
   footer{padding:0;text-align:center;color:var(--ink-soft);font-size:11.5px;background:none;margin-top:18px;}
   footer .fine{color:#a6a49c;}
@@ -1376,6 +1403,18 @@ DEMO_HTML = """
   .mp-tabs{display:flex;gap:8px;border-bottom:1px solid #e6dccd;margin-bottom:16px;overflow-x:auto;}
   .mp-tab{padding:11px 4px;margin-right:12px;background:none;border:none;border-bottom:2px solid transparent;color:#a89a86;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;transition:all .15s ease;}
   .mp-tab.active{color:#2b241d;border-bottom-color:var(--db-brown,#8a6a52);}
+  .mp-tab .mp-tab-ic{width:12px;height:12px;vertical-align:-1px;margin-right:4px;fill:currentColor;}
+  /* 마이페이지 > 내 위시리스트: 담아둔 제품을 기존 카드 UI 그대로 그리드 나열 */
+  .mp-wish-title{font-size:15px;font-weight:800;color:#2b241d;margin:2px 0 14px;}
+  .mp-wish-title b{color:var(--db-brown,#8a6a52);}
+  .mp-wish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+  .mp-wish-grid .prod-card{width:auto;}
+  @media (max-width:560px){
+    .mp-wish-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
+    /* 좁은 카드에서는 하트 아이콘만 노출(채움 여부로 담김 상태 표시) */
+    .mp-wish-grid .wish-btn{flex-basis:40px;}
+    .mp-wish-grid .wish-btn .wish-txt{display:none;}
+  }
   .mp-panels{display:flex;flex-direction:column;gap:12px;}
   .mp-record{background:#fffdfa;border:1px solid #e6dccd;border-radius:14px;padding:16px 18px;transition:box-shadow .15s ease;}
   .mp-record:hover{box-shadow:0 8px 20px rgba(120,96,68,.08);}
@@ -1789,6 +1828,7 @@ DEMO_HTML = """
     </div>
 
     <div class="mp-tabs">
+      <button type="button" class="mp-tab" data-mp="wishlist"><svg class="mp-tab-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>내 위시리스트</button>
       <button type="button" class="mp-tab active" data-mp="analyses">피부 분석 내역</button>
       <button type="button" class="mp-tab" data-mp="recommends">추천 이력</button>
       <button type="button" class="mp-tab" data-mp="consults">상담 내역</button>
@@ -1831,7 +1871,7 @@ DEMO_HTML = """
 <div id="screenApp" class="app-screen" style="display:none;">
 <div class="nav">
   <div class="wrap">
-    <div class="brand"><b>FOR HIM</b><span>Men's Skincare Lab</span></div>
+    <div class="brand"><b>MEN ARE COOL</b><span>men skin care curation platform</span></div>
     <div class="nav-links">
       <a href="#" data-step="analysis">피부분석</a>
       <a href="#" data-step="recommend">제품추천</a>
@@ -2539,6 +2579,51 @@ DEMO_HTML = """
     showAuth('intro');
   }
 
+  /* ---------------- wishlist (localStorage, product ID 배열) ----------------
+     제품 카드의 '위시리스트에 담기' 버튼과 마이페이지 '내 위시리스트' 탭이 공유한다.
+     ID 배열 구조라 추후 별도 페이지에서도 PRODUCTS 필터만으로 재사용 가능. */
+  const WISH_KEY = 'forhim_wishlist_v1';
+  function loadWishlist(){ try{ const a = JSON.parse(localStorage.getItem(WISH_KEY) || '[]'); return Array.isArray(a) ? a : []; }catch(e){ return []; } }
+  function saveWishlist(list){ try{ localStorage.setItem(WISH_KEY, JSON.stringify(list)); }catch(e){} }
+  function isWished(id){ return loadWishlist().indexOf(id) >= 0; }
+  function updateWishButtons(id){
+    const on = isWished(id);
+    document.querySelectorAll('.wish-btn[data-wish-id="' + id + '"]').forEach(function(b){
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      const t = b.querySelector('.wish-txt'); if(t) t.textContent = on ? '담김' : '위시리스트에 담기';
+    });
+  }
+  let wishToastTimer = null;
+  function wishToast(msg){
+    const t = document.getElementById('toast'); if(!t) return;
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(wishToastTimer);
+    wishToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+  }
+  function toggleWishlist(id){
+    if(!id) return;
+    const list = loadWishlist();
+    const i = list.indexOf(id);
+    const added = i < 0;
+    if(added) list.push(id); else list.splice(i, 1);
+    saveWishlist(list);
+    updateWishButtons(id);
+    wishToast(added ? '위시리스트에 저장되었습니다' : '위시리스트에서 제거되었습니다');
+    /* 마이페이지 위시리스트 탭이 열려 있으면 목록·개수 즉시 갱신 */
+    if(mpTab === 'wishlist') renderMyPanels();
+  }
+  window.isWished = isWished;
+  window.getWishlist = loadWishlist;
+  window.toggleWishlist = toggleWishlist;
+  /* 제품 카드 전체가 <a>(판매 페이지 링크)라서, 담기 버튼 클릭은 위임으로 가로채
+     링크 이동을 막는다. 카드가 innerHTML로 다시 그려져도 리스너 재부착이 필요 없다. */
+  document.addEventListener('click', function(e){
+    const b = e.target.closest('.wish-btn');
+    if(b){ e.preventDefault(); e.stopPropagation(); toggleWishlist(b.getAttribute('data-wish-id')); return; }
+    if(e.target.closest('#mpWishGo')){ enterAppStep('recommend'); }
+  });
+
   function showMyPage(){ renderMyPage(); showMemberScreen(screenMyPage); }
   function mpCard(date, title, summary, badge){
     return '<div class="mp-record"><div class="mp-record-top"><span class="mp-record-date">'+date+'</span>'+
@@ -2550,7 +2635,16 @@ DEMO_HTML = """
   function renderMyPanels(){
     const el = document.getElementById('mpPanels');
     let html = '';
-    if(mpTab==='analyses'){
+    if(mpTab==='wishlist'){
+      /* 담아둔 product ID를 전체 카탈로그(window.PRODUCTS)와 매칭해 기존 카드 UI로 렌더 */
+      const ids = loadWishlist();
+      const items = (window.PRODUCTS || []).filter(function(p){ return ids.indexOf(p.id) >= 0; });
+      html = '<div class="mp-wish-title">내 위시리스트 <b>(' + items.length + ')</b></div>' +
+        (items.length && window.renderProductCards
+          ? '<div class="mp-wish-grid">' + window.renderProductCards(items) + '</div>'
+          : mpEmpty('아직 담아둔 제품이 없어요.') +
+            '<div style="text-align:center;margin-top:4px;"><button type="button" class="btn btn-dark btn-sm" id="mpWishGo">제품 추천 보러가기</button></div>');
+    } else if(mpTab==='analyses'){
       html = records.analyses.length ? records.analyses.map(a=> mpCard(fmtDate(a.date), a.type+' · '+a.top+' 집중', a.summary, a.score+'점')).join('') : mpEmpty('아직 분석 기록이 없어요.');
     } else if(mpTab==='recommends'){
       html = records.recommends.length ? records.recommends.map(r=> mpCard(fmtDate(r.date), r.title, r.summary+' · '+r.items.join(', '), '')).join('') : mpEmpty('아직 추천 이력이 없어요.');
@@ -4526,6 +4620,8 @@ DEMO_HTML = """
       const isReco = p.rank === 1;                    /* 내 피부 매칭 최상 → '추천' */
       /* 실물 사진 우선순위: 로컬 prod_<id> 파일 → 카탈로그 img URL → 카테고리 일러스트 */
       const photo = (window.PROD_IMGS || {})[p.id] || p.img;
+      /* 렌더 시점의 위시리스트 상태로 초기 담김/미담김 표시 (isWished는 멤버 스크립트에서 노출) */
+      const wished = !!(window.isWished && window.isWished(p.id));
       return '<a class="prod-card' + (isReco ? ' reco' : '') + '" href="' + url + '" target="_blank" rel="noopener noreferrer">' +
         (rankText ? '<div class="prod-rank">' + rankText + '</div>' : '') +
         (isReco ? '<div class="prod-reco">추천</div>' : '') +
@@ -4539,7 +4635,14 @@ DEMO_HTML = """
           (p.match ? '<span class="prod-match">나와 ' + p.match + '% 매치</span>' : '') +
         '</div>' +
         (p.why ? '<div class="prod-why">' + p.why + '</div>' : '') +
-        '<div class="prod-cart-btn">' + ctaText + '</div>' +
+        '<div class="prod-actions">' +
+          '<button type="button" class="wish-btn' + (wished ? ' on' : '') + '" data-wish-id="' + p.id + '"' +
+            ' aria-pressed="' + (wished ? 'true' : 'false') + '" aria-label="위시리스트에 담기">' +
+            '<svg class="wish-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>' +
+            '<span class="wish-txt">' + (wished ? '담김' : '위시리스트에 담기') + '</span>' +
+          '</button>' +
+          '<div class="prod-cart-btn">' + ctaText + '</div>' +
+        '</div>' +
       '</a>';
     }).join('');
   }
@@ -4647,7 +4750,8 @@ DEMO_HTML = """
     {id:'cetaphilMoisturizing', brand:'세타필', name:'모이스춰라이징 로션', color:'#5c7a8b', cats:['bodylotion'], pop:90, tag:'온가족 저자극', ing:['글리세린'], aff:{dryness:3}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000165616', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0016/A00000016561601ko.jpg'},
     {id:'niveaSosLotion', brand:'니베아', name:'SOS 케어 바디로션', color:'#5c6f8b', cats:['bodylotion'], pop:84, tag:'속건조 케어', ing:['판테놀'], aff:{dryness:2,redness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000008525', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0000/A00000000852501ko.jpg'},
     {id:'onthebodyFootShampoo', brand:'온더바디', name:'발을씻자 코튼 풋샴푸', color:'#6b8b8b', cats:['foot'], pop:89, tag:'상쾌한 발세정', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000117399', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0011/A00000011739902ko.jpg'},
-    {id:'fillimilliFootFile', brand:'필리밀리', name:'전동 발각질 제거기', color:'#8b6f5c', cats:['foot'], pop:80, tag:'매끈한 발뒤꿈치', aff:{flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000185969', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A00000018596901ko.jpg'},
+    /* img: 올리브영 상품 페이지(A000000185969) og:image 대표컷 — 01ko는 다른 도구 컷이라 사용 금지 */
+    {id:'fillimilliFootFile', brand:'필리밀리', name:'전동 발각질 제거기', color:'#8b6f5c', cats:['foot'], pop:80, tag:'매끈한 발뒤꿈치', aff:{flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000185969', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0018/A00000018596906ko.jpg'},
     {id:'niveaDeoRollOn', brand:'니베아', name:'데오드란트 롤온', color:'#5c6f8b', cats:['deo'], pop:88, tag:'겨드랑이 보송', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000007011', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0000/A00000000701101ko.jpg'},
     {id:'crystalDeoStick', brand:'크리스탈', name:'데오드란트 스틱', color:'#7a7a8b', cats:['deo'], pop:76, tag:'무향 미네랄', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000177886', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0017/A00000017788601ko.jpg'},
     {id:'medicubeUsseraDeepShot', brand:'메디큐브', name:'에이지알 유쎄라 딥 샷', color:'#5c6f8b', cats:['device'], pop:92, tag:'홈 리프팅샷', aff:{elastic:3,wrinkle:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000190763', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019076301ko.jpg'},
@@ -5941,15 +6045,14 @@ DEMO_HTML = DEMO_HTML.replace("__OY_RANKING__", json.dumps(oy_ranking, ensure_as
 DEMO_HTML = DEMO_HTML.replace("__LOOK_IMGS__", json.dumps(look_imgs))
 DEMO_HTML = DEMO_HTML.replace("__PROD_IMGS__", json.dumps(prod_imgs))
 
-# Sidebar view switch: main demo vs. the face-model preview page. The preview
-# reuses the standalone face-model-preview.html (same faceSVG code as the demo).
-view = st.sidebar.radio("화면", ["데모 앱", "얼굴 모델 미리보기"], index=0)
-# 관리자 확인용: 올리브영 랭킹 데이터 갱신 시점
-st.sidebar.caption(
-    f"랭킹 데이터: {oy_ranking.get('updatedAt', '-')} · {oy_ranking.get('source', '-')}"
-)
+# 좌측 사이드바(화면 전환 라디오·랭킹 캡션)는 제거 — 데모 앱이 항상 전체 폭으로 표시된다.
+# 얼굴 모델 미리보기는 UI 없이 ?view=preview 쿼리 파라미터로만 접근(개발 확인용).
+try:
+    show_preview = st.query_params.get("view") == "preview"
+except Exception:
+    show_preview = False
 
-if view == "얼굴 모델 미리보기":
+if show_preview:
     preview_path = Path(__file__).parent / "face-model-preview.html"
     try:
         st.iframe(preview_path.read_text(encoding="utf-8"), height="content", width="stretch")
