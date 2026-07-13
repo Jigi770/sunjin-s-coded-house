@@ -1447,12 +1447,14 @@ DEMO_HTML = """
   }
   .mp-page-btn.on{background:var(--db-brown,#8a6a52);border-color:var(--db-brown,#8a6a52);color:#fff;}
   .mp-page-btn:hover:not(.on){border-color:var(--db-brown,#8a6a52);color:var(--db-brown,#8a6a52);}
-  /* 위시리스트 그리드도 제품 추천과 동일하게 데스크탑 4열 → 3 → 2열 반응형 */
-  .mp-wish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  /* 위시리스트 그리드: 마이페이지 카드 폭(최대 720px)이 좁아 4열이면 버튼이 밀려나오므로
+     2열을 기본으로 두어 카드를 넉넉하게 키운다. 아주 좁은 화면에서만 1열로 축소. */
+  .mp-wish-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
   .mp-wish-grid .prod-card{width:auto;}
-  @media (max-width:1024px){ .mp-wish-grid{grid-template-columns:repeat(3,1fr);} }
-  @media (max-width:820px){ .mp-wish-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:480px){ .mp-wish-grid{grid-template-columns:1fr;} }
   @media (max-width:560px){ .mp-wish-grid{gap:10px;} }
+  /* 카드가 좁아도 버튼 문구가 카드 밖으로 흘러나오지 않도록 방어적으로 말줄임 처리 */
+  .prod-actions .prod-cart-btn{overflow:hidden;text-overflow:ellipsis;}
   .mp-panels{display:flex;flex-direction:column;gap:12px;}
   .mp-record{background:#fffdfa;border:1px solid #e6dccd;border-radius:14px;padding:16px 18px;transition:box-shadow .15s ease;}
   .mp-record:hover{box-shadow:0 8px 20px rgba(120,96,68,.08);}
@@ -1854,7 +1856,7 @@ DEMO_HTML = """
     <div class="mp-stats">
       <div class="mp-stat"><b id="mpCountA">0</b><span>피부 분석</span></div>
       <div class="mp-stat"><b id="mpCountR">0</b><span>추천 이력</span></div>
-      <div class="mp-stat"><b id="mpCountC">0</b><span>상담 내역</span></div>
+      <div class="mp-stat"><b id="mpCountC">0</b><span>위시리스트</span></div>
     </div>
 
     <div class="mp-cta-row">
@@ -1866,10 +1868,9 @@ DEMO_HTML = """
     </div>
 
     <div class="mp-tabs">
-      <button type="button" class="mp-tab" data-mp="wishlist"><svg class="mp-tab-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>내 위시리스트</button>
       <button type="button" class="mp-tab active" data-mp="analyses">피부 분석 내역</button>
       <button type="button" class="mp-tab" data-mp="recommends">추천 이력</button>
-      <button type="button" class="mp-tab" data-mp="consults">상담 내역</button>
+      <button type="button" class="mp-tab" data-mp="wishlist"><svg class="mp-tab-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21.2l7.8-7.8 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>내 위시리스트</button>
     </div>
     <div class="mp-panels" id="mpPanels"></div>
   </div>
@@ -2743,7 +2744,7 @@ DEMO_HTML = """
       providerLabel(member && member.provider) + ' 로그인' + (mEmail ? ' · ' + mEmail : '') + (mAge ? ' · ' + mAge + '세' : '');
     document.getElementById('mpCountA').textContent = records.analyses.length;
     document.getElementById('mpCountR').textContent = records.recommends.length;
-    document.getElementById('mpCountC').textContent = records.consults.length;
+    document.getElementById('mpCountC').textContent = loadWishlist().length;
     document.getElementById('mpRecall').style.display = loadLastResult() ? 'inline-flex' : 'none';
     renderMyPanels();
   }
@@ -4837,7 +4838,7 @@ DEMO_HTML = """
     {id:'lumir', brand:'루미르', name:'라이트 온 아이즈 섀도우 팔레트', img:PIMG.lumir, color:'#9b6f8b', cats:['eye'], pop:72, tag:'퍼스널컬러 팔레트', aff:{}},
     {id:'peripera', brand:'페리페라', name:'올테이크 무드 팔레트', img:PIMG.peripera, color:'#c15c5c', cats:['eye'], pop:78, tag:'데일리 아이 컬러', aff:{}},
     {id:'clioEye', brand:'클리오', name:'프로 아이 팔레트 에어', img:PIMG.clioEye, color:'#a85c6f', cats:['eye'], pop:76, tag:'데일리 섀도우', aff:{}},
-    {id:'medicubeAger', brand:'메디큐브', name:'AGE-R 부스터 프로', color:'#5c6f8b', cats:['device'], pop:79, tag:'리프팅 디바이스', aff:{elastic:3,wrinkle:2,dull:1}},
+    {id:'medicubeAger', brand:'메디큐브', name:'AGE-R 부스터 프로', color:'#5c6f8b', cats:['device','giftskin'], pop:79, tag:'리프팅 디바이스', aff:{elastic:3,wrinkle:2,dull:1}},
     {id:'estraCream', brand:'에스트라', name:'아토베리어365 크림', color:'#6b7a8b', cats:['cream'], pop:86, tag:'장벽 강화 크림', ing:['세라마이드','판테놀'], aff:{dryness:3,redness:2,elastic:2,flake:2}},
     {id:'medicubeMist', brand:'메디큐브', name:'PDRN 핑크 콜라겐 젤리 미스트 세럼', img:PIMG.medicubeMist, color:'#a86f7a', cats:['serum'], pop:81, tag:'PDRN 재생 미스트', ing:['PDRN','콜라겐'], aff:{elastic:2,darkcircle:2,dryness:2,dull:1,scar:1}},
     {id:'esnature', brand:'에스네이처', name:'아쿠아 스쿠알란 수분크림', color:'#6b8b8b', cats:['cream'], pop:77, tag:'수분 진정 크림', ing:['스쿠알란','히알루론산'], aff:{dryness:3,redness:1,flake:1}},
@@ -4958,7 +4959,26 @@ DEMO_HTML = """
     {id:'bringgreenTeaTreeToner', brand:'브링그린', name:'티트리 시카 수딩 토너', color:'#5c8b6f', cats:['toner'], pop:86, tag:'지성 진정토너', ing:['티트리','병풀(시카)','판테놀'], aff:{acne:3,oil:2,redness:2,flake:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000189181', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A00000018918101ko.jpg'},
     {id:'onethingHeartleafToner', brand:'원씽', name:'어성초 추출물 토너', color:'#7a8b5c', cats:['toner'], pop:80, tag:'어성초 원액', ing:['어성초'], aff:{redness:2,acne:2,oil:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000154506', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0015/A00000015450601ko.jpg'},
     {id:'onethingNiacinamideToner', brand:'원씽', name:'나이아신아마이드 10% 토너', color:'#c9a05c', cats:['toner'], pop:77, tag:'톤결 광채', ing:['나이아신아마이드'], aff:{tone:3,spot:2,dull:2,blemish:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000158322', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0015/A00000015832201ko.jpg'},
-    {id:'goodalVitaCPad', brand:'구달', name:'청귤 비타C 잡티케어 패드', color:'#c9915c', cats:['toner'], pop:85, tag:'잡티케어 패드', ing:['비타민C','나이아신아마이드'], aff:{spot:3,tone:2,dull:2,blemish:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000189175', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A00000018917501ko.jpg'}
+    {id:'goodalVitaCPad', brand:'구달', name:'청귤 비타C 잡티케어 패드', color:'#c9915c', cats:['toner'], pop:85, tag:'잡티케어 패드', ing:['비타민C','나이아신아마이드'], aff:{spot:3,tone:2,dull:2,blemish:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000189175', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A00000018917501ko.jpg'},
+    /* --- 선물세트: 고효능 스킨케어 (올리브영 검증) --- */
+    {id:'sulwhasooJaeumsu', brand:'설화수', name:'자음수 EX', color:'#8b6f47', cats:['giftskin'], pop:93, tag:'프리미엄 한방 에센스', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000204623'},
+    {id:'sulwhasooOkyongPack', brand:'설화수', name:'옥용팩', color:'#9b7a4a', cats:['giftskin'], pop:88, tag:'프리미엄 한방 마스크팩', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000207699'},
+    {id:'carenologyReblueSerum', brand:'케어놀로지', name:'리블루 리제너레이팅 세럼', color:'#5c7a9b', cats:['giftskin'], pop:85, tag:'고기능성 진정 세럼', aff:{redness:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000214200'},
+    /* --- 선물세트: 탈모 방지 샴푸 (올리브영 검증) --- */
+    {id:'labohScalpShampoo', brand:'라보에이치', name:'두피강화샴푸 750ml+125ml', color:'#4a6b8b', cats:['hairloss'], pop:97, tag:'4년연속 1위 탈모케어', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000149501'},
+    {id:'drforhairPolygenShampoo', brand:'닥터포헤어', name:'폴리젠 탈모증상완화 두피케어 샴푸', color:'#6b8b6f', cats:['hairloss'], pop:91, tag:'두피 저자극 케어', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000116991'},
+    {id:'ryoRootgenShampoo', brand:'려', name:'루트젠 여성맞춤 탈모전문케어 샴푸', color:'#8b5c6f', cats:['hairloss'], pop:89, tag:'여성 맞춤 두피케어', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000183492'},
+    {id:'sollabScalpShampoo', brand:'솔랩', name:'두피전문가 개발 샴푸', color:'#5c8b8b', cats:['hairloss'], pop:84, tag:'가려움·탈모 집중개선', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000208266'},
+    /* --- 선물세트: 건강기능식품(홍삼) (올리브영 검증) --- */
+    {id:'jkjEverytimeBalance', brand:'정관장', name:'홍삼정 에브리타임 밸런스핏 14포', color:'#8b5c3c', cats:['ginseng'], pop:95, tag:'선물용 홍삼정', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000143712'},
+    {id:'jkjEverytimeShot', brand:'정관장', name:'홍삼정 에브리타임 샷 20ml×20병', color:'#9b6f3c', cats:['ginseng'], pop:92, tag:'간편 홍삼 스틱', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000213255'},
+    {id:'jkjHongsamwon', brand:'정관장', name:'홍삼원 70ml×15포', color:'#7a5c3c', cats:['ginseng'], pop:88, tag:'프리미엄 홍삼 선물세트', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148553'},
+    {id:'hansaminHongsamStick', brand:'한삼인', name:'진한홍삼스틱 100포', color:'#6b4a3c', cats:['ginseng'], pop:83, tag:'대용량 홍삼스틱', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=B000000209017'},
+    /* --- 선물세트: 먹는 콜라겐 (올리브영 검증) --- */
+    {id:'begineryCollagenBooster', brand:'비거너리', name:'식물성 콜라겐 부스터 3270mg', color:'#c98ba0', cats:['collagen'], pop:94, tag:'올영1위 고함량 콜라겐', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000191618'},
+    {id:'evercollagenTimeBiotin', brand:'에버콜라겐', name:'타임 비오틴 핏 30포', color:'#a85c7a', cats:['collagen'], pop:87, tag:'비오틴 콜라겐 스틱', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000191452'},
+    {id:'nutricoreCollagenDamda', brand:'뉴트리코어', name:'콜라겐담다 2종 택1', color:'#c15c8a', cats:['collagen'], pop:85, tag:'저분자 콜라겐', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000203547'},
+    {id:'ckdhcLactofitCollagen', brand:'종근당건강', name:'락토핏 콜라겐', color:'#b56f8b', cats:['collagen'], pop:82, tag:'유산균+콜라겐 이너뷰티', aff:{}}
   ];
   window.PRODUCTS = PRODUCTS;
 
@@ -5396,6 +5416,14 @@ DEMO_HTML = """
         { label:'바디 로션 추천', sub:'전신 보습', cat:'bodylotion' },
         { label:'풋케어 추천', sub:'발 각질·건조', cat:'foot' },
         { label:'데오라인 추천', sub:'냄새·땀 케어', cat:'deo' }
+      ] },
+    { key:'t6', label:'6단계', category:'선물세트',
+      desc:'소중한 사람에게 선물하기 좋은 프리미엄 스킨케어·이너뷰티 라인을 모았어요.',
+      lines:[
+        { label:'고효능 스킨케어 라인', sub:'기능성·프리미엄 집중 케어', cat:'giftskin' },
+        { label:'탈모 방지 샴푸 라인', sub:'두피·모발 관리', cat:'hairloss' },
+        { label:'건강 기능식품 (홍삼) 라인', sub:'선물용 홍삼 제품', cat:'ginseng' },
+        { label:'먹는 콜라겐 라인', sub:'이너뷰티 콜라겐', cat:'collagen' }
       ] }
   ];
   let tierInitialized = false;
