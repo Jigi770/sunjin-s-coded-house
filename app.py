@@ -4728,7 +4728,8 @@ DEMO_HTML = """
     /* --- 립 메이크업: 립밤 + 자연스러운 혈색/컬러 (올리브영 검증) --- */
     {id:'laneigeLipMask', brand:'라네즈', name:'립 슬리핑 마스크 EX', color:'#c98ba0', cats:['lip'], pop:94, tag:'자는 동안 립케어', ing:['히알루론산'], aff:{dryness:2,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000156111', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0015/A00000015611101ko.jpg'},
     {id:'melixirLipButter', brand:'멜릭서', name:'비건 립 버터', color:'#8ba07a', cats:['lip'], pop:89, tag:'쌩얼 립밤', ing:['시어버터'], aff:{dryness:2,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000233043', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0023/A00000023304301ko.jpg'},
-    {id:'romandJuicyTint', brand:'롬앤', name:'쥬시 래스팅 틴트', color:'#c15c5c', cats:['lip'], pop:92, tag:'촉촉 컬러', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000125955', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0012/A00000012595501ko.jpg'},
+    /* 구 코드(A000000125955)는 판매 종료 → 현행 '더 쥬시 래스팅 틴트' 기획으로 교체 */
+    {id:'romandJuicyTint', brand:'롬앤', name:'더 쥬시 래스팅 틴트', color:'#c15c5c', cats:['lip'], pop:92, tag:'촉촉 컬러', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000241210', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0024/A00000024121002ko.jpg'},
     {id:'periperaInkMood', brand:'페리페라', name:'잉크 무드 글로이 틴트', color:'#a85c6f', cats:['lip'], pop:90, tag:'자연스러운 혈색', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000162471', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0016/A00000016247101ko.jpg'},
     /* --- 퍼퓸 & 바디: 바디 로션 --- */
     {id:'aveenoBody', brand:'아비노', name:'데일리 모이스처라이징 바디로션', color:'#6b8b8b', cats:['bodylotion'], pop:85, tag:'귀리 보습', ing:['콜로이드 오트밀'], aff:{dryness:3,flake:2}},
@@ -4748,6 +4749,7 @@ DEMO_HTML = """
     {id:'roundlabDokdoCleanser', brand:'라운드랩', name:'1025 독도 클렌저', color:'#5c7a8b', cats:['cleanser'], pop:91, tag:'약산성 순세안', ing:['해양심층수'], aff:{redness:2,dryness:2,flake:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000151185', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0015/A00000015118501ko.jpg'},
     {id:'anuaSuccinicFoam', brand:'아누아', name:'어성초 석시닉 모이스처 클렌징폼', color:'#7a8b5c', cats:['cleanser'], pop:81, tag:'촉촉 약산성폼', ing:['어성초'], aff:{oil:2,acne:2,redness:2,dryness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000211194', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021119401ko.jpg'},
     {id:'drgRedBlemishFoam', brand:'닥터지', name:'약산성 레드 블레미쉬 클리어 수딩 폼', color:'#a85c5c', cats:['cleanser'], pop:88, tag:'진정 세안폼', ing:['병풀(시카)','히알루론산'], aff:{redness:3,acne:2,blemish:2,dryness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000145728', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014572801ko.jpg'},
+    {id:'anuaPoreCleansingOil', brand:'아누아', name:'어성초 포어 컨트롤 클렌징오일', color:'#7a8b5c', cats:['cleanser'], pop:90, tag:'모공 속 피지 용해', ing:['어성초'], aff:{blackhead:3,pore:2,oil:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000191483', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0019/A00000019148301ko.jpg'},
     /* --- 확장 카탈로그: 로션 (올리브영 검증) --- */
     {id:'aesturaAtoBarrierLotion', brand:'에스트라', name:'아토베리어365 로션', color:'#6b7a8b', cats:['lotion'], pop:93, tag:'장벽 데일리', ing:['세라마이드','판테놀'], aff:{dryness:3,redness:2,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000198321', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019832101ko.jpg'},
     {id:'physiogelDmtLotion', brand:'피지오겔', name:'DMT 데일리 보습 페이셜 로션', color:'#a86f6f', cats:['lotion'], pop:83, tag:'산뜻 보습로션', ing:['세라마이드','스쿠알란'], aff:{dryness:3,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000012809', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0001/A00000001280901ko.jpg'},
@@ -4789,14 +4791,30 @@ DEMO_HTML = """
     {id:'cellfusioncToningSun', brand:'셀퓨전씨', name:'토닝 썬스크린', color:'#c9a05c', cats:['sun'], pop:88, tag:'톤업 썬케어', ing:['나이아신아마이드'], aff:{tone:3,dull:2,oil:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000121852', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0012/A00000012185201ko.jpg'},
     {id:'aesturaDermaUvSun', brand:'에스트라', name:'더마UV365 장벽수분 선크림', color:'#6b7a8b', cats:['sun'], pop:87, tag:'장벽 진정썬', ing:['세라마이드','판테놀'], aff:{redness:3,dryness:3}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000181078', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A00000018107801ko.jpg'},
     /* --- 확장 카탈로그: 쿠션·아이·브로우 (올리브영 검증) --- */
-    {id:'tirtirRedCushion', brand:'티르티르', name:'마스크 핏 레드 쿠션', color:'#b5453a', cats:['cushion'], pop:95, tag:'초밀착 커버', aff:{cover:3,tone:2,blemish:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000214231', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021423103ko.jpg'},
-    {id:'clioMeshGlowCushion', brand:'클리오', name:'킬커버 메쉬 글로우 쿠션', color:'#b58b5c', cats:['cushion'], pop:91, tag:'물광 커버', aff:{cover:3,dull:2,tone:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000177759', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0017/A00000017775901ko.jpg'},
-    {id:'hincePinkCushion', brand:'힌스', name:'커버 마스터 핑크 쿠션', color:'#c98ba0', cats:['cushion'], pop:89, tag:'핑크빛 보정', aff:{cover:3,tone:2,blemish:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000229913', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0022/A00000022991301ko.jpg'},
-    {id:'espoirBeGlowCushion', brand:'에스쁘아', name:'프로 테일러 비글로우 쿠션', color:'#9b7a4a', cats:['cushion'], pop:88, tag:'윤광 베이스', aff:{cover:2,tone:2,dull:2,dryness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000128931', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0012/A00000012893101ko.jpg'},
+    /* img: 03ko는 아마존 정품 안내 배너라 실제 제품컷(10ko)으로 교체 */
+    {id:'tirtirRedCushion', brand:'티르티르', name:'마스크 핏 레드 쿠션', color:'#b5453a', cats:['cushion'], pop:95, tag:'초밀착 커버', aff:{cover:3,tone:2,blemish:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000214231', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021423110ko.jpg'},
+    /* 구 코드(A000000177759)는 판매 종료 → 2025 리뉴얼(에센셜)로 교체, 이미지도 실제 쿠션 컷으로 */
+    {id:'clioMeshGlowCushion', brand:'클리오', name:'킬커버 메쉬 글로우 에센셜 쿠션', color:'#b58b5c', cats:['cushion'], pop:91, tag:'물광 커버', aff:{cover:3,dull:2,tone:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000219278', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0021/A00000021927803ko.jpg'},
+    /* img: 01ko는 립밤 듀오 컷이라 실제 쿠션 팩샷(04ko)으로 교체 */
+    {id:'hincePinkCushion', brand:'힌스', name:'커버 마스터 핑크 쿠션', color:'#c98ba0', cats:['cushion'], pop:89, tag:'핑크빛 보정', aff:{cover:3,tone:2,blemish:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000229913', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0022/A00000022991304ko.jpg'},
+    /* 구 코드(A000000128931)는 판매 종료 → 현행 비글로우 볼륨 쿠션 기획으로 교체 */
+    {id:'espoirBeGlowCushion', brand:'에스쁘아', name:'비글로우 볼륨 쿠션', color:'#9b7a4a', cats:['cushion'], pop:88, tag:'윤광 베이스', aff:{cover:2,tone:2,dull:2,dryness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000209170', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0020/A00000020917002ko.jpg'},
     {id:'dasiquePalette', brand:'데이지크', name:'섀도우 팔레트', color:'#a86f8b', cats:['eye'], pop:94, tag:'데일리 음영', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000147801', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014780101ko.jpg'},
-    {id:'romandBetterPalette', brand:'롬앤', name:'베러 댄 팔레트', color:'#a85c6f', cats:['eye'], pop:92, tag:'블렌딩 팔레트', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148390', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014839001ko.jpg'},
+    /* img: 01ko는 포장 박스 도면이라 실제 팔레트 컷(02ko)으로 교체 */
+    {id:'romandBetterPalette', brand:'롬앤', name:'베러 댄 팔레트', color:'#a85c6f', cats:['eye'], pop:92, tag:'블렌딩 팔레트', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148390', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014839002ko.jpg'},
     {id:'periperaSkinnyBrow', brand:'페리페라', name:'스피디 스키니 브로우', color:'#6b5744', cats:['brow'], pop:90, tag:'초슬림 눈썹', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000138671', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0013/A00000013867101ko.jpg'},
-    {id:'misshaBrowStyler', brand:'미샤', name:'퍼펙트 아이브로우 스타일러', color:'#5c4a38', cats:['brow'], pop:89, tag:'국민 브로우', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000219563', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021956307ko.jpg'},
+    /* img 제거: 이 goodsNo의 CDN 갤러리가 전부 마스카라 컷(오등록)이라 브로우 일러스트로 폴백 */
+    {id:'misshaBrowStyler', brand:'미샤', name:'퍼펙트 아이브로우 스타일러', color:'#5c4a38', cats:['brow'], pop:89, tag:'국민 브로우', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000219563'},
+    /* --- 베이스 메이크업 확장: 컨실러(여)·커버스틱(남)·쉐이딩·하이라이터 (올리브영 검증, 2026-07-13 판매 확인) --- */
+    {id:'thesaemTipConcealer', brand:'더샘', name:'커버 퍼펙션 팁 컨실러', color:'#c9a05c', cats:['concealer'], pop:93, tag:'국민 컨실러', aff:{cover:3,blemish:2,darkcircle:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000155982', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0015/A00000015598201ko.jpg'},
+    {id:'thesaemTriplePot', brand:'더샘', name:'커버 퍼펙션 트리플 팟 컨실러', color:'#b58b5c', cats:['concealer'], pop:90, tag:'어워즈 베이스 1위', aff:{cover:3,blemish:2,darkcircle:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000238763', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0023/A00000023876303ko.jpg'},
+    {id:'clioFoundwearConcealer', brand:'클리오', name:'킬커버 파운웨어 컨실러', color:'#9b7a4a', cats:['concealer'], pop:87, tag:'롱래스팅 커버', aff:{cover:3,spot:1,blemish:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000183950', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0018/A00000018395001ko.jpg'},
+    {id:'dashuDualTrickStick', brand:'다슈', name:'맨즈 듀얼 트릭 스틱', color:'#3a4a6b', cats:['coverstick'], pop:88, tag:'컨실러+쉐딩 2in1', aff:{cover:3,blemish:2,darkcircle:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000131799', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0013/A00000013179901ko.jpg'},
+    {id:'obgeThinStealConcealer', brand:'오브제', name:'씬 스틸 컨실러', color:'#8b7a5c', cats:['coverstick'], pop:86, tag:'티 안나는 남성 커버', aff:{cover:3,darkcircle:2,blemish:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000161093', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0016/A00000016109301ko.jpg'},
+    {id:'toocoolShading', brand:'투쿨포스쿨', name:'아트클래스 바이로댕 쉐딩', color:'#8b6f47', cats:['shading'], pop:92, tag:'국민 쉐딩', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000145650', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014565001ko.jpg'},
+    {id:'periperaVShading', brand:'페리페라', name:'브이 쉐딩', color:'#a88b6f', cats:['shading'], pop:85, tag:'착붙 음영', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000180297', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0018/A00000018029702ko.jpg'},
+    {id:'clioPrismHighlighter', brand:'클리오', name:'프리즘 하이라이터', color:'#c9b5a0', cats:['highlighter'], pop:89, tag:'결광 하이라이터', aff:{dull:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000218380', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0021/A00000021838001ko.jpg'},
+    {id:'dasiqueLuxGlowHighlighter', brand:'데이지크', name:'럭스 글로우 하이라이터', color:'#c9a0b5', cats:['highlighter'], pop:84, tag:'은은한 광채', aff:{dull:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000200436', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0020/A00000020043602ko.jpg'},
     /* --- 확장 카탈로그: 토너·패드 (올리브영 검증) --- */
     {id:'roundlabDokdoToner', brand:'라운드랩', name:'1025 독도 토너', color:'#5c7a8b', cats:['toner'], pop:95, tag:'국민 수분토너', ing:['판테놀','알란토인'], aff:{dryness:3,flake:2,texture:1,redness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000125507', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0012/A00000012550701ko.jpg'},
     {id:'torridenDiveInToner', brand:'토리든', name:'다이브인 저분자 히알루론산 토너', color:'#5c7a8b', cats:['toner'], pop:94, tag:'속수분 채움', ing:['히알루론산','판테놀','알란토인'], aff:{dryness:3,dull:1,flake:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000170266', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0017/A00000017026601ko.jpg'},
@@ -4878,7 +4896,8 @@ DEMO_HTML = """
     cosrx:        { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000204071', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0020/A00000020407102ko.jpg' },
     toriden:      { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000190326', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019032608ko.jpg' },
     anua:         { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000210655', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021065501ko.jpg' },
-    anuaTuner:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000147339', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014733901ko.jpg' },
+    /* 구 코드 A000000147339 판매 종료 → 현행 350ml 더블기획으로 교체 (2026-07-13 확인) */
+    anuaTuner:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000255328', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014733901ko.jpg' },
     mediheal:     { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000223423', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0022/A00000022342306ko.jpg' },
     ahc:          { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000182989', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0018/A00000018298901ko.jpg' },
     goodalSun:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000198527', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019852701ko.jpg' },
@@ -4892,7 +4911,8 @@ DEMO_HTML = """
     physiogel:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148899', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014889901ko.jpg' },
     illiyoonLotion:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000157820', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0015/A00000015782001ko.jpg' },
     roundlabLotion:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000145576', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014557601ko.jpg' },
-    clioBrow:     { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000015597', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0001/A00000001559701ko.jpg' },
+    /* 구 코드 A000000015597 판매 종료 → 현행 단독기획으로 교체 (2026-07-13 확인) */
+    clioBrow:     { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000204946', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0001/A00000001559701ko.jpg' },
     ridleBrow:    { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148249', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014824901ko.jpg' },
     aveenoBody:   { url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000191127', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0019/A00000019112701ko.jpg' },
     sensodyneBody:{ url:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000000749', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0000/A00000000074901ko.jpg' },
@@ -4939,7 +4959,39 @@ DEMO_HTML = """
   const CATALOG_PATCH = {
     /* 로션 라인은 페이셜 전용: 바디 겸용 제품은 bodylotion 카테고리로만 노출 */
     illiyoonLotion: { cats: ['bodylotion'] },
-    atopalmMleLotion: { cats: ['bodylotion'] }
+    atopalmMleLotion: { cats: ['bodylotion'] },
+    /* ---- 판매 링크 전수 검증(2026-07-13) 반영 ----
+       (1) 판매 종료된 구 코드 → 검증된 현행 상품 코드·이미지로 교체 */
+    anuaTuner: { oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000255328' },
+    clioBrow: { oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000204946' },
+    clioMeshGlowCushion: { name:'킬커버 메쉬 글로우 에센셜 쿠션', oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000219278', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0021/A00000021927803ko.jpg' },
+    espoirBeGlowCushion: { name:'비글로우 볼륨 쿠션', oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000209170', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0020/A00000020917002ko.jpg' },
+    /* (2) 상품과 무관한 CDN 이미지(오등록) → 실제 제품 컷으로 교체 */
+    tirtirRedCushion: { img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0021/A00000021423110ko.jpg' },
+    hincePinkCushion: { img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0022/A00000022991304ko.jpg' },
+    romandBetterPalette: { img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014839002ko.jpg' },
+    misshaBrowStyler: { img:null },   /* 갤러리 전체가 마스카라 컷 → 카테고리 일러스트 폴백 */
+    /* (3) 판매 종료 확인 + 현행 대체 코드 미확보 → 직접 링크 무효화.
+       oy가 없으면 카드가 '브랜드+제품명' 올리브영 검색 결과로 연결되므로 죽은 페이지로 가지 않는다. */
+    toriden: { oy:null },
+    torridenDiveInToner: { oy:null },
+    torridenDiveInCream: { oy:null },
+    physiogelDmtCream: { oy:null },
+    wdressroomNo49: { oy:null },
+    dalbaWhiteTruffleSerum: { oy:null },
+    manyoGalacNiacin: { oy:null },
+    wellageBlueAmpoule: { oy:null },
+    goodalHeartleafEssence: { oy:null },
+    etudeBrow: { oy:null },
+    goodalVitaCPad: { oy:null },
+    innisfree: { oy:null },
+    medicubeBoosterHealer: { oy:null },
+    medicubeUsseraDeepShot: { oy:null },
+    aveenoBody: { oy:null },
+    goodalSun: { oy:null },
+    anuaHeartleaf70Cream: { oy:null },
+    isoiBlemishCream: { oy:null },
+    medicubePdrnCapsuleCream: { oy:null }
   };
   function applyCatalogPatches(){
     PRODUCTS.forEach(p=>{
@@ -5160,6 +5212,8 @@ DEMO_HTML = """
       descFn:getRoutineMessage,
       desc:ROUTINE_MESSAGES['default'],
       lines:[
+        /* 루틴 순서상 세안이 가장 앞: 클렌징 → 토너 → 로션 → 앰플 → 크림 */
+        { label:'클렌징 라인', sub:'저자극 세안', cat:'cleanser' },
         { label:'토너 라인', sub:'결 정돈·수분', cat:'toner' },
         { label:'로션 라인', sub:'가벼운 보습', cat:'lotion' },
         { label:'앰플 라인', sub:'집중 케어', cat:'serum' },
@@ -5170,7 +5224,21 @@ DEMO_HTML = """
       lines:[ { label:'선케어 라인', sub:'자외선 차단', cat:'sun' } ] },
     { key:'t3', label:'3단계', category:'베이스 메이크업',
       desc:'선케어에 이어 칙칙함 없이 깔끔한 피부로 톤과 결을 정돈해요.',
-      lines:[ { label:'피부 표현 라인', sub:'톤·결 보정', cat:'cushion' } ] },
+      /* 성별에 따라 단계 구성이 달라진다.
+         여성: 컨실러 → 쿠션 → 쉐이딩 → 하이라이터 / 남성(기본): 커버스틱 → 쿠션 → 쉐이딩 */
+      linesFn: function(){
+        const female = ((window.appState && window.appState.gender) || '') === 'female';
+        return female ? [
+          { label:'컨실러', sub:'잡티 커버', cat:'concealer' },
+          { label:'쿠션', sub:'톤·결 보정', cat:'cushion' },
+          { label:'쉐이딩', sub:'윤곽 정리', cat:'shading' },
+          { label:'하이라이터', sub:'입체 광채', cat:'highlighter' }
+        ] : [
+          { label:'커버스틱', sub:'국소 잡티 커버', cat:'coverstick' },
+          { label:'쿠션', sub:'톤·결 보정', cat:'cushion' },
+          { label:'쉐이딩', sub:'윤곽 정리', cat:'shading' }
+        ];
+      } },
     { key:'t4', label:'4단계', category:'립/아이 메이크업',
       desc:'눈썹 정리로 또렷한 인상을 만들고, 눈매와 입술을 자연스럽게 정돈해요.',
       lines:[
@@ -5212,7 +5280,8 @@ DEMO_HTML = """
     const tier = TIERS.find(t=>t.key===key);
     /* descFn이 있으면 사용자 분석 결과 기반 개인화 문구를, 없으면 고정 문구를 표시 */
     document.getElementById('tierDesc').textContent = tier.descFn ? tier.descFn() : tier.desc;
-    const rows = tier.lines.map(line=>{
+    /* linesFn이 있으면 사용자 상태(성별 등)에 따라 라인 구성을 동적으로 만든다 */
+    const rows = (tier.linesFn ? tier.linesFn() : tier.lines).map(line=>{
       const products = recommendForCat(line.cat, 4);   /* 한 줄 4카드 그리드에 맞춤 */
       if(!products.length) return '';
       return '<div class="tier-line">' +
