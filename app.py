@@ -1078,6 +1078,9 @@ DEMO_HTML = """
   .sv-opt-txt{flex:1;}
   .sv-opt-txt b{display:block;font-size:15px;font-weight:700;}
   .sv-opt-txt span{display:block;font-size:11.5px;color:#a9a89f;margin-top:3px;}
+  /* 퍼스널 컬러 문항: 계절별 팔레트 스와치 (컬러표 축약본) */
+  .sv-swatches{display:flex;gap:5px;margin-bottom:7px;}
+  .sv-swatches i{width:16px;height:16px;border-radius:50%;flex:none;border:1px solid rgba(255,255,255,.18);}
   .sv-opt-check{width:22px;height:22px;border-radius:50%;border:1.5px solid #4a4940;flex:none;position:relative;transition:all .15s ease;}
   .sv-opt.on .sv-opt-check{background:var(--gold);border-color:var(--gold);}
   .sv-opt.on .sv-opt-check::after{content:'';position:absolute;left:7px;top:3px;width:5px;height:10px;border:solid #1a1a18;border-width:0 2px 2px 0;transform:rotate(45deg);}
@@ -1427,6 +1430,23 @@ DEMO_HTML = """
   /* 마이페이지 > 내 위시리스트: 담아둔 제품을 기존 카드 UI 그대로 그리드 나열 */
   .mp-wish-title{font-size:15px;font-weight:800;color:#2b241d;margin:2px 0 14px;}
   .mp-wish-title b{color:var(--db-brown,#8a6a52);}
+  /* 피부 분석 내역 페이지네이션: 상단 개수 선택(5/10) + 하단 페이지 번호 */
+  .mp-list-controls{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:2px 0 12px;}
+  .mp-list-total{font-size:12px;font-weight:700;color:#a89a86;}
+  .mp-pp{display:flex;gap:6px;}
+  .mp-pp-btn{
+    padding:6px 12px;border-radius:999px;border:1.5px solid #e6dccd;background:#fff;
+    color:#a89a86;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .mp-pp-btn.on{background:var(--db-brown,#8a6a52);border-color:var(--db-brown,#8a6a52);color:#fff;}
+  .mp-pp-btn:hover:not(.on){border-color:var(--db-brown,#8a6a52);color:var(--db-brown,#8a6a52);}
+  .mp-pages{display:flex;justify-content:center;gap:6px;margin-top:14px;flex-wrap:wrap;}
+  .mp-page-btn{
+    min-width:32px;height:32px;border-radius:9px;border:1.5px solid #e6dccd;background:#fff;
+    color:#8a7a66;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s ease;
+  }
+  .mp-page-btn.on{background:var(--db-brown,#8a6a52);border-color:var(--db-brown,#8a6a52);color:#fff;}
+  .mp-page-btn:hover:not(.on){border-color:var(--db-brown,#8a6a52);color:var(--db-brown,#8a6a52);}
   /* 위시리스트 그리드도 제품 추천과 동일하게 데스크탑 4열 → 3 → 2열 반응형 */
   .mp-wish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
   .mp-wish-grid .prod-card{width:auto;}
@@ -2239,7 +2259,9 @@ DEMO_HTML = """
     try {
       localStorage.setItem(RECALL_KEY, JSON.stringify({
         nickname: nickname, age: enteredAge, concerns: Array.from(state.concerns),
-        scan: (state.scan && state.scan.ok) ? state.scan : null, savedAt: Date.now()
+        scan: (state.scan && state.scan.ok) ? state.scan : null,
+        survey: state.survey || {},   /* 체감 설문 + 퍼스널 톤 선택도 함께 복원 */
+        savedAt: Date.now()
       }));
     } catch(e){}
   }
@@ -2260,6 +2282,7 @@ DEMO_HTML = """
     state.nickname = nickname;
     state.concerns = new Set(saved.concerns && saved.concerns.length ? saved.concerns : ['scar','pore','oil','acne']);
     state.scan = saved.scan || null;   /* 저장된 실측 점수도 복원해 결과·추천에 그대로 반영 */
+    state.survey = saved.survey || state.survey || {};   /* 퍼스널 톤 포함 설문 복원 */
 
     /* 이력·선택 화면을 거치지 않고, 상단 탭이 있는 메인 앱의 분석 결과 화면으로 바로 진입.
        enterAppStep이 멤버 화면을 모두 닫고 앱을 열며, showAnalysisResult가
@@ -2306,6 +2329,9 @@ DEMO_HTML = """
   let pendingMarketing = false;
   let linkedAccount = null;
   let mpTab = 'analyses';
+  /* 피부 분석 내역 페이지네이션 상태 — 탭 재진입 시 1페이지로 초기화 */
+  let mpPage = 1;
+  let mpPerPage = 5;
 
   /* Start/stop the real Google OAuth. OAuth can't run inside the sandboxed
      iframe, so we navigate the top window back to the app with a flag that the
@@ -2662,14 +2688,50 @@ DEMO_HTML = """
           ? '<div class="mp-wish-grid">' + window.renderProductCards(items) + '</div>'
           : mpEmpty('아직 담아둔 제품이 없어요.') +
             '<div style="text-align:center;margin-top:4px;"><button type="button" class="btn btn-dark btn-sm" id="mpWishGo">제품 추천 보러가기</button></div>');
+      el.innerHTML = html;
+      return;
     } else if(mpTab==='analyses'){
-      html = records.analyses.length ? records.analyses.map(a=> mpCard(fmtDate(a.date), a.type+' · '+a.top+' 집중', a.summary, a.score+'점')).join('') : mpEmpty('아직 분석 기록이 없어요.');
+      /* 최신순 정렬(저장은 unshift라 이미 최신순이지만 방어적으로 정렬) + 페이지네이션.
+         기본 5개씩, 5/10개 전환 가능. 기록이 5개 이하면 컨트롤 없이 목록만 보여준다. */
+      const list = records.analyses.slice().sort((a,b)=> (b.date||0) - (a.date||0));
+      if(!list.length){
+        html = mpEmpty('아직 분석 기록이 없어요.');
+      } else {
+        const totalPages = Math.max(1, Math.ceil(list.length / mpPerPage));
+        if(mpPage > totalPages) mpPage = totalPages;
+        const startIdx = (mpPage - 1) * mpPerPage;
+        if(list.length > 5){
+          html += '<div class="mp-list-controls">' +
+            '<span class="mp-list-total">총 ' + list.length + '건 · 최신순</span>' +
+            '<div class="mp-pp" role="group" aria-label="페이지당 표시 개수">' +
+              [5,10].map(n=> '<button type="button" class="mp-pp-btn' + (mpPerPage===n?' on':'') + '" data-pp="' + n + '" aria-pressed="' + (mpPerPage===n) + '">' + n + '개씩 보기</button>').join('') +
+            '</div></div>';
+        }
+        html += list.slice(startIdx, startIdx + mpPerPage)
+          .map(a=> mpCard(fmtDate(a.date), a.type+' · '+a.top+' 집중', a.summary, a.score+'점')).join('');
+        if(totalPages > 1){
+          html += '<div class="mp-pages" role="navigation" aria-label="분석 내역 페이지">' +
+            Array.from({length: totalPages}, (_, i)=>{
+              const n = i + 1;
+              return '<button type="button" class="mp-page-btn' + (n===mpPage?' on':'') + '" data-page="' + n + '"' +
+                (n===mpPage ? ' aria-current="page"' : '') + '>' + n + '</button>';
+            }).join('') + '</div>';
+        }
+      }
     } else if(mpTab==='recommends'){
       html = records.recommends.length ? records.recommends.map(r=> mpCard(fmtDate(r.date), r.title, r.summary+' · '+r.items.join(', '), '')).join('') : mpEmpty('아직 추천 이력이 없어요.');
     } else {
       html = records.consults.length ? records.consults.map(s=> mpCard(fmtDate(s.date), s.title, s.summary, s.status||'')).join('') : mpEmpty('아직 상담 내역이 없어요.');
     }
     el.innerHTML = html;
+    /* 분석 내역 페이지네이션 컨트롤 — 목록을 다시 그릴 때마다 새로 바인딩 */
+    el.querySelectorAll('.mp-page-btn').forEach(b=> b.addEventListener('click', ()=>{
+      mpPage = Number(b.dataset.page) || 1; renderMyPanels();
+    }));
+    el.querySelectorAll('.mp-pp-btn').forEach(b=> b.addEventListener('click', ()=>{
+      const n = Number(b.dataset.pp) || 5;
+      if(n !== mpPerPage){ mpPerPage = n; mpPage = 1; renderMyPanels(); }
+    }));
   }
   function renderMyPage(){
     const name = (member && member.nickname) || nickname || '회원';
@@ -2718,7 +2780,7 @@ DEMO_HTML = """
   document.getElementById('mpRecall').addEventListener('click', ()=>{ if(loadLastResult()) viewLastResult(); else goCamera(); });
   document.querySelectorAll('#screenMyPage .mp-tab').forEach(t=> t.addEventListener('click', ()=>{
     document.querySelectorAll('#screenMyPage .mp-tab').forEach(x=> x.classList.remove('active'));
-    t.classList.add('active'); mpTab = t.dataset.mp; renderMyPanels();
+    t.classList.add('active'); mpTab = t.dataset.mp; mpPage = 1; renderMyPanels();
   }));
   syncRealSession();
   updateMemberUI();
@@ -3065,8 +3127,23 @@ DEMO_HTML = """
     { key:'current', q:'지금 하고 있는 관리는?', opts:[
         {v:'none', t:'거의 안 해요'},
         {v:'basic', t:'기초만 발라요'},
-        {v:'multi', t:'여러 단계 챙겨요'} ]}
+        {v:'multi', t:'여러 단계 챙겨요'} ]},
+    /* 퍼스널 톤 탐색: 사계절 컬러표에서 끌리는 팔레트를 고르면
+       베이스·립/아이 등 컬러 제품 추천에 해당 톤 매칭이 반영된다 */
+    { key:'personalColor', q:'가장 끌리는 컬러 팔레트를 골라주세요', opts:[
+        {v:'spring', t:'봄 웜 · Bright', s:'밝고 생기 있는 컬러가 잘 받아요',
+          colors:['#f2c744','#8fce5a','#f2917e','#e8a33d','#5cc4b0','#c9b8e8']},
+        {v:'summer', t:'여름 쿨 · Soft', s:'파스텔·로지 컬러가 잘 받아요',
+          colors:['#f4b8cc','#e05a9a','#8fb3d4','#3f6ba8','#b04a8f','#dfe3e8']},
+        {v:'autumn', t:'가을 웜 · Deep', s:'딥하고 차분한 컬러가 잘 받아요',
+          colors:['#7a4a2b','#2c4a35','#e0842c','#8a1f1f','#b5913f','#3f2b1d']},
+        {v:'winter', t:'겨울 쿨 · Brilliant', s:'선명하고 대비 강한 컬러가 잘 받아요',
+          colors:['#c01030','#20328a','#123a2a','#00a0d8','#e8e4ee','#1a1a1a']},
+        {v:'none', t:'잘 모르겠어요', s:'추천에는 기본 구성을 사용해요'} ]}
   ];
+  /* 팔레트 라벨 — 보정 포인트·추천 화면 문구에서 공용 사용 */
+  const PC_LABEL = { spring:'봄 웜(Bright)', summer:'여름 쿨(Soft)', autumn:'가을 웜(Deep)', winter:'겨울 쿨(Brilliant)' };
+  window.PC_LABEL = PC_LABEL;
   let svIndex = 0;
   const svQEl = document.getElementById('svQuestion');
   const svOptsEl = document.getElementById('svOpts');
@@ -3100,8 +3177,12 @@ DEMO_HTML = """
     svOptsEl.className = 'sv-opts' + (isGrid ? ' grid' : '');
     const optsHtml = item.opts.map(o=>{
       const chosen = multi ? (selected.indexOf(o.v) >= 0) : (selected === o.v);
+      /* colors가 있으면(퍼스널 컬러 문항) 팔레트 스와치를 텍스트 위에 렌더 */
+      const swatches = o.colors
+        ? '<span class="sv-swatches" aria-hidden="true">' + o.colors.map(c=>'<i style="background:'+c+'"></i>').join('') + '</span>'
+        : '';
       return '<button type="button" class="sv-opt' + (chosen?' on':'') + '" data-v="' + o.v + '">' +
-        '<span class="sv-opt-txt"><b>' + o.t + '</b>' + (o.s ? '<span>'+o.s+'</span>' : '') + '</span>' +
+        '<span class="sv-opt-txt">' + swatches + '<b>' + o.t + '</b>' + (o.s ? '<span>'+o.s+'</span>' : '') + '</span>' +
         '<span class="sv-opt-check"></span>' +
       '</button>';
     }).join('');
@@ -3173,6 +3254,9 @@ DEMO_HTML = """
     if(sv.dryness === 'high') pts.push('세안 후 건조 보정');
     if(sv.oil === 'high') pts.push('과잉 유분 보정');
     if(sv.trouble === 'high') pts.push('잦은 트러블 보정');
+    if(sv.personalColor && sv.personalColor !== 'none' && PC_LABEL[sv.personalColor]){
+      pts.push('퍼스널 톤 ' + PC_LABEL[sv.personalColor] + ' 반영');
+    }
     return pts;
   }
   /* goal은 단일 문자열 또는 복수 선택 배열일 수 있음 */
@@ -4775,8 +4859,8 @@ DEMO_HTML = """
     {id:'laneigeLipMask', brand:'라네즈', name:'립 슬리핑 마스크 EX', color:'#c98ba0', cats:['lip'], pop:94, tag:'자는 동안 립케어', ing:['히알루론산'], aff:{dryness:2,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000156111', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0015/A00000015611101ko.jpg'},
     {id:'melixirLipButter', brand:'멜릭서', name:'비건 립 버터', color:'#8ba07a', cats:['lip'], pop:89, tag:'쌩얼 립밤', ing:['시어버터'], aff:{dryness:2,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000233043', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0023/A00000023304301ko.jpg'},
     /* 구 코드(A000000125955)는 판매 종료 → 현행 '더 쥬시 래스팅 틴트' 기획으로 교체 */
-    {id:'romandJuicyTint', brand:'롬앤', name:'더 쥬시 래스팅 틴트', color:'#c15c5c', cats:['lip'], pop:92, tag:'촉촉 컬러', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000241210', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0024/A00000024121002ko.jpg'},
-    {id:'periperaInkMood', brand:'페리페라', name:'잉크 무드 글로이 틴트', color:'#a85c6f', cats:['lip'], pop:90, tag:'자연스러운 혈색', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000162471', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0016/A00000016247101ko.jpg'},
+    {id:'romandJuicyTint', brand:'롬앤', name:'더 쥬시 래스팅 틴트', color:'#c15c5c', pc:['spring','autumn'], cats:['lip'], pop:92, tag:'촉촉 컬러', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000241210', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0024/A00000024121002ko.jpg'},
+    {id:'periperaInkMood', brand:'페리페라', name:'잉크 무드 글로이 틴트', color:'#a85c6f', pc:['summer','winter'], cats:['lip'], pop:90, tag:'자연스러운 혈색', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000162471', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0016/A00000016247101ko.jpg'},
     /* --- 퍼퓸 & 바디: 바디 로션 --- */
     {id:'aveenoBody', brand:'아비노', name:'데일리 모이스처라이징 바디로션', color:'#6b8b8b', cats:['bodylotion'], pop:85, tag:'귀리 보습', ing:['콜로이드 오트밀'], aff:{dryness:3,flake:2}},
     {id:'sensodyneBody', brand:'존슨즈', name:'베이비 핑크 로션', color:'#9b8b7a', cats:['bodylotion'], pop:74, tag:'순한 데일리 보습', aff:{dryness:2}},
@@ -4845,9 +4929,9 @@ DEMO_HTML = """
     {id:'hincePinkCushion', brand:'힌스', name:'커버 마스터 핑크 쿠션', color:'#c98ba0', cats:['cushion'], pop:89, tag:'핑크빛 보정', aff:{cover:3,tone:2,blemish:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000229913', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0022/A00000022991304ko.jpg'},
     /* 구 코드(A000000128931)는 판매 종료 → 현행 비글로우 볼륨 쿠션 기획으로 교체 */
     {id:'espoirBeGlowCushion', brand:'에스쁘아', name:'비글로우 볼륨 쿠션', color:'#9b7a4a', cats:['cushion'], pop:88, tag:'윤광 베이스', aff:{cover:2,tone:2,dull:2,dryness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000209170', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0020/A00000020917002ko.jpg'},
-    {id:'dasiquePalette', brand:'데이지크', name:'섀도우 팔레트', color:'#a86f8b', cats:['eye'], pop:94, tag:'데일리 음영', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000147801', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014780101ko.jpg'},
+    {id:'dasiquePalette', brand:'데이지크', name:'섀도우 팔레트', color:'#a86f8b', pc:['spring','autumn'], cats:['eye'], pop:94, tag:'데일리 음영', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000147801', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0014/A00000014780101ko.jpg'},
     /* img: 01ko는 포장 박스 도면이라 실제 팔레트 컷(02ko)으로 교체 */
-    {id:'romandBetterPalette', brand:'롬앤', name:'베러 댄 팔레트', color:'#a85c6f', cats:['eye'], pop:92, tag:'블렌딩 팔레트', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148390', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014839002ko.jpg'},
+    {id:'romandBetterPalette', brand:'롬앤', name:'베러 댄 팔레트', color:'#a85c6f', pc:['spring','autumn'], cats:['eye'], pop:92, tag:'블렌딩 팔레트', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000148390', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014839002ko.jpg'},
     {id:'periperaSkinnyBrow', brand:'페리페라', name:'스피디 스키니 브로우', color:'#6b5744', cats:['brow'], pop:90, tag:'초슬림 눈썹', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000138671', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0013/A00000013867101ko.jpg'},
     /* img 제거: 이 goodsNo의 CDN 갤러리가 전부 마스카라 컷(오등록)이라 브로우 일러스트로 폴백 */
     {id:'misshaBrowStyler', brand:'미샤', name:'퍼펙트 아이브로우 스타일러', color:'#5c4a38', cats:['brow'], pop:89, tag:'국민 브로우', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000219563'},
@@ -4859,8 +4943,8 @@ DEMO_HTML = """
     {id:'obgeThinStealConcealer', brand:'오브제', name:'씬 스틸 컨실러', color:'#8b7a5c', cats:['coverstick'], pop:86, tag:'티 안나는 남성 커버', aff:{cover:3,darkcircle:2,blemish:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000161093', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0016/A00000016109301ko.jpg'},
     {id:'toocoolShading', brand:'투쿨포스쿨', name:'아트클래스 바이로댕 쉐딩', color:'#8b6f47', cats:['shading'], pop:92, tag:'국민 쉐딩', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000145650', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0014/A00000014565001ko.jpg'},
     {id:'periperaVShading', brand:'페리페라', name:'브이 쉐딩', color:'#a88b6f', cats:['shading'], pop:85, tag:'착붙 음영', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000180297', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0018/A00000018029702ko.jpg'},
-    {id:'clioPrismHighlighter', brand:'클리오', name:'프리즘 하이라이터', color:'#c9b5a0', cats:['highlighter'], pop:89, tag:'결광 하이라이터', aff:{dull:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000218380', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0021/A00000021838001ko.jpg'},
-    {id:'dasiqueLuxGlowHighlighter', brand:'데이지크', name:'럭스 글로우 하이라이터', color:'#c9a0b5', cats:['highlighter'], pop:84, tag:'은은한 광채', aff:{dull:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000200436', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0020/A00000020043602ko.jpg'},
+    {id:'clioPrismHighlighter', brand:'클리오', name:'프리즘 하이라이터', color:'#c9b5a0', pc:['summer','winter'], cats:['highlighter'], pop:89, tag:'결광 하이라이터', aff:{dull:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000218380', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0021/A00000021838001ko.jpg'},
+    {id:'dasiqueLuxGlowHighlighter', brand:'데이지크', name:'럭스 글로우 하이라이터', color:'#c9a0b5', pc:['spring','autumn'], cats:['highlighter'], pop:84, tag:'은은한 광채', aff:{dull:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000200436', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0020/A00000020043602ko.jpg'},
     /* --- 확장 카탈로그: 토너·패드 (올리브영 검증) --- */
     {id:'roundlabDokdoToner', brand:'라운드랩', name:'1025 독도 토너', color:'#5c7a8b', cats:['toner'], pop:95, tag:'국민 수분토너', ing:['판테놀','알란토인'], aff:{dryness:3,flake:2,texture:1,redness:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000125507', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0012/A00000012550701ko.jpg'},
     {id:'torridenDiveInToner', brand:'토리든', name:'다이브인 저분자 히알루론산 토너', color:'#5c7a8b', cats:['toner'], pop:94, tag:'속수분 채움', ing:['히알루론산','판테놀','알란토인'], aff:{dryness:3,dull:1,flake:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000170266', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0017/A00000017026601ko.jpg'},
@@ -5135,18 +5219,29 @@ DEMO_HTML = """
 
   function recommendFrom(pool, N, focal){
     const profile = buildUserProfile();
+    /* 설문에서 고른 퍼스널 톤: pc 태그가 일치하는 컬러 제품에 가산점 */
+    const pcTone = (window.appState && window.appState.survey && window.appState.survey.personalColor) || '';
+    const pcOn = !!pcTone && pcTone !== 'none';
+    const pcMatch = p => pcOn && p.pc && p.pc.indexOf(pcTone) >= 0;
     /* focal: 지금 보고 있는 고민 태그. 그 고민 특화 제품이 범용 제품보다 우선되도록 가중. */
     const scored = pool.map(p=>({
       p:p,
-      s: scoreProduct(p, profile) + (focal ? (p.aff[focal] || 0) * 1.7 : 0)
+      s: scoreProduct(p, profile) + (focal ? (p.aff[focal] || 0) * 1.7 : 0) + (pcMatch(p) ? 1.4 : 0)
     }));
     const max = scored.reduce((m,x)=> Math.max(m, x.s), 0.0001);
     scored.sort((a,b)=> b.s - a.s);
-    return scored.slice(0, N).map((x,i)=> Object.assign({}, x.p, {
-      rank: i+1,
-      match: Math.round(72 + 27 * (x.s / max)),
-      why: buildWhy(x.p, profile)
-    }));
+    return scored.slice(0, N).map((x,i)=>{
+      let why = buildWhy(x.p, profile);
+      if(pcMatch(x.p)){
+        const L = window.PC_LABEL || {};
+        why = (why ? why + ' · ' : '') + '<b>' + (L[pcTone] || '퍼스널') + ' 톤 매치</b>';
+      }
+      return Object.assign({}, x.p, {
+        rank: i+1,
+        match: Math.round(72 + 27 * (x.s / max)),
+        why: why
+      });
+    });
   }
   function recommendForConcern(tag, N){
     return recommendFrom(PRODUCTS.filter(p=> (p.aff[tag] || 0) > 0), N, tag);
@@ -5270,6 +5365,7 @@ DEMO_HTML = """
       lines:[ { label:'선케어 라인', sub:'자외선 차단', cat:'sun' } ] },
     { key:'t3', label:'3단계', category:'베이스 메이크업',
       desc:'선케어에 이어 칙칙함 없이 깔끔한 피부로 톤과 결을 정돈해요.',
+      descFn: function(){ return '선케어에 이어 칙칙함 없이 깔끔한 피부로 톤과 결을 정돈해요.' + pcToneSuffix(); },
       /* 성별에 따라 단계 구성이 달라진다.
          여성: 컨실러 → 쿠션 → 쉐이딩 → 하이라이터 / 남성(기본): 커버스틱 → 쿠션 → 쉐이딩 */
       linesFn: function(){
@@ -5287,6 +5383,7 @@ DEMO_HTML = """
       } },
     { key:'t4', label:'4단계', category:'립/아이 메이크업',
       desc:'눈썹 정리로 또렷한 인상을 만들고, 눈매와 입술을 자연스럽게 정돈해요.',
+      descFn: function(){ return '눈썹 정리로 또렷한 인상을 만들고, 눈매와 입술을 자연스럽게 정돈해요.' + pcToneSuffix(); },
       lines:[
         { label:'아이브로우', sub:'눈썹 정리·또렷한 인상', cat:'brow' },
         { label:'아이섀도우', sub:'눈매 연출·자연스러운 분위기', cat:'eye' },
@@ -5302,6 +5399,15 @@ DEMO_HTML = """
       ] }
   ];
   let tierInitialized = false;
+
+  /* 설문에서 퍼스널 톤을 골랐으면 컬러 제품 단계 설명에 톤 매칭 안내를 덧붙인다 */
+  function pcToneSuffix(){
+    const pc = (window.appState && window.appState.survey && window.appState.survey.personalColor) || '';
+    const L = window.PC_LABEL || {};
+    return (pc && pc !== 'none' && L[pc])
+      ? ' 선택하신 ' + L[pc] + ' 팔레트와 어울리는 컬러 계열을 우선 추천해요.'
+      : '';
+  }
 
   function initTierTabs(){
     tierInitialized = true;
