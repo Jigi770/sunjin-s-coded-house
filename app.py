@@ -5920,10 +5920,12 @@ if auth_on:
     except Exception:
         pass
 
-# Optional Supabase config. When absent, the frontend falls back to its
-# built-in product catalog, so the demo keeps working with no secrets set.
-supabase_url = _secret("SUPABASE_URL")
-supabase_key = _secret("SUPABASE_ANON_KEY")
+# Supabase config. Secrets override these defaults; the defaults point at the
+# demo's own Supabase project so the deployed app connects even when Streamlit
+# secrets are missing. The publishable key is public by design (all access is
+# enforced by RLS), so keeping it in code is safe. Never put the secret key here.
+supabase_url = _secret("SUPABASE_URL", "https://nkjkorcwjtmifanizsyb.supabase.co")
+supabase_key = _secret("SUPABASE_ANON_KEY", "sb_publishable_oUasWzdVwxCcC4cw5g2AJg_35OJald0")
 
 DEMO_HTML = DEMO_HTML.replace("__LOGO_SRC__", logo_data_uri)
 DEMO_HTML = DEMO_HTML.replace("__SUPABASE_URL__", supabase_url)
