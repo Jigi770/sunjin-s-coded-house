@@ -65,6 +65,20 @@ face_male_uri = _img_data_uri("face_male.png")
 face_female_uri = _img_data_uri("face_female.png")
 
 
+def _video_data_uri(name: str) -> str:
+    """Encode a local MP4 as a data URI; empty string if the file is missing."""
+    try:
+        p = Path(__file__).parent / name
+        return "data:video/mp4;base64," + base64.b64encode(p.read_bytes()).decode("ascii")
+    except Exception:
+        return ""
+
+
+# 히어로 '영상 분석 화면 (데모)' 영역에 재생할 데모 영상. 파일이 없으면
+# 기존 텍스트 플레이스홀더로 폴백한다.
+hero_video_uri = _video_data_uri("wrks-output.mp4")
+
+
 def _look_imgs() -> dict:
     """스타일 피드 카드별 완성 촬영 이미지(look_<카드id>.png|jpg|webp)가 있으면 로드.
 
@@ -329,7 +343,10 @@ DEMO_HTML = """
     aspect-ratio:1/1;border-radius:16px;
     background:linear-gradient(160deg,#3a3934,#232320);
     display:flex;align-items:center;justify-content:center;color:#7a7970;
-    border:1px dashed #4a4940;
+    border:1px dashed #4a4940;overflow:hidden;
+  }
+  .hero-visual .face video{
+    width:100%;height:100%;object-fit:cover;border-radius:16px;display:block;
   }
   .hero-visual .cap{margin-top:14px;font-size:12.5px;color:#9c9b92;text-align:center;}
 
@@ -6325,6 +6342,11 @@ supabase_url = _secret("SUPABASE_URL", "https://nkjkorcwjtmifanizsyb.supabase.co
 supabase_key = _secret("SUPABASE_ANON_KEY", "sb_publishable_oUasWzdVwxCcC4cw5g2AJg_35OJald0")
 
 DEMO_HTML = DEMO_HTML.replace("__LOGO_SRC__", logo_data_uri)
+if hero_video_uri:
+    DEMO_HTML = DEMO_HTML.replace(
+        '<div class="face">영상 분석 화면 (데모)</div>',
+        f'<div class="face"><video src="{hero_video_uri}" autoplay muted loop playsinline></video></div>',
+    )
 DEMO_HTML = DEMO_HTML.replace("__SUPABASE_URL__", supabase_url)
 DEMO_HTML = DEMO_HTML.replace("__SUPABASE_KEY__", supabase_key)
 DEMO_HTML = DEMO_HTML.replace("__AUTH_ON__", json.dumps("1" if auth_on else ""))
