@@ -423,11 +423,22 @@ DEMO_HTML = """
   .tier-desc{margin-top:14px;padding:13px 18px;background:var(--accent-soft);border-radius:var(--radius);font-size:13px;color:#3c4636;line-height:1.5;}
   .tier-cat-label{margin-top:16px;font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
 
-  .prod-row{display:flex;gap:16px;margin-top:12px;overflow-x:auto;padding-bottom:6px;}
+  /* 한 줄 4카드 그리드: 가로 스크롤 대신 컨테이너 폭을 꽉 채우고,
+     화면이 좁아지면 4→3→2열로 유동 조정한다(아래 media query). */
+  .prod-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:12px;}
   .prod-card{
-    flex:0 0 240px;background:var(--bg);border:2px solid var(--line);border-radius:var(--radius-lg);
+    min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:var(--radius-lg);
     padding:20px;text-align:center;position:relative;display:block;text-decoration:none;color:inherit;
     transition:transform .15s ease,box-shadow .15s ease;cursor:pointer;
+  }
+  @media (max-width:1024px){
+    .prod-row{grid-template-columns:repeat(3,1fr);}
+  }
+  @media (max-width:820px){
+    .prod-row{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:560px){
+    .prod-row{gap:10px;}
   }
   .prod-card:hover{transform:translateY(-3px);box-shadow:0 10px 22px rgba(20,20,18,.08);}
   .prod-card.reco{border-color:var(--gold);background:linear-gradient(180deg,#fdf8ee,var(--bg));}
@@ -454,6 +465,11 @@ DEMO_HTML = """
   .wish-btn.on{background:var(--gold);border-color:var(--gold);color:#1a1a18;font-size:11px;}
   .wish-btn.on .wish-ic{fill:currentColor;}
   .prod-card.reco .wish-btn.on{background:var(--dark);border-color:var(--dark);color:#fff;}
+  /* 좁은 카드(모바일 2열)에서는 하트 아이콘만 노출 — 채움 여부로 담김 상태 표시 */
+  @media (max-width:560px){
+    .wish-btn{flex-basis:40px;}
+    .wish-btn .wish-txt{display:none;}
+  }
   /* 배지: 왼쪽 상단 랭킹(올리브영 랭킹 데이터 기반) · 오른쪽 상단 '추천'(내 피부 매칭)
      문구가 길어져도 한 줄 유지(nowrap) + 폰트 90% 축소, 위치·색·형태는 기존 그대로 */
   .prod-rank{
@@ -1407,14 +1423,12 @@ DEMO_HTML = """
   /* 마이페이지 > 내 위시리스트: 담아둔 제품을 기존 카드 UI 그대로 그리드 나열 */
   .mp-wish-title{font-size:15px;font-weight:800;color:#2b241d;margin:2px 0 14px;}
   .mp-wish-title b{color:var(--db-brown,#8a6a52);}
-  .mp-wish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+  /* 위시리스트 그리드도 제품 추천과 동일하게 데스크탑 4열 → 3 → 2열 반응형 */
+  .mp-wish-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
   .mp-wish-grid .prod-card{width:auto;}
-  @media (max-width:560px){
-    .mp-wish-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}
-    /* 좁은 카드에서는 하트 아이콘만 노출(채움 여부로 담김 상태 표시) */
-    .mp-wish-grid .wish-btn{flex-basis:40px;}
-    .mp-wish-grid .wish-btn .wish-txt{display:none;}
-  }
+  @media (max-width:1024px){ .mp-wish-grid{grid-template-columns:repeat(3,1fr);} }
+  @media (max-width:820px){ .mp-wish-grid{grid-template-columns:repeat(2,1fr);} }
+  @media (max-width:560px){ .mp-wish-grid{gap:10px;} }
   .mp-panels{display:flex;flex-direction:column;gap:12px;}
   .mp-record{background:#fffdfa;border:1px solid #e6dccd;border-radius:14px;padding:16px 18px;transition:box-shadow .15s ease;}
   .mp-record:hover{box-shadow:0 8px 20px rgba(120,96,68,.08);}
@@ -4587,6 +4601,11 @@ DEMO_HTML = """
       '<rect x="26" y="14" width="8" height="58" rx="3" fill="'+c+'"/>' +
       '<path d="M26 72 L30 90 L34 72 Z" fill="#d8cfc0"/><path d="M28.6 82 L30 90 L31.4 82 Z" fill="#4a3a2c"/>' +
       '<rect x="27.5" y="18" width="2.5" height="46" fill="'+hl+'"/>');
+    if(cat === 'lip') return wrap(
+      '<path d="M26 10 Q30 6 34 10 L33 24 H27 Z" fill="'+c+'" opacity=".8"/>' +
+      '<rect x="25" y="24" width="10" height="14" rx="2" fill="#b6afa2"/>' +
+      '<rect x="21" y="38" width="18" height="50" rx="6" fill="'+c+'"/>' +
+      '<rect x="24.5" y="46" width="4" height="30" rx="2" fill="'+hl+'"/>');
     if(cat === 'eye') return wrap(
       '<rect x="8" y="30" width="44" height="40" rx="6" fill="'+c+'"/>' +
       '<circle cx="19" cy="42" r="4.5" fill="#e8d3bd"/><circle cx="30" cy="42" r="4.5" fill="#c9a184"/><circle cx="41" cy="42" r="4.5" fill="#8a6a52"/>' +
@@ -4701,10 +4720,16 @@ DEMO_HTML = """
     {id:'illiyoonLotion', brand:'일리윤', name:'세라마이드 아토 로션', color:'#8ba0b0', cats:['lotion','bodylotion'], pop:83, tag:'세라마이드 보습', ing:['세라마이드'], aff:{dryness:3,flake:2,redness:1}},
     {id:'cnpLotion', brand:'CNP', name:'프로폴리스 트리트먼트 앰플 에센스', color:'#c9a86a', cats:['serum'], pop:78, tag:'프로폴리스 광채', ing:['프로폴리스'], aff:{dryness:2,dull:2,elastic:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000159280', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0015/A00000015928001ko.jpg'},
     {id:'roundlabLotion', brand:'라운드랩', name:'1025 독도 로션', color:'#5c7a8b', cats:['lotion'], pop:84, tag:'약산성 수분 로션', aff:{dryness:2,redness:1,flake:1}},
+    {id:'torridenForMenLotion', brand:'토리든', name:'다이브인 포맨 스킨/젤로션 2종 기획', color:'#5c7a8b', cats:['lotion'], pop:88, tag:'남성 속수분 로션', ing:['히알루론산','판테놀'], aff:{dryness:3,oil:1,flake:1}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000207115', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0020/A00000020711501ko.jpg'},
     /* --- 아이 메이크업: 아이브로우 --- */
     {id:'clioBrow', brand:'클리오', name:'킬브로우 오토 하드 브로우 펜슬', color:'#6b5744', cats:['brow'], pop:88, tag:'자연스러운 눈썹', aff:{}},
     {id:'etudeBrow', brand:'에뛰드', name:'더 리얼 아이브로우 오토펜슬', color:'#7a6248', cats:['brow'], pop:82, tag:'입문용 브로우', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000171114', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/10/0000/0017/A00000017111401ko.jpg'},
     {id:'ridleBrow', brand:'롬앤', name:'한올 샤프 브로우', color:'#5c4a38', cats:['brow'], pop:75, tag:'디테일 표현', aff:{}},
+    /* --- 립 메이크업: 립밤 + 자연스러운 혈색/컬러 (올리브영 검증) --- */
+    {id:'laneigeLipMask', brand:'라네즈', name:'립 슬리핑 마스크 EX', color:'#c98ba0', cats:['lip'], pop:94, tag:'자는 동안 립케어', ing:['히알루론산'], aff:{dryness:2,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000156111', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0015/A00000015611101ko.jpg'},
+    {id:'melixirLipButter', brand:'멜릭서', name:'비건 립 버터', color:'#8ba07a', cats:['lip'], pop:89, tag:'쌩얼 립밤', ing:['시어버터'], aff:{dryness:2,flake:2}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000233043', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0023/A00000023304301ko.jpg'},
+    {id:'romandJuicyTint', brand:'롬앤', name:'쥬시 래스팅 틴트', color:'#c15c5c', cats:['lip'], pop:92, tag:'촉촉 컬러', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000125955', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0012/A00000012595501ko.jpg'},
+    {id:'periperaInkMood', brand:'페리페라', name:'잉크 무드 글로이 틴트', color:'#a85c6f', cats:['lip'], pop:90, tag:'자연스러운 혈색', aff:{}, oy:'https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=A000000162471', img:'https://image.oliveyoung.co.kr/cfimages/cf-goods/uploads/images/thumbnails/550/10/0000/0016/A00000016247101ko.jpg'},
     /* --- 퍼퓸 & 바디: 바디 로션 --- */
     {id:'aveenoBody', brand:'아비노', name:'데일리 모이스처라이징 바디로션', color:'#6b8b8b', cats:['bodylotion'], pop:85, tag:'귀리 보습', ing:['콜로이드 오트밀'], aff:{dryness:3,flake:2}},
     {id:'sensodyneBody', brand:'존슨즈', name:'베이비 핑크 로션', color:'#9b8b7a', cats:['bodylotion'], pop:74, tag:'순한 데일리 보습', aff:{dryness:2}},
@@ -4907,6 +4932,23 @@ DEMO_HTML = """
   }
   applyProdImgMap();
 
+  /* ---- 카탈로그 큐레이션 패치 (항상 우선 적용) ----
+     Supabase 원격 카탈로그는 같은 id를 덮어쓰기 때문에, 원격 스냅샷이 오래돼도
+     반드시 반영돼야 하는 수정(카테고리 재분류·판매 링크 교정 등)은 여기에 둔다.
+     초기 로드와 원격 병합 직후에 각각 적용된다. */
+  const CATALOG_PATCH = {
+    /* 로션 라인은 페이셜 전용: 바디 겸용 제품은 bodylotion 카테고리로만 노출 */
+    illiyoonLotion: { cats: ['bodylotion'] },
+    atopalmMleLotion: { cats: ['bodylotion'] }
+  };
+  function applyCatalogPatches(){
+    PRODUCTS.forEach(p=>{
+      const patch = CATALOG_PATCH[p.id]; if(!patch) return;
+      for(const k in patch){ p[k] = patch[k]; }
+    });
+  }
+  applyCatalogPatches();
+
   function buildUserProfile(){
     const c = (window.appState && window.appState.concerns) || new Set();
     const age = (window.appState && window.appState.age) ? window.appState.age : 29;
@@ -5049,6 +5091,7 @@ DEMO_HTML = """
         PRODUCTS.forEach(enrichAffFromIngredients);   /* 원격 카탈로그도 성분 기반 aff 보강 */
         applyOyData();       /* 원격 항목에도 상세페이지 링크·이미지 적용(원격 값 우선) */
         applyProdImgMap();   /* 원격 카탈로그에도 제품명 기반 이미지 매핑 적용 */
+        applyCatalogPatches(); /* 큐레이션 패치는 원격 값보다 항상 우선 */
         /* 현재 열려 있는 추천 화면이 있으면 새 카탈로그로 다시 그린다 */
         if(typeof tierInitialized !== 'undefined' && tierInitialized){
           const active = document.querySelector('.tier-tab.active');
@@ -5118,8 +5161,8 @@ DEMO_HTML = """
       desc:ROUTINE_MESSAGES['default'],
       lines:[
         { label:'토너 라인', sub:'결 정돈·수분', cat:'toner' },
-        { label:'앰플 라인', sub:'집중 케어', cat:'serum' },
         { label:'로션 라인', sub:'가벼운 보습', cat:'lotion' },
+        { label:'앰플 라인', sub:'집중 케어', cat:'serum' },
         { label:'크림 라인', sub:'마무리 보습·장벽', cat:'cream' }
       ] },
     { key:'t2', label:'2단계', category:'선케어',
@@ -5128,11 +5171,12 @@ DEMO_HTML = """
     { key:'t3', label:'3단계', category:'베이스 메이크업',
       desc:'선케어에 이어 칙칙함 없이 깔끔한 피부로 톤과 결을 정돈해요.',
       lines:[ { label:'피부 표현 라인', sub:'톤·결 보정', cat:'cushion' } ] },
-    { key:'t4', label:'4단계', category:'아이메이크업',
-      desc:'눈썹 정리로 또렷한 인상을 만들고, 눈매를 자연스럽게 정돈해요.',
+    { key:'t4', label:'4단계', category:'립/아이 메이크업',
+      desc:'눈썹 정리로 또렷한 인상을 만들고, 눈매와 입술을 자연스럽게 정돈해요.',
       lines:[
         { label:'아이브로우', sub:'눈썹 정리·또렷한 인상', cat:'brow' },
-        { label:'아이섀도우', sub:'눈매 연출·자연스러운 분위기', cat:'eye' }
+        { label:'아이섀도우', sub:'눈매 연출·자연스러운 분위기', cat:'eye' },
+        { label:'립', sub:'립밤·자연스러운 혈색', cat:'lip' }
       ] },
     { key:'t5', label:'5단계', category:'퍼퓸&바디케어',
       desc:'향과 바디케어로 하루의 마무리까지 완성해요.',
@@ -5169,7 +5213,7 @@ DEMO_HTML = """
     /* descFn이 있으면 사용자 분석 결과 기반 개인화 문구를, 없으면 고정 문구를 표시 */
     document.getElementById('tierDesc').textContent = tier.descFn ? tier.descFn() : tier.desc;
     const rows = tier.lines.map(line=>{
-      const products = recommendForCat(line.cat, 3);
+      const products = recommendForCat(line.cat, 4);   /* 한 줄 4카드 그리드에 맞춤 */
       if(!products.length) return '';
       return '<div class="tier-line">' +
         '<div class="tier-line-label">' + line.label +
@@ -5218,7 +5262,7 @@ DEMO_HTML = """
 
   function renderExtra(key){
     const c = EXTRA_CONCERNS.find(c=>c.key===key);
-    document.getElementById('extraProdRow').innerHTML = renderProductCards(recommendForConcern(c.tag, 3));
+    document.getElementById('extraProdRow').innerHTML = renderProductCards(recommendForConcern(c.tag, 4));
   }
 
   /* ---------------- community (localStorage + dummy data) ---------------- */
