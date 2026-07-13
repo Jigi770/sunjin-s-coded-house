@@ -228,3 +228,13 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   alter publication supabase_realtime add table comments;
 exception when duplicate_object then null; end $$;
+
+-- ---------------------------------------------------------------
+-- 실행 결과 확인 (마지막 쿼리 결과가 화면에 표시됩니다)
+-- products=100, post_policies=4, realtime_tables=2 이면 전부 성공.
+select
+  (select count(*) from public.products)                          as products,
+  (select count(*) from pg_policies where tablename = 'posts')    as post_policies,
+  (select count(*) from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and tablename in ('posts','comments'))                      as realtime_tables;
