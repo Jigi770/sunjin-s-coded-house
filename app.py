@@ -595,6 +595,11 @@ DEMO_HTML = """
   .tpo-situ{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:var(--bg);}
   .tpo-situ .tpo-situ-title{font-size:15px;font-weight:800;color:var(--ink);}
   .tpo-situ .tpo-impression span{background:var(--accent-soft);color:var(--accent);}
+  .tpo-situ-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  /* 추천 성별 토글: 프로필 성별과 별개로 이 섹션의 룩만 전환 */
+  .tpo-gender{display:inline-flex;gap:3px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;}
+  .tpo-gender button{font-size:12px;font-weight:700;padding:4px 13px;border-radius:999px;border:none;background:transparent;color:var(--ink-soft);}
+  .tpo-gender button.active{background:var(--dark);color:#fff;}
   .tpo-combo-body{display:grid;grid-template-columns:repeat(2,1fr);gap:0;}
   .tpo-slot{padding:18px 22px;border-top:1px solid var(--line);border-right:1px solid var(--line);}
   .tpo-slot:nth-child(2n){border-right:none;}
@@ -4378,8 +4383,11 @@ DEMO_HTML = """
   function currentStyleGender(){ return (window.appState && window.appState.gender) === 'female' ? 'female' : 'male'; }
   function faceImg(gender){ return gender === 'female' ? (window.FACE_FEMALE || '') : (window.FACE_MALE || ''); }
 
+  let tpoSit = 'date';
+  let tpoGender = null;   /* null이면 프로필 성별을 따르고, 토글을 누르면 그 값이 우선 */
   function renderTpo(sit){
-    const g = currentStyleGender();
+    tpoSit = sit;
+    const g = tpoGender || currentStyleGender();
     const look = TPO_LOOKS[sit][g];
     const t = TPO[sit];
     const slot = (icon,label,content)=>
@@ -4388,7 +4396,13 @@ DEMO_HTML = """
     document.getElementById('tpoComboBody').innerHTML =
       '<div class="tpo-slot full tpo-situ">' +
         '<div class="tpo-situ-title">'+t.emoji+' '+t.label+' 추천 룩</div>' +
-        '<div class="tpo-impression">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
+        '<div class="tpo-situ-right">' +
+          '<div class="tpo-gender" role="group" aria-label="추천 성별 선택">' +
+            '<button type="button" data-tpo-gender="male"'+(g==='male'?' class="active"':'')+'>남성</button>' +
+            '<button type="button" data-tpo-gender="female"'+(g==='female'?' class="active"':'')+'>여성</button>' +
+          '</div>' +
+          '<div class="tpo-impression">'+look.impression.map(k=>'<span>#'+k+'</span>').join('')+'</div>' +
+        '</div>' +
       '</div>' +
       slot(IC_SKIN,'피부 포인트','<div class="tpo-slot-sub">'+look.skin+'</div>') +
       slot(IC_COS,'화장품','<ul class="tpo-slot-list">'+look.cosmetics.map(c=>'<li>'+c+'</li>').join('')+'</ul>') +
@@ -4662,6 +4676,12 @@ DEMO_HTML = """
       /* 탭 전환 시 상단 추천 조합과 하단 스타일 피드를 함께 해당 상황으로 교체 */
       renderTpo(b.dataset.tpo);
       renderFeed(b.dataset.tpo);
+    });
+    /* 추천 룩 성별 토글: 매 렌더마다 버튼이 새로 그려지므로 컨테이너에 위임 */
+    document.getElementById('tpoComboBody').addEventListener('click', e=>{
+      const b = e.target.closest('[data-tpo-gender]'); if(!b) return;
+      tpoGender = b.dataset.tpoGender;
+      renderTpo(tpoSit);
     });
     document.getElementById('sheetBackdrop').addEventListener('click', closeSheet);
     document.addEventListener('keydown', e=>{
